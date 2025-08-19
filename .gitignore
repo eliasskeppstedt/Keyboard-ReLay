@@ -1,0 +1,22 @@
+# Rust
+/target/
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*~
+.nfs*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Misc
+*.log
+.env
