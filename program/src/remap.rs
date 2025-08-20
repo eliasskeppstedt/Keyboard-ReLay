@@ -37,7 +37,7 @@ fn remap_layout() -> Option<Map<String, Value>> {
     return json_value.get("remaps_rdev").and_then(|v| v.as_object().cloned());
 }
 
-// available keys from rdev crate
+// from str to the key enum type in rdev
 pub fn get_key(name: &str) -> Key {
     match name {
         "Alt" => Key::Alt,
