@@ -1,0 +1,24 @@
+/*
+CFMachPortRef CGEventTapCreate(
+    CGEventTapLocation tap, 
+    CGEventTapPlacement place, 
+    CGEventTapOptions options, 
+    CGEventMask eventsOfInterest, 
+    CGEventTapCallBack callback, 
+    void * userInfo
+);
+
+CGEventRef MyEventTapCallBack (
+    CGEventTapProxy proxy,
+    CGEventType type,
+    CGEventRef event,
+    void *refcon
+);
+*/
+
+/*
+clang -Wall -Wextra main.c \
+  -framework ApplicationServices \
+  -framework CoreFoundation \
+  -o keyboard_relay
+*/
