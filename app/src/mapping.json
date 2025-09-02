@@ -1,0 +1,16 @@
+{
+    "macMapping": {  
+        "remapsOnPress": {
+
+        },
+        "remapsOnHold": {
+            "0x00": "0x38",
+            "0x05": "0x37"
+        },
+        "layering": {
+            "layer1": {
+                
+            }
+        }
+    }
+}
