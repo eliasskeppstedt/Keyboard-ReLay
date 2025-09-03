@@ -1,4 +1,6 @@
 // From https://gist.github.com/eegrok/949034 
+#include <stdint.h>
+
 static const uint16_t MAC_A             = 0x00; // A
 static const uint16_t MAC_S             = 0x01; // S
 static const uint16_t MAC_D             = 0x02; // D

@@ -1,5 +1,5 @@
-#include <CoreGraphics/CGEvent.h> // For ex: everything within CFMachPortRef
-#include <CoreGraphics/CGEventTypes.h>
+//#include <CoreGraphics/CGEvent.h> // For ex: everything within CFMachPortRef
+//#include <CoreGraphics/CGEventTypes.h>
 #include "../eventHandler.c"
 
 struct two_pointers 
