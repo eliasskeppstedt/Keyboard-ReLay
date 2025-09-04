@@ -1,22 +1,18 @@
-#include "mac/quartzEventService.c"
+#include "./../header/main.h"
 
 enum USER_OS { MAC, LINUX, WINDOWS };
 
 int main()
 {
     // TODO: get user's OS
-    enum USER_OS os = MAC;
+    int os = 1;
     //
     switch (os)
     {
-    case MAC:
+    case 1: // mac
         cJSON* remapTable = createRemapTable();
         cJSON* macRemapTable = cJSON_GetObjectItem(remapTable, "macMapping");
         if(!macStartMonitoring(remapTable)) { printf("error"); return 1; }
-        break;
-    case LINUX:
-        break;
-    case WINDOWS:
         break;
     default:
         break;

@@ -1,14 +1,4 @@
-#include <CoreGraphics/CGEvent.h> // For ex: everything within CFMachPortRef
-#include <CoreGraphics/CGEventTypes.h>
-#include <CoreGraphics/CGEventSource.h>
-#include <CoreFoundation/CFRunLoop.h>
-#include "./mac/keycodes.c"
-#include "./mac/json.c"
-
-CFRunLoopTimerRef createRunLoopTimerRef()
-{
-    return NULL;
-}
+#include "./../header/eventHandler.h"
 
 void myRunLoopTimerCallBack(CFRunLoopTimerRef runLoopTimer, void* keyCode)
 {
@@ -43,10 +33,9 @@ CGEventRef handleMacEvent(CGEventType type, CGEventRef event, CFRunLoopRef* pRun
     int64_t isRepeat = CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat);
     if (isRepeat) return NULL;
 
-    int64_t* pKeyCode = malloc(sizeof(int64_t));
-    *pKeyCode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
+    int64_t keyCode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
 
-    if (*pKeyCode == MAC_ESC) 
+    if (keyCode == MAC_ESC) 
     { 
         CFRunLoopStop(*pRunLoop);
         deleteRemapTable(macRemapTable); 
@@ -58,11 +47,13 @@ CGEventRef handleMacEvent(CGEventType type, CGEventRef event, CFRunLoopRef* pRun
         cJSON* remapTableOnHold = cJSON_GetObjectItem(macRemapTable, "remapsOnHold");
         if (remapTableOnHold)
         {
-            char* key = "0x05";
-            cJSON* value = cJSON_GetObjectItemCaseSensitive(remapTableOnHold, key);
+            char* jsonKeyName = getJsonKeyNameFromMacKeyCode(keyCode);
+            cJSON* value = cJSON_GetObjectItemCaseSensitive(remapTableOnHold, jsonKeyName);
             if (value)
             {
-                printf("value: %s, keycode: %i\n", cJSON_Print(value), *pKeyCode);
+                int64_t* pKeyCode = malloc(sizeof(int64_t));
+                *pKeyCode = keyCode;
+                printf("value: %s, keycode: %i\n", cJSON_Print(value), keyCode);
                 createRunLoopTimer(&pKeyCode);
             }
         }
@@ -76,11 +67,11 @@ CGEventRef handleMacEvent(CGEventType type, CGEventRef event, CFRunLoopRef* pRun
     {
         printf("modifier key, ");
     } 
-    if (*pKeyCode == MAC_B)
+    if (keyCode == MAC_B)
     {
         //event = createEventForKey(type, event, MAC_LEFT_SHIFT);
     }
-    printf("Callback func! Keycode: %lli\n", *pKeyCode);
+    printf("Callback func! Keycode: %lli\n", keyCode);
 
     return event;
 }

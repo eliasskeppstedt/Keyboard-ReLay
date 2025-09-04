@@ -1,7 +1,7 @@
 mac_cc = clang
 mac_cflags = -Wall -Wextra
 mac_frameworks = -framework ApplicationServices -framework CoreFoundation
-src = ./src/main.c
+src = ./src/constants.c ./src/dataStorage.c ./src/eventHandler.c ./src/logic.c ./src/main.c ./src/quartzEventService.c ./lib/cJSON.c
 out = keyboard_relay
 
 macapp: $(src)

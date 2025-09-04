@@ -1,0 +1,31 @@
+{
+    "macMapping": {  
+        "remapsOnPress": {
+
+        },
+        "remapsOnHold": {
+            "key_a": 38,
+            "key_b": 61
+        },
+        "layering": {
+            "layer1": {
+                
+            }
+        }
+    },
+    "layers": [
+        {
+            "layer": 1,
+            "name": "",
+            "macMapping": {
+                "remapsOnPress": {
+
+                },
+                "remapsOnHold": {
+                    "key_a": 38,
+                    "key_b": 61
+                }   
+            }
+        }
+    ]
+}

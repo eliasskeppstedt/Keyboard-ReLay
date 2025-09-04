@@ -1,12 +1,4 @@
-//#include <CoreGraphics/CGEvent.h> // For ex: everything within CFMachPortRef
-//#include <CoreGraphics/CGEventTypes.h>
-#include "../eventHandler.c"
-
-struct two_pointers 
-{
-    CFRunLoopRef* pRunLoop;
-    cJSON* remapTable;
-};
+#include "./../header/quartzEventSystem.h"
 
 static uint32_t K_CG_EVENT_TAP_OPTION_DEFAULT = 0x00000000; // for Mac OS X v10.4 support
 static uint32_t EVENT_MASK = (
