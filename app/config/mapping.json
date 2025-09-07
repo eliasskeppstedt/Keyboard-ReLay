@@ -1,31 +1,18 @@
 {
-    "macMapping": {  
-        "remapsOnPress": {
-
-        },
-        "remapsOnHold": {
-            "key_a": 38,
-            "key_b": 61
-        },
-        "layering": {
-            "layer1": {
-                
-            }
-        }
-    },
-    "layers": [
-        {
-            "layer": 1,
-            "name": "layer1",
-            "macMapping": {
-                "remapsOnPress": {
-
-                },
-                "remapsOnHold": {
-                    "key_a": 38,
-                    "key_b": 61
-                }   
-            }
-        }
-    ]
+  "layers": [
+    {
+      "layerNr": 0,
+      "name": "layer0",
+      "macMapping": {
+        "remapsOnPress": [
+          { "from": 0, "to": 0, "fromName": "key_a", "toName": "key_a" },
+          { "from": 11, "to": 11, "fromName": "key_b", "toName": "key_b" }
+        ],
+        "remapsOnHold":  [
+          { "from": 0, "to": 0, "fromName": "key_a", "toName": "key_a" },
+          { "from": 11, "to": 11, "fromName": "key_b", "toName": "key_b" }
+        ]
+      }
+    }
+  ]
 }
