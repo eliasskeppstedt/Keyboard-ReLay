@@ -2,7 +2,7 @@
 
 cJSON* createRemapTable() 
 {
-    FILE *pF = fopen("./../mapping.json", "r");
+    FILE *pF = fopen("./mapping.json", "r");
 
     if (pF == NULL) 
     {
@@ -36,51 +36,61 @@ void deleteRemapTable(cJSON* json)
 
 void populateRemapTable(cJSON* remapTableObject, struct keyData* pRemapTable)
 {
-    for (int i = 0; i < AMOUNT_OF_KEYCODES; i++)
-    {
-        pRemapTable[i].isPressed = 0;
-        pRemapTable[i].macRemapOnHold = NO_KEY;
-        pRemapTable[i].macRemapOnPress = NO_KEY;
-    }
-    
-    cJSON* layer = NULL;
-    cJSON* layers = cJSON_GetObjectItem(remapTableObject, "layer1");
-    if (layers)
-    {
-        cJSON_ArrayForEach(layer, layers)
-        {
-            cJSON* remapsOnPress = cJSON_GetObjectItem(remapTableObject, "remapsOnPress");
-            
 
-            cJSON* remapsOnHold = cJSON_GetObjectItem(remapTableObject, "remapsOnHold");
-        }
-    }
 }
 
 struct keyData* createRemap(int os)
 {
-    char* mapping;
-    cJSON* remapTableObject = createRemapTable();
+    cJSON* remapTableObject = createRemapTable();   
+    if (!remapTableObject) 
+    { 
+        printf("Could not create remap table (cjson object)"); 
+        return NULL; 
+    }; 
     struct keyData* pRemapTable = malloc(sizeof(struct keyData) * AMOUNT_OF_KEYCODES);
-    if (os == 1)
+    char* mapping = "layers";
+    cJSON* layers = cJSON_GetObjectItem(remapTableObject, mapping);
+    cJSON_Delete(remapTableObject);
+    if (!layers)
     {
-        mapping = "macMapping";
+        printf("Could not locate layers");
+        return NULL;
     }
-    
-    if (remapTableObject)
+    int layerCount = 0;
+    cJSON* layer = NULL;
+    cJSON_ArrayForEach(layer, layers)
     {
-        remapTableObject = cJSON_GetObjectItem(remapTableObject, mapping);
-        if (remapTableObject)
-        {
-            populateRemapTable(remapTableObject, pRemapTable);
-        }
-        else
-        {
-            printf("Could hnot find objecs '%s'\n", mapping);
-        }
-    } 
-    else
-    {
-        printf("Could not create remap table\n");
+        layerCount++;
     }
+    pRemapTable->pMacKeyCodeRemapOnPress = malloc(sizeof(int) * layerCount);
+    pRemapTable->pMacKeyCodeRemapOnHold = malloc(sizeof(int) * layerCount);
+    // initialize remap table //
+    for (int i = 0; i < AMOUNT_OF_KEYCODES; i++)
+    {
+        pRemapTable[i].layerNr = i;
+        char layerNameBuf[7]; // l a y e r X \n
+        snprintf(layerNameBuf, layerCount, "layer%i\n", i); // TODO make user define layout name
+        pRemapTable[i].layerName = layerNameBuf;
+        for (int j = 0; j < layerCount; j++)
+        {
+            pRemapTable[i].pMacKeyCodeRemapOnPress[j] =  NO_KEY;
+            pRemapTable[i].pMacKeyCodeRemapOnHold[j] = NO_KEY;
+        }
+        pRemapTable[i].isPressed = 0;
+    }   
+    // populate remap table //
+    cJSON_ArrayForEach(layer, layers)
+    {
+        cJSON* layerNr = cJSON_GetObjectItemCaseSensitive(remapTableObject, "layer");
+        cJSON* layerName = cJSON_GetObjectItemCaseSensitive(remapTableObject, "name");
+        cJSON* macMapping = cJSON_GetObjectItem(remapTableObject, "macMapping");
+        cJSON* remapsOnPress = cJSON_GetObjectItem(remapTableObject, "remapsOnPress");
+        cJSON* key = NULL; 
+        cJSON_ArrayForEach(key, remapsOnPress)
+        {
+            printf("%i\n", key->valueint);
+        }
+        cJSON* remapsOnHold = cJSON_GetObjectItem(remapTableObject, "remapsOnHold");
+    }
+    return pRemapTable;
 }

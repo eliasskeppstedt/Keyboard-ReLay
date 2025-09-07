@@ -16,7 +16,7 @@
     "layers": [
         {
             "layer": 1,
-            "name": "",
+            "name": "layer1",
             "macMapping": {
                 "remapsOnPress": {
 

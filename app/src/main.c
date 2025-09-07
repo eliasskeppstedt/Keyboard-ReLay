@@ -10,6 +10,7 @@ int main()
     switch (os)
     {
     case 1: // mac
+        //struct keyData* remapTable_new = createRemap(os);
         cJSON* remapTable = createRemapTable();
         cJSON* macRemapTable = cJSON_GetObjectItem(remapTable, "macMapping");
         if(!macStartMonitoring(remapTable)) { printf("error"); return 1; }

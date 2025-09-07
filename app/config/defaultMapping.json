@@ -1,0 +1,18 @@
+{
+    "layers": [
+        {
+            "layer": 1,
+            "name": "layer1",
+            "macMapping": {
+                "remapsOnPress": {
+                    "key_a": 0,
+                    "key_b": 1
+                },
+                "remapsOnHold": {
+                    "key_a": 0,
+                    "key_b": 1
+                }   
+            }
+        }
+    ]
+}

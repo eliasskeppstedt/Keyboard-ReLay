@@ -7,12 +7,14 @@
 #include "constants.h"
 
 typedef struct keyData {
-    int macRemapOnPress;
-    int macRemapOnHold;
+    int layerNr;
+    char* layerName;
+    int* pMacKeyCodeRemapOnPress;
+    int* pMacKeyCodeRemapOnHold;
     int isPressed;
 } keyData;
 
-#define AMOUNT_OF_KEYCODES 127
+#define AMOUNT_OF_KEYCODES 1024
 
 cJSON* createRemapTable();
 
