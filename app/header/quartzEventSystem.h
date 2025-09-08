@@ -9,18 +9,18 @@
 #include <CoreGraphics/CGEventTypes.h>
 #include <CoreGraphics/CGEventSource.h>
 #include <CoreFoundation/CFRunLoop.h>
-#include "./../lib/cJSON.h"
+#include "dataStorage.h"
 #include "constants.h"
 #include "eventHandler.h"
 
 struct two_pointers 
 {
     CFRunLoopRef* pRunLoop;
-    cJSON* remapTable;
+    struct keyData* remapTable;
 };
 
 CGEventRef MyEventTapCallBack(CGEventTapProxy, CGEventType, CGEventRef, void*);
 
-int macStartMonitoring(cJSON*);
+int macStartMonitoring(struct keyData*);
 
 #endif // _QUARTZEVENTSYSTEM_

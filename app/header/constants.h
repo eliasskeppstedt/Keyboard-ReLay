@@ -2,9 +2,26 @@
 #define _CONSTANTS_
 
 #include <stdint.h>
+#include <CoreGraphics/CGEventTypes.h>
 
+typedef enum USER_OS { MAC_OS, LINUX_OS, WINDOWS_OS };
+typedef enum REMAP_MODES { ON_PRESS, ON_HOLD };
+typedef enum MODIFIER_KEY {
+    INDEX_CONTROL = 0, 
+    INDEX_OPTION_ALLT = 1, 
+    INDEX_SHIFT = 2, 
+    INDEX_META = 3,
+    INDEX_CAPS = 4,
+    BITMASK_NOT_ACTIVE = 0,
+    BITMASK_CONTROL = kCGEventFlagMaskControl,
+    BITMASK_OPTION_ALLT = kCGEventFlagMaskAlternate, 
+    BITMASK_SHIFT = kCGEventFlagMaskShift,
+    BITMASK_META = kCGEventFlagMaskCommand,
+    BITMASK_CAPS = kCGEventFlagMaskAlphaShift
+};
 typedef enum {
     NO_KEY = -1,
+    NO_LAYER = -1,
     MAC_A = 0x00,
     MAC_S = 0x01,
     MAC_D = 0x02,

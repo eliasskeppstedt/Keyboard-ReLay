@@ -11,16 +11,16 @@ CGEventRef MyEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRe
 {
     struct two_pointers* data = (struct two_pointers*)refcon;
     CFRunLoopRef* pRunLoop = data->pRunLoop;
-    cJSON* remapTable = data->remapTable;
+    struct keyData* remapTable = data->remapTable;
     return handleMacEvent(type, event, pRunLoop, remapTable);
 }
 
-int macStartMonitoring(cJSON* remapTable) 
+int macStartMonitoring(struct keyData* remapTable) 
 {
     CFRunLoopRef runLoop = CFRunLoopGetMain();
     struct two_pointers* data = malloc(sizeof(struct two_pointers));
     data->pRunLoop = &runLoop;
-    data->remapTable = remapTable;
+    data->remapTable = remapTable;    
 
     CFMachPortRef eventTap = CGEventTapCreate(
         kCGHIDEventTap, // tap; window server, login session, specific annotation

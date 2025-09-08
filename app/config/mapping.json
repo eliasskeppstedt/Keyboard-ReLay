@@ -2,14 +2,14 @@
   "layers": [
     {
       "layerNr": 0,
-      "name": "layer0",
+      "layerName": "layer0",
       "macMapping": {
         "remapsOnPress": [
-          { "from": 0, "to": 0, "fromName": "key_a", "toName": "key_a" },
+          { "from": 0, "to": 1, "fromName": "key_a", "toName": "key_s" },
           { "from": 11, "to": 11, "fromName": "key_b", "toName": "key_b" }
         ],
         "remapsOnHold":  [
-          { "from": 0, "to": 0, "fromName": "key_a", "toName": "key_a" },
+          { "from": 0, "to": 1, "fromName": "key_a", "toName": "key_s" },
           { "from": 11, "to": 11, "fromName": "key_b", "toName": "key_b" }
         ]
       }

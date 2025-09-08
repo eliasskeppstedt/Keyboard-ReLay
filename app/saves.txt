@@ -22,3 +22,13 @@ clang -Wall -Wextra main.c \
   -framework CoreFoundation \
   -o keyboard_relay
 */
+
+kCGEventFlagMaskAlphaShift = NX_ALPHASHIFTMASK,
+kCGEventFlagMaskShift = NX_SHIFTMASK,
+kCGEventFlagMaskControl = NX_CONTROLMASK,
+kCGEventFlagMaskAlternate = NX_ALTERNATEMASK,
+kCGEventFlagMaskCommand = NX_COMMANDMASK,
+kCGEventFlagMaskHelp = NX_HELPMASK,
+kCGEventFlagMaskSecondaryFn = NX_SECONDARYFNMASK,
+kCGEventFlagMaskNumericPad = NX_NUMERICPADMASK,
+kCGEventFlagMaskNonCoalesced = NX_NONCOALSESCEDMASK
