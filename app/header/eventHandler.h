@@ -13,10 +13,10 @@
 
 void myRunLoopTimerCallBack(CFRunLoopTimerRef, void*);
 
-void createRunLoopTimer(struct keyData*, int);
+void createRunLoopTimer(struct dynamicData*);
 
-CGEventRef createEventForKey(CGEventType, CGEventRef, uint16_t);
+CGEventRef createEventForKey();
 
-CGEventRef handleMacEvent(CGEventType, CGEventRef, CFRunLoopRef*, struct keyData*);
+CGEventRef handleMacEvent(struct staticData*);
 
 #endif // _EVENTHANDLER_

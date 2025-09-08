@@ -3,6 +3,30 @@
 
 #include <stdint.h>
 #include <CoreGraphics/CGEventTypes.h>
+#include <CoreGraphics/CGEvent.h>
+
+typedef struct keyData {
+    int layerNr;
+    char* layerName;
+    int macKeyCode;
+    int* pMacKeyCodeRemapOnPress;
+    int* pMacKeyCodeRemapOnHold;
+    bool isPressed;
+} keyData;
+
+struct dynamicData // not really dynamic since i currently heap allocate on each event...
+{
+    CGEventRef pEvent;
+    CGEventType type;
+    struct keyData* pKey;
+};
+
+struct staticData 
+{
+    CFRunLoopRef pRunLoop;
+    struct keyData* pRemapTable;
+    struct dynamicData* pDynamicData;
+};
 
 typedef enum USER_OS { MAC_OS, LINUX_OS, WINDOWS_OS };
 typedef enum REMAP_MODES { ON_PRESS, ON_HOLD };

@@ -2,31 +2,36 @@
 
 static int KEYS_PRESSED_DOWN_BY_KEY_CODE[5] = { BITMASK_NOT_ACTIVE, BITMASK_NOT_ACTIVE, BITMASK_NOT_ACTIVE, BITMASK_NOT_ACTIVE, BITMASK_NOT_ACTIVE };
 
-void myRunLoopTimerCallBack(CFRunLoopTimerRef runLoopTimer, void* key_void)
+void myRunLoopTimerCallBack(CFRunLoopTimerRef pRunLoopTimer, void* pContext)
 {
     // se till att vara på rätt lager, implementera senare //
-    struct keyData* key = (struct keyData*)key_void;
-    if (key->isPressed)
+    struct dynamicData* pData = (struct dynamicData*) pContext;
+    CGEventRef pEvent = pData->pEvent;
+    struct keyData* pKey = pData->pKey;
+    if (pKey->isPressed)
     {
-        int bitmaskModifiers = (
-            KEYS_PRESSED_DOWN_BY_KEY_CODE[INDEX_CONTROL] &&
-            KEYS_PRESSED_DOWN_BY_KEY_CODE[INDEX_OPTION_ALLT] &&
-            KEYS_PRESSED_DOWN_BY_KEY_CODE[INDEX_SHIFT] &&
-            KEYS_PRESSED_DOWN_BY_KEY_CODE[INDEX_META] &&
+        int modifierFlags = (
+            KEYS_PRESSED_DOWN_BY_KEY_CODE[INDEX_CONTROL] ||
+            KEYS_PRESSED_DOWN_BY_KEY_CODE[INDEX_OPTION_ALLT] ||
+            KEYS_PRESSED_DOWN_BY_KEY_CODE[INDEX_SHIFT] ||
+            KEYS_PRESSED_DOWN_BY_KEY_CODE[INDEX_META] ||
             KEYS_PRESSED_DOWN_BY_KEY_CODE[INDEX_CAPS]
         );
+        //CGEventSetFlags(event, modifierFlags);
     }
-    CFRunLoopTimerInvalidate(runLoopTimer);
-    CFRelease(runLoopTimer);
+    free(pData);
+    CFRunLoopTimerInvalidate(pRunLoopTimer);
+    CFRelease(pRunLoopTimer);
 }
 
-void createRunLoopTimer(struct keyData* pRemapTable, int keyCode)
+void createRunLoopTimer(struct dynamicData* pData)
 {   
+    //printf();
     CFRunLoopTimerContext ctx;
     memset(&ctx, 0, sizeof(ctx));
-    ctx.info = &pRemapTable[keyCode];
+    ctx.info = pData;
 
-    CFRunLoopTimerRef runLoopTimer = CFRunLoopTimerCreate(
+    CFRunLoopTimerRef pRunLoopTimer = CFRunLoopTimerCreate(
         kCFAllocatorDefault, // allocator
         CFAbsoluteTimeGetCurrent() + 0.200, // fireDate
         0, // interval: <=0 just fires one time then gets invalidated
@@ -36,45 +41,49 @@ void createRunLoopTimer(struct keyData* pRemapTable, int keyCode)
         &ctx //&runLoopTimer // context: data for callback func
     );
 
-    CFRunLoopAddTimer(CFRunLoopGetCurrent(), runLoopTimer, kCFRunLoopCommonModes);
+    CFRunLoopAddTimer(CFRunLoopGetCurrent(), pRunLoopTimer, kCFRunLoopCommonModes);
 }
 
-CGEventRef modifyEvent(CGEventType type, CGEventRef event, uint16_t keyCode)
+CGEventRef modifyEvent(CGEventType type, CGEventRef pEvent, uint16_t keyCode)
 {
     return NULL;
 }
 
-CGEventRef handleMacEvent(CGEventType type, CGEventRef event, CFRunLoopRef* pRunLoop, struct keyData* pRemapTable) 
+CGEventRef handleMacEvent(struct staticData* pStaticData) 
 {
-    int64_t isRepeat = CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat);
-    if (isRepeat) return NULL;
-
-    int64_t keyCode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
-
+    CGEventRef pEvent = pStaticData->pDynamicData->pEvent;
+    CFRunLoopRef pRunLoop = pStaticData->pRunLoop;
+    int64_t isRepeat = CGEventGetIntegerValueField (pEvent, kCGKeyboardEventAutorepeat);
+    if (isRepeat) return NULL; // dont repeate presses on key hold
+    int64_t keyCode = CGEventGetIntegerValueField(pEvent, kCGKeyboardEventKeycode);
     if (keyCode == MAC_ESC) 
     { 
-        CFRunLoopStop(*pRunLoop);
+        CFRunLoopStop(pRunLoop);
         return NULL;
     }
+    CGEventType type = pStaticData->pDynamicData->type;
+    struct keyData* pKey = pStaticData->pDynamicData->pKey;
+    struct dynamicData* pData = malloc(sizeof(struct dynamicData));
+    pData->pEvent = pEvent;
+    pData->pKey = pKey;
+    pData->type = type;
     printf("\n");
     if (type == kCGEventKeyDown) 
     {
-        pRemapTable[keyCode].isPressed = true;
-        char* jsonKeyName = getJsonKeyNameFromMacKeyCode(keyCode);
+        pKey->isPressed = true;
         //printf("(1) keycode: %i, comboKey: %i\n", pRemapTable[keyCode].macKeyCode, pRemapTable[keyCode].comboKey);
         // lager 0 för nu. TODO: fix dynamic usage of layers
         //printf("keyDown: value: %s, keycode: %i\n", "keyX" /*add in remapTable keyData structure*/, pRemapTable[keyCode].pMacKeyCodeRemapOnPress[0]);
-        createRunLoopTimer(pRemapTable, keyCode);
+        createRunLoopTimer(pData);
     } 
     else if (type == kCGEventKeyUp) 
     {
-        char* jsonKeyName = getJsonKeyNameFromMacKeyCode(keyCode);
         // lager 0 för nu. TODO: fix dynamic usage of layers
-        printf("keyUpp: value: %s, keycode: %i\n", "keyX" /*add in remapTable keyData structure*/, pRemapTable[keyCode].pMacKeyCodeRemapOnPress[0]);
-        if (pRemapTable[keyCode].isPressed)
+        printf("keyUpp: value: %s, keycode: %i\n", "keyX" /*add in remapTable keyData structure*/, pKey->pMacKeyCodeRemapOnPress[0]);
+        if (pKey->isPressed)
         {
         }
-        pRemapTable[keyCode].isPressed = false;
+        pKey->isPressed = false;
     }
     else if (type == kCGEventFlagsChanged) 
     {
@@ -85,5 +94,5 @@ CGEventRef handleMacEvent(CGEventType type, CGEventRef event, CFRunLoopRef* pRun
         //event = createEventForKey(type, event, MAC_LEFT_SHIFT);
     }
 
-    return event;
+    return pEvent;
 }

@@ -13,11 +13,6 @@
 #include "constants.h"
 #include "eventHandler.h"
 
-struct two_pointers 
-{
-    CFRunLoopRef* pRunLoop;
-    struct keyData* remapTable;
-};
 
 CGEventRef MyEventTapCallBack(CGEventTapProxy, CGEventType, CGEventRef, void*);
 
