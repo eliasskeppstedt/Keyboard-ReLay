@@ -2,11 +2,11 @@
 
 static int KEYS_PRESSED_DOWN_BY_KEY_CODE[5] = { BITMASK_NOT_ACTIVE, BITMASK_NOT_ACTIVE, BITMASK_NOT_ACTIVE, BITMASK_NOT_ACTIVE, BITMASK_NOT_ACTIVE };
 
-void myRunLoopTimerCallBack(CFRunLoopTimerRef pRunLoopTimer, void* pContext)
+void myRunLoopTimerCallBack(CFRunLoopTimerRef runLoopTimer, void* pContext)
 {
     // se till att vara på rätt lager, implementera senare //
     struct dynamicData* pData = (struct dynamicData*) pContext;
-    CGEventRef pEvent = pData->pEvent;
+    CGEventRef event = pData->event;
     struct keyData* pKey = pData->pKey;
     if (pKey->isPressed)
     {
@@ -20,8 +20,8 @@ void myRunLoopTimerCallBack(CFRunLoopTimerRef pRunLoopTimer, void* pContext)
         //CGEventSetFlags(event, modifierFlags);
     }
     free(pData);
-    CFRunLoopTimerInvalidate(pRunLoopTimer);
-    CFRelease(pRunLoopTimer);
+    CFRunLoopTimerInvalidate(runLoopTimer);
+    CFRelease(runLoopTimer);
 }
 
 void createRunLoopTimer(struct dynamicData* pData)
@@ -51,20 +51,20 @@ CGEventRef modifyEvent(CGEventType type, CGEventRef pEvent, uint16_t keyCode)
 
 CGEventRef handleMacEvent(struct staticData* pStaticData) 
 {
-    CGEventRef pEvent = pStaticData->pDynamicData->pEvent;
-    CFRunLoopRef pRunLoop = pStaticData->pRunLoop;
-    int64_t isRepeat = CGEventGetIntegerValueField (pEvent, kCGKeyboardEventAutorepeat);
+    CGEventRef event = pStaticData->pDynamicData->event;
+    CFRunLoopRef runLoop = pStaticData->runLoop;
+    int64_t isRepeat = CGEventGetIntegerValueField (event, kCGKeyboardEventAutorepeat);
     if (isRepeat) return NULL; // dont repeate presses on key hold
-    int64_t keyCode = CGEventGetIntegerValueField(pEvent, kCGKeyboardEventKeycode);
+    int64_t keyCode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
     if (keyCode == MAC_ESC) 
     { 
-        CFRunLoopStop(pRunLoop);
+        CFRunLoopStop(runLoop);
         return NULL;
     }
     CGEventType type = pStaticData->pDynamicData->type;
     struct keyData* pKey = pStaticData->pDynamicData->pKey;
     struct dynamicData* pData = malloc(sizeof(struct dynamicData));
-    pData->pEvent = pEvent;
+    pData->event = event;
     pData->pKey = pKey;
     pData->type = type;
     printf("\n");
@@ -94,5 +94,5 @@ CGEventRef handleMacEvent(struct staticData* pStaticData)
         //event = createEventForKey(type, event, MAC_LEFT_SHIFT);
     }
 
-    return pEvent;
+    return event;
 }

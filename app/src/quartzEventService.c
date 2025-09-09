@@ -7,25 +7,25 @@ static uint32_t EVENT_MASK = (
     CGEventMaskBit(kCGEventFlagsChanged)
 );
 
-CGEventRef MyEventTapCallBack(CGEventTapProxy pProxy, CGEventType type, CGEventRef pEvent, void* pRefcon) 
+CGEventRef MyEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void* pRefcon) 
 {
     struct staticData* pStaticData = (struct staticData*)pRefcon;
-    pStaticData->pDynamicData->pEvent = pEvent;
+    pStaticData->pDynamicData->event = event;
     pStaticData->pDynamicData->type = type;
-    int64_t keyCode = CGEventGetIntegerValueField(pEvent, kCGKeyboardEventKeycode);
+    int64_t keyCode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
     pStaticData->pDynamicData->pKey = &pStaticData->pRemapTable[keyCode];
     return handleMacEvent(pStaticData);
 }
 
 int macStartMonitoring(struct keyData* pRemapTable) 
 {
-    CFRunLoopRef pRunLoop = CFRunLoopGetMain();
+    CFRunLoopRef runLoop = CFRunLoopGetMain();
     struct staticData* pStaticData = malloc(sizeof(struct staticData)); 
     struct dynamicData* pDynamicData = malloc(sizeof(struct dynamicData)); 
-    pStaticData->pRunLoop = pRunLoop;
+    pStaticData->runLoop = runLoop;
     pStaticData->pRemapTable = pRemapTable;    
     pStaticData->pDynamicData = pDynamicData;
-    CFMachPortRef pEventTap = CGEventTapCreate(
+    CFMachPortRef eventTap = CGEventTapCreate(
         kCGHIDEventTap, // tap; window server, login session, specific annotation
         kCGHeadInsertEventTap, // places; head, tail
         K_CG_EVENT_TAP_OPTION_DEFAULT, // options; default, listen only
@@ -34,35 +34,35 @@ int macStartMonitoring(struct keyData* pRemapTable)
         pStaticData // userInfo, I pass pointer to the runLoop to be able to close it from within the callback
     );
 
-    if (!pEventTap) 
+    if (!eventTap) 
     {
         printf("\
             Could not initialize event tap. [Write suggestions on why this may happen, else contact support blablabla]");
         return 1; // exit program
     }
 
-    CFRunLoopSourceRef pRunLoopSource = CFMachPortCreateRunLoopSource(
+    CFRunLoopSourceRef runLoopSource = CFMachPortCreateRunLoopSource(
         kCFAllocatorDefault, 
-        pEventTap, 
+        eventTap, 
         0
     );
 
     CFRunLoopAddSource(
-        pRunLoop, 
-        pRunLoopSource, 
+        runLoop, 
+        runLoopSource, 
         kCFRunLoopCommonModes
     );
 
     CGEventTapEnable(
-        pEventTap, 
+        eventTap, 
         true
     );
 
     CFRunLoopRun();
 
-    CFMachPortInvalidate(pEventTap);        // ensures no more messages are delivered - chatgpt
-    CFRelease(pRunLoopSource);              // if you created one - chatgpt
-    CFRelease(pEventTap);
+    CFMachPortInvalidate(eventTap);        // ensures no more messages are delivered - chatgpt
+    CFRelease(runLoopSource);              // if you created one - chatgpt
+    CFRelease(eventTap);
     free(pStaticData);
 
     printf("Event service closed, exiting program...");

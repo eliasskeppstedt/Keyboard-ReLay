@@ -8,8 +8,8 @@ int main()
     switch (os)
     {
     case MAC_OS: // mac
-    struct keyData* remapTable = createRemapTable(os);
-    if(!macStartMonitoring(remapTable)) { printf("error"); return 1; }
+    struct keyData* pRemapTable = createRemapTable(os);
+    if(!macStartMonitoring(pRemapTable)) { printf("error"); return 1; }
         break;
     default:
         break;

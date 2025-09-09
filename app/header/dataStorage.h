@@ -7,15 +7,6 @@
 #include "./../lib/cJSON.h"
 #include "constants.h"
 
-typedef struct keyData {
-    int layerNr;
-    char* layerName;
-    int macKeyCode;
-    int* pMacKeyCodeRemapOnPress;
-    int* pMacKeyCodeRemapOnHold;
-    bool isPressed;
-} keyData;
-
 #define AMOUNT_OF_KEYCODES 1024
 
 cJSON* readJSON();

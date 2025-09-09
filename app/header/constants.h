@@ -16,14 +16,14 @@ typedef struct keyData {
 
 struct dynamicData // not really dynamic since i currently heap allocate on each event...
 {
-    CGEventRef pEvent;
+    CGEventRef event;
     CGEventType type;
     struct keyData* pKey;
 };
 
 struct staticData 
 {
-    CFRunLoopRef pRunLoop;
+    CFRunLoopRef runLoop;
     struct keyData* pRemapTable;
     struct dynamicData* pDynamicData;
 };

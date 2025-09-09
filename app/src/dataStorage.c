@@ -2,22 +2,22 @@
 
 struct keyData* createRemapTable(enum USER_OS os)
 {
-    cJSON* pRemapTable_cJSON = readJSON();   
-    if (!pRemapTable_cJSON) 
+    cJSON* remapTable_cJSON = readJSON();   
+    if (!remapTable_cJSON) 
     { 
         printf("Could not create remap table (cjson object)"); 
         return NULL; 
     }
     struct keyData* pRemapTable = malloc(sizeof(struct keyData) * AMOUNT_OF_KEYCODES); 
-    cJSON* pLayers = cJSON_GetObjectItem(pRemapTable_cJSON, "layers"); 
-    if (!pLayers)
+    cJSON* layers = cJSON_GetObjectItem(remapTable_cJSON, "layers"); 
+    if (!layers)
     {
         printf("Could not locate layers");
         return NULL;
     }
     int layerCount = 0;
-    cJSON* pLayer = NULL;
-    cJSON_ArrayForEach(pLayer, pLayers)
+    cJSON* layer = NULL;
+    cJSON_ArrayForEach(layer, layers)
     {
         layerCount++;
     }
@@ -36,16 +36,16 @@ struct keyData* createRemapTable(enum USER_OS os)
     }
     // populate remap table //
     printf("Populating remap table...\n");
-    cJSON_ArrayForEach(pLayer, pLayers)
+    cJSON_ArrayForEach(layer, layers)
     {
         // names MUST match json file in order to work (maybe should implement error handling (if item is NULL))
-        int layerNr = cJSON_GetObjectItemCaseSensitive(pLayer, "layerNr")->valueint;
-        char* layerName = cJSON_GetObjectItemCaseSensitive(pLayer, "layerName")->string;
-        cJSON* pMacMapping = cJSON_GetObjectItem(pLayer, "macMapping");
-        cJSON* pRemapsOnPress = cJSON_GetObjectItem(pMacMapping, "remapsOnPress");
-        cJSON* pRemapsOnHold = cJSON_GetObjectItem(pMacMapping, "remapsOnHold");
-        updateForKeyInLayerRemap(ON_PRESS, pRemapsOnPress, pRemapTable, layerNr, layerName);
-        updateForKeyInLayerRemap(ON_HOLD, pRemapsOnHold, pRemapTable, layerNr, layerName);
+        int layerNr = cJSON_GetObjectItemCaseSensitive(layer, "layerNr")->valueint;
+        char* layerName = cJSON_GetObjectItemCaseSensitive(layer, "layerName")->string;
+        cJSON* macMapping = cJSON_GetObjectItem(layer, "macMapping");
+        cJSON* remapsOnPress = cJSON_GetObjectItem(macMapping, "remapsOnPress");
+        cJSON* remapsOnHold = cJSON_GetObjectItem(macMapping, "remapsOnHold");
+        updateForKeyInLayerRemap(ON_PRESS, remapsOnPress, pRemapTable, layerNr, layerName);
+        updateForKeyInLayerRemap(ON_HOLD, remapsOnHold, pRemapTable, layerNr, layerName);
     } 
     return pRemapTable;
 }
@@ -54,11 +54,11 @@ void updateForKeyInLayerRemap(enum REMAP_MODES remap, cJSON* pRemaps, struct key
 {  
     int keyCodeIndex = NO_KEY;
     int keyCodeValue = NO_KEY;
-    cJSON* pKey = NULL;
-    cJSON_ArrayForEach(pKey, pRemaps)
+    cJSON* key = NULL;
+    cJSON_ArrayForEach(key, pRemaps)
     {
-        keyCodeIndex = cJSON_GetObjectItemCaseSensitive(pKey, "from")->valueint;
-        keyCodeValue = cJSON_GetObjectItemCaseSensitive(pKey, "to")->valueint;
+        keyCodeIndex = cJSON_GetObjectItemCaseSensitive(key, "from")->valueint;
+        keyCodeValue = cJSON_GetObjectItemCaseSensitive(key, "to")->valueint;
         pRemapTable[keyCodeIndex].macKeyCode = keyCodeIndex;
         if (remap == ON_PRESS)
         {
