@@ -7,31 +7,36 @@ static uint32_t EVENT_MASK = (
     CGEventMaskBit(kCGEventFlagsChanged)
 );
 
-CGEventRef MyEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void* pRefcon) 
+CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void* pRefcon) 
 {
-    struct staticData* pStaticData = (struct staticData*)pRefcon;
+    /*struct staticData* pStaticData = pRefcon;
     pStaticData->pDynamicData->event = event;
     pStaticData->pDynamicData->type = type;
     int64_t keyCode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
     pStaticData->pDynamicData->pKey = &pStaticData->pRemapTable[keyCode];
-    return handleMacEvent(pStaticData);
+    printf("- 1 from event callback: keycode: %i\n", pStaticData->pDynamicData->pKey);*/
+    struct eventTapCallBackData* pData = pRefcon;
+    return handleMacEvent(type, event, pData->runLoop, pData->pRemapTable);
 }
 
 int macStartMonitoring(struct keyData* pRemapTable) 
 {
     CFRunLoopRef runLoop = CFRunLoopGetMain();
-    struct staticData* pStaticData = malloc(sizeof(struct staticData)); 
+    /*struct staticData* pStaticData = malloc(sizeof(struct staticData)); 
     struct dynamicData* pDynamicData = malloc(sizeof(struct dynamicData)); 
     pStaticData->runLoop = runLoop;
     pStaticData->pRemapTable = pRemapTable;    
-    pStaticData->pDynamicData = pDynamicData;
+    pStaticData->pDynamicData = pDynamicData;*/
+    struct eventTapCallBackData* pData = malloc(sizeof(struct eventTapCallBackData));
+    pData->pRemapTable = pRemapTable;
+    pData->runLoop = runLoop;
     CFMachPortRef eventTap = CGEventTapCreate(
         kCGHIDEventTap, // tap; window server, login session, specific annotation
         kCGHeadInsertEventTap, // places; head, tail
         K_CG_EVENT_TAP_OPTION_DEFAULT, // options; default, listen only
         EVENT_MASK, // eventsOfInterest; mouse, keyboard, etc
-        MyEventTapCallBack, // callback func called when a quartz event is triggered
-        pStaticData // userInfo, I pass pointer to the runLoop to be able to close it from within the callback
+        myEventTapCallBack, // callback func called when a quartz event is triggered
+        pData // userInfo, I pass pointer to the runLoop to be able to close it from within the callback
     );
 
     if (!eventTap) 
@@ -63,7 +68,7 @@ int macStartMonitoring(struct keyData* pRemapTable)
     CFMachPortInvalidate(eventTap);        // ensures no more messages are delivered - chatgpt
     CFRelease(runLoopSource);              // if you created one - chatgpt
     CFRelease(eventTap);
-    free(pStaticData);
+    free(pData);
 
     printf("Event service closed, exiting program...");
     return 1; // (return True for if statement in main)

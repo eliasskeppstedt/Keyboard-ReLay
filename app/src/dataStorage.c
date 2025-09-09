@@ -32,6 +32,7 @@ struct keyData* createRemapTable(enum USER_OS os)
         pRemapTable[i].isPressed = false;
         pRemapTable[i].layerNr = NO_LAYER;
         pRemapTable[i].layerName = NULL;
+        pRemapTable[i].macKeyCode = NO_KEY;
         //pRemapTable[i].comboKey = COMBO_KEY_NOT_SET;
     }
     // populate remap table //
@@ -66,11 +67,11 @@ void updateForKeyInLayerRemap(enum REMAP_MODES remap, cJSON* pRemaps, struct key
         }
         else if (remap == ON_HOLD)
         {
-            pRemapTable[keyCodeIndex].pMacKeyCodeRemapOnPress[layerNr] = keyCodeValue;
+            pRemapTable[keyCodeIndex].pMacKeyCodeRemapOnHold[layerNr] = keyCodeValue;
         }
         pRemapTable[keyCodeIndex].layerNr = layerNr;
         pRemapTable[keyCodeIndex].layerName = layerName;
-        printKey(pRemapTable, keyCodeIndex, layerNr); 
+        //printKey(pRemapTable, keyCodeIndex, layerNr); 
     }
 }
 

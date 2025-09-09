@@ -13,8 +13,12 @@
 #include "constants.h"
 #include "eventHandler.h"
 
+struct eventTapCallBackData {
+    CFRunLoopRef runLoop;
+    struct keyData* pRemapTable;
+};
 
-CGEventRef MyEventTapCallBack(CGEventTapProxy, CGEventType, CGEventRef, void*);
+CGEventRef myEventTapCallBack(CGEventTapProxy, CGEventType, CGEventRef, void*);
 
 int macStartMonitoring(struct keyData*);
 

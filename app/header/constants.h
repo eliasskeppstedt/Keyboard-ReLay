@@ -14,7 +14,7 @@ typedef struct keyData {
     bool isPressed;
 } keyData;
 
-struct dynamicData // not really dynamic since i currently heap allocate on each event...
+/*struct dynamicData // not really dynamic since i currently heap allocate on each event...
 {
     CGEventRef event;
     CGEventType type;
@@ -26,7 +26,7 @@ struct staticData
     CFRunLoopRef runLoop;
     struct keyData* pRemapTable;
     struct dynamicData* pDynamicData;
-};
+};*/
 
 typedef enum USER_OS { MAC_OS, LINUX_OS, WINDOWS_OS };
 typedef enum REMAP_MODES { ON_PRESS, ON_HOLD };

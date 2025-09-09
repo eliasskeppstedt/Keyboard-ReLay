@@ -11,12 +11,17 @@
 #include "constants.h"
 #include "dataStorage.h"
 
+struct runLoopTimerCallBackData {
+    CGEventRef event;
+    CGEventType type;
+    struct keyData* pKey;
+};
+
 void myRunLoopTimerCallBack(CFRunLoopTimerRef, void*);
 
-void createRunLoopTimer(struct dynamicData*);
+void createRunLoopTimer(struct runLoopTimerCallBackData*);
 
 CGEventRef createEventForKey();
 
-CGEventRef handleMacEvent(struct staticData*);
-
+CGEventRef handleMacEvent(CGEventType, CGEventRef, CFRunLoopRef, struct keyData*);
 #endif // _EVENTHANDLER_
