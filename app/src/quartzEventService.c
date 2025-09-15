@@ -8,13 +8,7 @@ static uint32_t EVENT_MASK = (
 );
 
 CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void* pRefcon) 
-{
-    /*struct staticData* pStaticData = pRefcon;
-    pStaticData->pDynamicData->event = event;
-    pStaticData->pDynamicData->type = type;
-    int64_t keyCode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
-    pStaticData->pDynamicData->pKey = &pStaticData->pRemapTable[keyCode];
-    printf("- 1 from event callback: keycode: %i\n", pStaticData->pDynamicData->pKey);*/
+{   
     struct eventTapCallBackData* pData = pRefcon;
     return handleMacEvent(type, event, pData->runLoop, pData->pRemapTable);
 }
@@ -22,11 +16,6 @@ CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRe
 int macStartMonitoring(struct keyData* pRemapTable) 
 {
     CFRunLoopRef runLoop = CFRunLoopGetMain();
-    /*struct staticData* pStaticData = malloc(sizeof(struct staticData)); 
-    struct dynamicData* pDynamicData = malloc(sizeof(struct dynamicData)); 
-    pStaticData->runLoop = runLoop;
-    pStaticData->pRemapTable = pRemapTable;    
-    pStaticData->pDynamicData = pDynamicData;*/
     struct eventTapCallBackData* pData = malloc(sizeof(struct eventTapCallBackData));
     pData->pRemapTable = pRemapTable;
     pData->runLoop = runLoop;
