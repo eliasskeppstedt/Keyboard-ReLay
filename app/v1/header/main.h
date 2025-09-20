@@ -2,10 +2,9 @@
 #define _MAIN_
 
 #include "quartzEventService.h"
-#include "data.h"
-#include "storeData.h"
+#include "dataStorage.h"
+#include "constants.h"
 
 int main();
-int macMain();
 
 #endif // _MAIN_

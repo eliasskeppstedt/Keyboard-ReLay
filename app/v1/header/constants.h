@@ -29,7 +29,7 @@ typedef enum MODIFIER_KEY {
     BITMASK_META = kCGEventFlagMaskCommand,
     BITMASK_CAPS = kCGEventFlagMaskAlphaShift
 };
-typedef enum {
+typedef enum MAC_KEY_CODES{
     NO_KEY = -1,
     NO_LAYER = -1,
     MAC_A = 0x00,

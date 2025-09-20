@@ -1,0 +1,721 @@
+{
+    "webEntries": 70,
+    "macEntries": 126,
+    "keys": [
+        {
+            "keyName": "a",
+            "keyCode": {
+                "web": { "dec": 0,  "hexString": "0x00" },
+                "mac": { "dec": 0,  "hexString": "0x00" }
+            }
+        },
+        {
+            "keyName": "b",
+            "keyCode": {
+                "web": { "dec": 1,  "hexString": "0x01" },
+                "mac": { "dec": 11, "hexString": "0x0B" }
+            }
+        },
+        {
+            "keyName": "c",
+            "keyCode": {
+                "web": { "dec": 2,  "hexString": "0x02" },
+                "mac": { "dec": 8,  "hexString": "0x08" }
+            }
+        },
+        {
+            "keyName": "d",
+            "keyCode": {
+                "web": { "dec": 3,  "hexString": "0x03" },
+                "mac": { "dec": 2,  "hexString": "0x02" }
+            }
+        },
+        {
+            "keyName": "e",
+            "keyCode": {
+                "web": { "dec": 4,  "hexString": "0x04" },
+                "mac": { "dec": 14, "hexString": "0x0E" }
+            }
+        },
+        {
+            "keyName": "f",
+            "keyCode": {
+                "web": { "dec": 5,  "hexString": "0x05" },
+                "mac": { "dec": 3,  "hexString": "0x03" }
+            }
+        },
+        {
+            "keyName": "g",
+            "keyCode": {
+                "web": { "dec": 6,  "hexString": "0x06" },
+                "mac": { "dec": 5,  "hexString": "0x05" }
+            }
+        },
+        {
+            "keyName": "h",
+            "keyCode": {
+                "web": { "dec": 7,  "hexString": "0x07" },
+                "mac": { "dec": 4,  "hexString": "0x04" }
+            }
+        },
+        {
+            "keyName": "i",
+            "keyCode": {
+                "web": { "dec": 8,  "hexString": "0x08" },
+                "mac": { "dec": 34, "hexString": "0x22" }
+            }
+        },
+        {
+            "keyName": "j",
+            "keyCode": {
+                "web": { "dec": 9,  "hexString": "0x09" },
+                "mac": { "dec": 38, "hexString": "0x26" }
+            }
+        },
+        {
+            "keyName": "k",
+            "keyCode": {
+                "web": { "dec": 10, "hexString": "0x0A" },
+                "mac": { "dec": 40, "hexString": "0x28" }
+            }
+        },
+        {
+            "keyName": "l",
+            "keyCode": {
+                "web": { "dec": 11, "hexString": "0x0B" },
+                "mac": { "dec": 37, "hexString": "0x25" }
+            }
+        },
+        {
+            "keyName": "m",
+            "keyCode": {
+                "web": { "dec": 12, "hexString": "0x0C" },
+                "mac": { "dec": 46, "hexString": "0x2E" }
+            }
+        },
+        {
+            "keyName": "n",
+            "keyCode": {
+                "web": { "dec": 13, "hexString": "0x0D" },
+                "mac": { "dec": 45, "hexString": "0x2D" }
+            }
+        },
+        {
+            "keyName": "o",
+            "keyCode": {
+                "web": { "dec": 14, "hexString": "0x0E" },
+                "mac": { "dec": 31, "hexString": "0x1F" }
+            }
+        },
+        {
+            "keyName": "p",
+            "keyCode": {
+                "web": { "dec": 15, "hexString": "0x0F" },
+                "mac": { "dec": 35, "hexString": "0x23" }
+            }
+        },
+        {
+            "keyName": "q",
+            "keyCode": {
+                "web": { "dec": 16, "hexString": "0x10" },
+                "mac": { "dec": 12, "hexString": "0x0C" }
+            }
+        },
+        {
+            "keyName": "r",
+            "keyCode": {
+                "web": { "dec": 17, "hexString": "0x11" },
+                "mac": { "dec": 15, "hexString": "0x0F" }
+            }
+        },
+        {
+            "keyName": "s",
+            "keyCode": {
+                "web": { "dec": 18, "hexString": "0x12" },
+                "mac": { "dec": 1,  "hexString": "0x01" }
+            }
+        },
+        {
+            "keyName": "t",
+            "keyCode": {
+                "web": { "dec": 19, "hexString": "0x13" },
+                "mac": { "dec": 17, "hexString": "0x11" }
+            }
+        },
+        {
+            "keyName": "u",
+            "keyCode": {
+                "web": { "dec": 20, "hexString": "0x14" },
+                "mac": { "dec": 32, "hexString": "0x20" }
+            }
+        },
+        {
+            "keyName": "v",
+            "keyCode": {
+                "web": { "dec": 21, "hexString": "0x15" },
+                "mac": { "dec": 9,  "hexString": "0x09" }
+            }
+        },
+        {
+            "keyName": "w",
+            "keyCode": {
+                "web": { "dec": 22, "hexString": "0x16" },
+                "mac": { "dec": 13, "hexString": "0x0D" }
+            }
+        },
+        {
+            "keyName": "x",
+            "keyCode": {
+                "web": { "dec": 23, "hexString": "0x17" },
+                "mac": { "dec": 7,  "hexString": "0x07" }
+            }
+        },
+        {
+            "keyName": "y",
+            "keyCode": {
+                "web": { "dec": 24, "hexString": "0x18" },
+                "mac": { "dec": 16, "hexString": "0x10" }
+            }
+        },
+        {
+            "keyName": "z",
+            "keyCode": {
+                "web": { "dec": 25, "hexString": "0x19" },
+                "mac": { "dec": 6,  "hexString": "0x06" }
+            }
+        },
+        {
+            "keyName": "0",
+            "keyCode": {
+                "web": { "dec": 26, "hexString": "0x1A" },
+                "mac": { "dec": 29, "hexString": "0x1D" }
+            }
+        },
+        {
+            "keyName": "1",
+            "keyCode": {
+                "web": { "dec": 27, "hexString": "0x1B" },
+                "mac": { "dec": 18, "hexString": "0x12" }
+            }
+        },
+        {
+            "keyName": "2",
+            "keyCode": {
+                "web": { "dec": 28, "hexString": "0x1C" },
+                "mac": { "dec": 19, "hexString": "0x13" }
+            }
+        },
+        {
+            "keyName": "3",
+            "keyCode": {
+                "web": { "dec": 29, "hexString": "0x1D" },
+                "mac": { "dec": 20, "hexString": "0x14" }
+            }
+        },
+        {
+            "keyName": "4",
+            "keyCode": {
+                "web": { "dec": 30, "hexString": "0x1E" },
+                "mac": { "dec": 21, "hexString": "0x15" }
+            }
+        },
+        {
+            "keyName": "5",
+            "keyCode": {
+                "web": { "dec": 31, "hexString": "0x1F" },
+                "mac": { "dec": 23, "hexString": "0x17" }
+            }
+        },
+        {
+            "keyName": "6",
+            "keyCode": {
+                "web": { "dec": 32, "hexString": "0x20" },
+                "mac": { "dec": 22, "hexString": "0x16" }
+            }
+        },
+        {
+            "keyName": "7",
+            "keyCode": {
+                "web": { "dec": 33, "hexString": "0x21" },
+                "mac": { "dec": 26, "hexString": "0x1A" }
+            }
+        },
+        {
+            "keyName": "8",
+            "keyCode": {
+                "web": { "dec": 34, "hexString": "0x22" },
+                "mac": { "dec": 28, "hexString": "0x1C" }
+            }
+        },
+        {
+            "keyName": "9",
+            "keyCode": {
+                "web": { "dec": 35, "hexString": "0x23" },
+                "mac": { "dec": 25, "hexString": "0x19" }
+            }
+        },
+        {
+            "keyName": "leftShift",
+            "keyCode": {
+                "web": { "dec": 36, "hexString": "0x24" },
+                "mac": { "dec": 56, "hexString": "0x38" }
+            }
+        },
+        {
+            "keyName": "rightShift",
+            "keyCode": {
+                "web": { "dec": 37, "hexString": "0x25" },
+                "mac": { "dec": 60, "hexString": "0x3C" }
+            }
+        },
+        {
+            "keyName": "leftCtrl",
+            "keyCode": {
+                "web": { "dec": 38, "hexString": "0x26" },
+                "mac": { "dec": 59, "hexString": "0x3B" }
+            }
+        },
+        {
+            "keyName": "rightCtrl",
+            "keyCode": {
+                "web": { "dec": 39, "hexString": "0x27" },
+                "mac": { "dec": 62, "hexString": "0x3E" }
+            }
+        },
+        {
+            "keyName": "leftMeta",
+            "keyCode": {
+                "web": { "dec": 40, "hexString": "0x28" },
+                "mac": { "dec": 55, "hexString": "0x37" }
+            }
+        },
+        {
+            "keyName": "rightMeta",
+            "keyCode": {
+                "web": { "dec": 41, "hexString": "0x29" },
+                "mac": { "dec": 54, "hexString": "0x36" }
+            }
+        },
+        {
+            "keyName": "leftAlt",
+            "keyCode": {
+                "web": { "dec": 42, "hexString": "0x2A" },
+                "mac": { "dec": 58, "hexString": "0x3A" }
+            }
+        },
+        {
+            "keyName": "rightAlt",
+            "keyCode": {
+                "web": { "dec": 43, "hexString": "0x2B" },
+                "mac": { "dec": 61, "hexString": "0x3D" }
+            }
+        },
+        {
+            "keyName": "capsLock",
+            "keyCode": {
+                "web": { "dec": 44, "hexString": "0x2C" },
+                "mac": { "dec": 57, "hexString": "0x39" }
+            }
+        },
+        {
+            "keyName": "backspace",
+            "keyCode": {
+                "web": { "dec": 45, "hexString": "0x2D" },
+                "mac": { "dec": 51, "hexString": "0x33" }
+            }
+        },
+        {
+            "keyName": "tab",
+            "keyCode": {
+                "web": { "dec": 46, "hexString": "0x2E" },
+                "mac": { "dec": 48, "hexString": "0x30" }
+            }
+        },
+        {
+            "keyName": "enter",
+            "keyCode": {
+                "web": { "dec": 47, "hexString": "0x2F" },
+                "mac": { "dec": 76, "hexString": "0x4C" }
+            }
+        },
+        {
+            "keyName": "escape",
+            "keyCode": {
+                "web": { "dec": 48, "hexString": "0x30" },
+                "mac": { "dec": 53, "hexString": "0x35" }
+            }
+        },
+        {
+            "keyName": "space",
+            "keyCode": {
+                "web": { "dec": 49, "hexString": "0x31" },
+                "mac": { "dec": 49, "hexString": "0x31" }
+            }
+        },
+        {
+            "keyName": "pageUp",
+            "keyCode": {
+                "web": { "dec": 50, "hexString": "0x32" },
+                "mac": { "dec": 116, "hexString": "0x74" }
+            }
+        },
+        {
+            "keyName": "pageDown",
+            "keyCode": {
+                "web": { "dec": 51, "hexString": "0x33" },
+                "mac": { "dec": 121, "hexString": "0x79" }
+            }
+        },
+        {
+            "keyName": "end",
+            "keyCode": {
+                "web": { "dec": 52, "hexString": "0x34" },
+                "mac": { "dec": 119, "hexString": "0x77" }
+            }
+        },
+        {
+            "keyName": "home",
+            "keyCode": {
+                "web": { "dec": 53, "hexString": "0x35" },
+                "mac": { "dec": 115, "hexString": "0x73" }
+            }
+        },
+        {
+            "keyName": "arrowLeft",
+            "keyCode": {
+                "web": { "dec": 54, "hexString": "0x36" },
+                "mac": { "dec": 123, "hexString": "0x7B" }
+            }
+        },
+        {
+            "keyName": "arrowUp",
+            "keyCode": {
+                "web": { "dec": 55, "hexString": "0x37" },
+                "mac": { "dec": 126, "hexString": "0x7E" }
+            }
+        },
+        {
+            "keyName": "arrowRight",
+            "keyCode": {
+                "web": { "dec": 56, "hexString": "0x38" },
+                "mac": { "dec": 124, "hexString": "0x7C" }
+            }
+        },
+        {
+            "keyName": "arrowDown",
+            "keyCode": {
+                "web": { "dec": 57, "hexString": "0x39" },
+                "mac": { "dec": 125, "hexString": "0x7D" }
+            }
+        },
+        {
+            "keyName": "delete",
+            "keyCode": {
+                "web": { "dec": 58, "hexString": "0x3A" },
+                "mac": { "dec": 117, "hexString": "0x75" }
+            }
+        },
+        {
+            "keyName": "f1",
+            "keyCode": {
+                "web": { "dec": 59, "hexString": "0x3B" },
+                "mac": { "dec": 122, "hexString": "0x7A" }
+            }
+        },
+        {
+            "keyName": "f2",
+            "keyCode": {
+                "web": { "dec": 60, "hexString": "0x3C" },
+                "mac": { "dec": 120, "hexString": "0x78" }
+            }
+        },
+        {
+            "keyName": "f3",
+            "keyCode": {
+                "web": { "dec": 61, "hexString": "0x3D" },
+                "mac": { "dec": 99,  "hexString": "0x63" }
+            }
+        },
+        {
+            "keyName": "f4",
+            "keyCode": {
+                "web": { "dec": 62, "hexString": "0x3E" },
+                "mac": { "dec": 118, "hexString": "0x76" }
+            }
+        },
+        {
+            "keyName": "f5",
+            "keyCode": {
+                "web": { "dec": 63, "hexString": "0x3F" },
+                "mac": { "dec": 96,  "hexString": "0x60" }
+            }
+        },
+        {
+            "keyName": "f6",
+            "keyCode": {
+                "web": { "dec": 64, "hexString": "0x40" },
+                "mac": { "dec": 97,  "hexString": "0x61" }
+            }
+        },
+        {
+            "keyName": "f7",
+            "keyCode": {
+                "web": { "dec": 65, "hexString": "0x41" },
+                "mac": { "dec": 98,  "hexString": "0x62" }
+            }
+        },
+        {
+            "keyName": "f8",
+            "keyCode": {
+                "web": { "dec": 66, "hexString": "0x42" },
+                "mac": { "dec": 100, "hexString": "0x64" }
+            }
+        },
+        {
+            "keyName": "f9",
+            "keyCode": {
+                "web": { "dec": 67, "hexString": "0x43" },
+                "mac": { "dec": 101, "hexString": "0x65" }
+            }
+        },
+        {
+            "keyName": "f10",
+            "keyCode": {
+                "web": { "dec": 68, "hexString": "0x44" },
+                "mac": { "dec": 109, "hexString": "0x6D" }
+            }
+        },
+        {
+            "keyName": "f11",
+            "keyCode": {
+                "web": { "dec": 69, "hexString": "0x45" },
+                "mac": { "dec": 103, "hexString": "0x67" }
+            }
+        },
+        {
+            "keyName": "f12",
+            "keyCode": {
+                "web": { "dec": 70, "hexString": "0x46" },
+                "mac": { "dec": 111, "hexString": "0x6F" }
+        }
+        }
+    ],
+    "keysMac":[
+        {
+            "keyName": "macSection",
+            "keyCode": {
+            "mac": { "dec": 10, "hexString": "0x0A" }
+            }
+        },
+        {
+            "keyName": "macEqual",
+            "keyCode": {
+                "mac": { "dec": 24, "hexString": "0x18" }
+            }
+        },
+        {
+            "keyName": "macRightBracket",
+            "keyCode": {
+                "mac": { "dec": 30, "hexString": "0x1E" }
+            }
+        },
+        {
+            "keyName": "macLeftBracket",
+            "keyCode": {
+                "mac": { "dec": 33, "hexString": "0x21" }
+            }
+        },
+        {
+            "keyName": "macApostrophe",
+            "keyCode": {
+                "mac": { "dec": 39, "hexString": "0x27" }
+            }
+        },
+        {
+            "keyName": "macSemicolon",
+            "keyCode": {
+                "mac": { "dec": 41, "hexString": "0x29" }
+            }
+        },
+        {
+            "keyName": "macBackslash",
+            "keyCode": {
+                "mac": { "dec": 42, "hexString": "0x2A" }
+            }
+        },
+        {
+            "keyName": "macComma",
+            "keyCode": {
+                "mac": { "dec": 43, "hexString": "0x2B" }
+            }
+        },
+        {
+            "keyName": "macSlash",
+            "keyCode": {
+                "mac": { "dec": 44, "hexString": "0x2C" }
+            }
+        },
+        {
+            "keyName": "macPeriod",
+            "keyCode": {
+                "mac": { "dec": 47, "hexString": "0x2F" }
+            }
+        },
+        {
+            "keyName": "macTilde",
+            "keyCode": {
+                "mac": { "dec": 50, "hexString": "0x32" }
+            }
+        },
+        {
+            "keyName": "macEnterPb",
+            "keyCode": {
+                "mac": { "dec": 52, "hexString": "0x34" }
+            }
+        },
+        {
+            "keyName": "macFn",
+            "keyCode": {
+                "mac": { "dec": 63, "hexString": "0x3F" }
+            }
+        },
+        {
+            "keyName": "macF17",
+            "keyCode": {
+                "mac": { "dec": 64, "hexString": "0x40" }
+            }
+        },
+        {
+            "keyName": "macKpDot",
+            "keyCode": {
+                "mac": { "dec": 65, "hexString": "0x41" }
+            }
+        },
+        {
+            "keyName": "macKpMultiply",
+            "keyCode": {
+                "mac": { "dec": 67, "hexString": "0x43" }
+            }
+        },
+        {
+            "keyName": "macKpPlus",
+            "keyCode": {
+                "mac": { "dec": 69, "hexString": "0x45" }
+            }
+        },
+        {
+            "keyName": "macClear",
+            "keyCode": {
+                "mac": { "dec": 71, "hexString": "0x47" }
+            }
+        },
+        {
+            "keyName": "macVolUp",
+            "keyCode": {
+                "mac": { "dec": 72, "hexString": "0x48" }
+            }
+        },
+        {
+            "keyName": "macVolDown",
+            "keyCode": {
+                "mac": { "dec": 73, "hexString": "0x49" }
+            }
+        },
+        {
+            "keyName": "macMute",
+            "keyCode": {
+                "mac": { "dec": 74, "hexString": "0x4A" }
+            }
+        },
+        {
+            "keyName": "macKpDivide",
+            "keyCode": {
+                "mac": { "dec": 75, "hexString": "0x4B" }
+            }
+        },
+        {
+            "keyName": "macKpMinus",
+            "keyCode": {
+                "mac": { "dec": 78, "hexString": "0x4E" }
+            }
+        },
+        {
+            "keyName": "macF18",
+            "keyCode": {
+                "mac": { "dec": 79, "hexString": "0x4F" }
+            }
+        },
+        {
+            "keyName": "macF19",
+            "keyCode": {
+                "mac": { "dec": 80, "hexString": "0x50" }
+            }
+        },
+        {
+            "keyName": "macKpEqual",
+            "keyCode": {
+                "mac": { "dec": 81, "hexString": "0x51" }
+            }
+        },
+        {
+            "keyName": "macKp0",
+            "keyCode": {
+                "mac": { "dec": 82, "hexString": "0x52" }
+            }
+        },
+        {
+            "keyName": "macKp1",
+            "keyCode": {
+                "mac": { "dec": 83, "hexString": "0x53" }
+            }
+        },
+        {
+            "keyName": "macKp2",
+            "keyCode": {
+                "mac": { "dec": 84, "hexString": "0x54" }
+            }
+        },
+        {
+            "keyName": "macKp3",
+            "keyCode": {
+                "mac": { "dec": 85, "hexString": "0x55" }
+            }
+        },
+        {
+            "keyName": "macKp4",
+            "keyCode": {
+                "mac": { "dec": 86, "hexString": "0x56" }
+            }
+        },
+        {
+            "keyName": "macKp5",
+            "keyCode": {
+                "mac": { "dec": 87, "hexString": "0x57" }
+            }
+        },
+        {
+            "keyName": "macKp6",
+            "keyCode": {
+                "mac": { "dec": 88, "hexString": "0x58" }
+            }
+        },
+        {
+            "keyName": "macKp7",
+            "keyCode": {
+                "mac": { "dec": 89, "hexString": "0x59" }
+            }
+        },
+        {
+            "keyName": "macKp8",
+            "keyCode": {
+                "mac": { "dec": 91, "hexString": "0x5B" }
+            }
+        },
+        {
+            "keyName": "macKp9",
+            "keyCode": {
+                "mac": { "dec": 92, "hexString": "0x5C" }
+            }
+        }
+    ]
+}

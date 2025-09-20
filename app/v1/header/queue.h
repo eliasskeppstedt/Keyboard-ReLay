@@ -1,4 +1,4 @@
-#ifndef _QUEUE_
+/*#ifndef _QUEUE_
 #define _QUEUE_
 
 #include "dataStorage.h"
@@ -9,4 +9,4 @@ struct keyData* createKeyQueue();
 struct keyData* addKey(struct keyData*, struct keyData*);
 struct keyData* removeKey(struct keyData*);
 
-#endif // _QUEUE_
+#endif // _QUEUE_*/

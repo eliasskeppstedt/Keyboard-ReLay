@@ -9,17 +9,17 @@
 #include <CoreGraphics/CGEventTypes.h>
 #include <CoreGraphics/CGEventSource.h>
 #include <CoreFoundation/CFRunLoop.h>
-#include "data.h"
+#include "dataStorage.h"
+#include "constants.h"
+#include "eventHandler.h"
 
-typedef struct eventTapCallBackData {
+struct eventTapCallBackData {
     CFRunLoopRef runLoop;
-    struct layers* pLayerEntries;
-    int* pWebToOSLookUp;
-    int* pOSToWebLookUp;
-} eventTapCallBackData;
+    struct keyData* pRemapTable;
+};
 
 CGEventRef myEventTapCallBack(CGEventTapProxy, CGEventType, CGEventRef, void*);
 
-int macStartMonitoring(layers*, int*, int*);
+int macStartMonitoring(struct keyData*);
 
 #endif // _QUARTZEVENTSYSTEM_

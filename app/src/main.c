@@ -2,17 +2,32 @@
 
 int main()
 {
-    // TODO: get user's OS
-    enum USER_OS os = MAC_OS;
-    //
-    switch (os)
+    if (macMain() == -1)
     {
-    case MAC_OS: // mac
-    struct keyData* pRemapTable = createRemapTable(os);
-    if(!macStartMonitoring(pRemapTable)) { printf("error"); return 1; }
-        break;
-    default:
-        break;
+        printf("error :D");
+        return -1;
     }
-    return 0;
+    return 1;
+}
+
+int macMain()
+{
+    lookUpTables lookUpTables = { NULL, NULL };
+    // OS.MACOS
+    if (createLookUpTables(&lookUpTables, JSON_LABEL_MACOS) == -1)
+    {
+        printf("error :D\n");
+        return -1;
+    }
+    int* pWebToOsCodeLookUp = lookUpTables.pWebToOS;
+    int* pOSToWebCodeLookUp = lookUpTables.pOSToWeb;
+    int webEntries = sizeof(pWebToOsCodeLookUp);
+    layers* pLayerEntries = createLayerEntries("mac", webEntries);
+    if (!pLayerEntries)
+    {
+        printf("error :D\n");
+        return -1;
+    }
+    if(!macStartMonitoring(pLayerEntries, pWebToOsCodeLookUp, pOSToWebCodeLookUp)) { printf("error\n"); return 1; }
+    return 1;
 }
