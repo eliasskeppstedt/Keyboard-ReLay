@@ -1,4 +1,6 @@
-/*
+make clean;make macap;make run
+clean;make macap;clean;make run 
+
 CFMachPortRef CGEventTapCreate(
     CGEventTapLocation tap, 
     CGEventTapPlacement place, 
@@ -14,14 +16,11 @@ CGEventRef MyEventTapCallBack (
     CGEventRef event,
     void *refcon
 );
-*/
 
-/*
 clang -Wall -Wextra main.c \
   -framework ApplicationServices \
   -framework CoreFoundation \
   -o keyboard_relay
-*/
 
 kCGEventFlagMaskAlphaShift = NX_ALPHASHIFTMASK,
 kCGEventFlagMaskShift = NX_SHIFTMASK,

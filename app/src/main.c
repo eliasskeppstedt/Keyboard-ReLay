@@ -2,32 +2,38 @@
 
 int main()
 {
-    if (macMain() == -1)
+    int e = macMain();
+    if (e != 0)
     {
-        printf("error :D");
-        return -1;
+        printf("Handling error... exit main :D\n");
+        return e;
     }
-    return 1;
+    printf("Exiting program\n");
+    return 0;
 }
 
 int macMain()
 {
-    lookUpTables lookUpTables = { NULL, NULL };
-    // OS.MACOS
-    if (createLookUpTables(&lookUpTables, JSON_LABEL_MACOS) == -1)
+    int e;
+    lookUpTables lookUpTables = { NULL, NULL, NO_VALUE, NO_VALUE };
+    e = createLookUpTables(&lookUpTables, JSON_LABEL_MACOS);
+    if (e != 0)
     {
-        printf("error :D\n");
-        return -1;
+        printf("Could not create look up table");
+        return e;
     }
-    int* pWebToOsCodeLookUp = lookUpTables.pWebToOS;
-    int* pOSToWebCodeLookUp = lookUpTables.pOSToWeb;
-    int webEntries = sizeof(pWebToOsCodeLookUp);
-    layers* pLayerEntries = createLayerEntries("mac", webEntries);
+    layers* pLayerEntries = createLayerEntries(lookUpTables.webEntries, "mac");
+    // would it be better here to store the layerEntries struct and just pass a reference and free
+    // the heap allocated struct?
     if (!pLayerEntries)
     {
-        printf("error :D\n");
+        printf("Could not create layer entries");
         return -1;
     }
-    if(!macStartMonitoring(pLayerEntries, pWebToOsCodeLookUp, pOSToWebCodeLookUp)) { printf("error\n"); return 1; }
-    return 1;
+    printf("pWebToOS[8] should be 34, is: %d\n", lookUpTables.pWebToOS[8]);
+    printf("pOSToMac[34] should be 8, is: %d\n", lookUpTables.pOSToWeb[34]);
+    printf("pRemapTable[65].keyCode should be -1, is: %d\n", pLayerEntries->pRemapTable[65].keyCode);
+    printf("pRemapTable[1].keyCode should be 1, is: %d\n", pLayerEntries->pRemapTable[1].keyCode);
+    e = macStartMonitoring(pLayerEntries, &lookUpTables);
+    return e;
 }

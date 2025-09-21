@@ -3,6 +3,13 @@
 
 #include <stdbool.h>
 
+typedef struct lookUpTables {
+    int* pWebToOS;
+    int* pOSToWeb;
+    int webEntries;
+    int osEntries;
+} lookUpTables;
+
 typedef struct keyData {
     int keyCode;
     int keyCodeOnPress;
@@ -15,6 +22,10 @@ typedef struct layers {
     int layerNr;
     struct keyData* pRemapTable;
 } layers;
+
+typedef enum OS {
+    MAC
+} OS;
 
 #define JSON_LABEL_WEB_ENTRIES "webEntries"
 #define JSON_LABEL_MAC_ENTRIES "macEntries"

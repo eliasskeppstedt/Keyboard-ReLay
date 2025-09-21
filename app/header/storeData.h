@@ -8,14 +8,9 @@
 #include "./../lib/cJSON.h"
 #include "data.h"
 
-typedef struct lookUpTables {
-    int* pWebToOS;
-    int* pOSToWeb;
-} lookUpTables;
-
 int createLookUpTables(lookUpTables*, char*);
-layers* createLayerEntries(char*, int);
-keyData* createRemapTable(int);
+layers* createLayerEntries(int, char*);
+keyData* createRemapTable(cJSON*, int);
 cJSON* readJSON(char*);
 
 #endif // _STOREDATA_

@@ -5,24 +5,60 @@ static uint32_t EVENT_MASK = (
     CGEventMaskBit(kCGEventKeyDown) | 
     CGEventMaskBit(kCGEventKeyUp) |
     CGEventMaskBit(kCGEventFlagsChanged)
-);
+); // only masking keyboard events as of now
 
 CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void* pRefcon) 
-{   
+{
     eventTapCallBackData* pData = pRefcon;
+    int keyCode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
+
+    if (keyCode == MAC_ESCAPE)
+    {
+        CFRunLoopStop(pData->runLoop);
+        return NULL;
+    }
+    // suppress keys repeated by holding a key
+    if (CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat) != 0) 
+    { 
+        return NULL; 
+    } 
+    //printf("pWebToOS[8] should be 34, is: %d\n", pData->pLookUpTables->pWebToOS[8]);
+    //printf("pOSToMac[34] should be 8, is: %d\n", pData->pLookUpTables->pOSToWeb[34]);
+
+    generalizedEvent* pMacEvent = malloc(sizeof(generalizedEvent));
+    pMacEvent->eventFlagMask = CGEventGetFlags(event);
+    pMacEvent->keyCode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
+    
+    if (type == kCGEventKeyDown)
+    {
+        pMacEvent->isPressed = true;
+    } 
+    else if (type == kCGEventKeyUp)
+    {
+        pMacEvent->isPressed = false;
+    }
+
+    int e = handleMacEvent(pData->pLayerEntries, pMacEvent, pData->pLookUpTables);
+
+    CGEventSetFlags(event, pMacEvent->eventFlagMask);  
+    CGEventSetIntegerValueField(event, kCGKeyboardEventKeycode, pMacEvent->keyCode);
+    free(pMacEvent); // a new generalized event is heap allocated for each event
+    printf("\n");
     return event;
 }
 
-int macStartMonitoring(layers* pLayerEntries, int* pWebToOSLookUp, int* pOSToWebLookUp) 
+#include <stddef.h>
+int macStartMonitoring(layers* pLayerEntries, lookUpTables* pLookUpTables) 
 {
-    printf("Setting upp run loop... ");
+    printf("\nSetting upp run loop... ");
     CFRunLoopRef runLoop = CFRunLoopGetMain();
     printf("ok\n");
+    printf("pRemapTable[1].keyCode should be 1, is: %i\n", pLayerEntries->pRemapTable[1].keyCode); // this does not work wtf? ig this is fucking up my remap table
+    printf("pRemapTable[1].keyCode should be 1, is: %i\n", pLayerEntries->pRemapTable[1].keyCode);
     eventTapCallBackData* pData = malloc(sizeof(eventTapCallBackData));
     pData->pLayerEntries = pLayerEntries;
     pData->runLoop = runLoop;
-    pData->pWebToOSLookUp = pWebToOSLookUp;
-    pData->pOSToWebLookUp = pOSToWebLookUp;
+    pData->pLookUpTables = pLookUpTables;
     printf("Setting upp event tap... ");
     CFMachPortRef eventTap = CGEventTapCreate(
         kCGHIDEventTap, // tap; window server, login session, specific annotation
@@ -35,7 +71,7 @@ int macStartMonitoring(layers* pLayerEntries, int* pWebToOSLookUp, int* pOSToWeb
     if (!eventTap) 
     {
         printf("Could not initialize event tap. [Write suggestions on why this may happen, else contact support blablabla]");
-        return -1; // exit program
+        return 1; // exit program
     }
     printf("ok\n");
 
@@ -62,7 +98,7 @@ int macStartMonitoring(layers* pLayerEntries, int* pWebToOSLookUp, int* pOSToWeb
     );
     printf("ok\n");
 
-    printf("Event loop running:\n");
+    printf("Starting event loop...\n\n");
     CFRunLoopRun();
 
     CFMachPortInvalidate(eventTap);        // ensures no more messages are delivered - chatgpt
@@ -70,6 +106,6 @@ int macStartMonitoring(layers* pLayerEntries, int* pWebToOSLookUp, int* pOSToWeb
     CFRelease(eventTap);
     free(pData);
 
-    printf("Event service closed, exiting program...\n");
-    return 1; // (return True for if statement in main)
+    printf("\nEvent loop closed\n");
+    return 0;
 }
