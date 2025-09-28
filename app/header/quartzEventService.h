@@ -13,16 +13,26 @@
 #include "keyHandler.h"
 #include "converter.h"
 
-typedef struct eventTapCallBackData {
+/**
+ * CFRunLoopRef runLoop
+ * struct layers* pLayerEntries
+ * LookUpTables* pLookUpTables
+ */
+typedef struct EventTapCallBackData {
     CFRunLoopRef runLoop;
-    struct layers* pLayerEntries;
-    lookUpTables* pLookUpTables;
-} eventTapCallBackData;
+    Layers* pLayerEntries;
+    LookUpTables* pLookUpTables;
+} EventTapCallBackData;
 
 #define MAC_ESCAPE 0x35
 
-CGEventRef myEventTapCallBack(CGEventTapProxy, CGEventType, CGEventRef, void*);
+CGEventRef myEventTapCallBack(
+    CGEventTapProxy proxy, 
+    CGEventType type, 
+    CGEventRef event,
+    void* pRefcon
+);
 
-int macStartMonitoring(layers*, lookUpTables*);
+int macStartMonitoring(Layers* pLayerEntries, LookUpTables* pLookUpTables);
 
 #endif // _QUARTZEVENTSYSTEM_

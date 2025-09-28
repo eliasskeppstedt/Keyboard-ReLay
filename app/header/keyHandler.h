@@ -2,20 +2,22 @@
 #define _KEYHANDLER_
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <sys/time.h>
 #include "data.h"
 #include "converter.h"
+#include "eventQueue.h"
 
-typedef struct generalizedEvent {
-    int keyCode;
-    int eventFlagMask;
-    bool isPressed;
-} generalizedEvent;
+int handleEvent(
+    Layers* pLayerEntries, 
+    GeneralizedEvent* pUniversalEvent, 
+    LookUpTables* lookUpTables
+);
 
-int handleEvent(layers*, generalizedEvent*, int*);
-/**
- * @param generalizedEvent* pMacEvent
- * @param int* pLookUpTables
- */
-int handleMacEvent(layers*, generalizedEvent*, lookUpTables*);
+int handleMacEvent(
+    Layers* pLayerEntries, 
+    GeneralizedEvent* pMacEvent, 
+    LookUpTables* pLookUpTables
+);
 
 #endif // _KEYHANDLER_

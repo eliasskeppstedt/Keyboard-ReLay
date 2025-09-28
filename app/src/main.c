@@ -2,38 +2,59 @@
 
 int main()
 {
-    int e = macMain();
-    if (e != 0)
+    int os = MACOS;
+    int e = 0;
+    if (os == MACOS)
     {
-        printf("Handling error... exit main :D\n");
-        return e;
+        e = macMain();
     }
-    printf("Exiting program\n");
+    if (e == EXIT_CODE_DEBUG)
+    {
+        printf("found the bug yet?!?!?!?!?!?\n");
+    }
+    else if (e == EXIT_CODE_CREATE_LOOK_UP_TABLE_FAILED)
+    {
+        printf("Could not create look up table");
+    }
+    else if (e == EXIT_CODE_CREATE_LAYER_ENTRIES_FAILED)
+    {
+        printf("Could not create layer entries");
+    }
+    else if (e != 0)
+    {
+        printf("oops error :D\n");
+    }
+    printf("Exiting program...\n");
     return 0;
 }
 
 int macMain()
 {
-    int e;
-    lookUpTables lookUpTables = { NULL, NULL, NO_VALUE, NO_VALUE };
-    e = createLookUpTables(&lookUpTables, JSON_LABEL_MACOS);
-    if (e != 0)
+    LookUpTables lookUpTables;
+    if ((createLookUpTables(&lookUpTables, MACOS)) != 0) 
     {
-        printf("Could not create look up table");
-        return e;
+        return EXIT_CODE_CREATE_LOOK_UP_TABLE_FAILED;
     }
-    layers* pLayerEntries = createLayerEntries(lookUpTables.webEntries, "mac");
-    // would it be better here to store the layerEntries struct and just pass a reference and free
-    // the heap allocated struct?
-    if (!pLayerEntries)
+    EventQueue eventQueue;
+    if ((createEventQueue(&eventQueue)) != 0) 
     {
-        printf("Could not create layer entries");
-        return -1;
+        return -1;// EXIT_CODE_CREATE_EVENT_QUEUE_FAILED;
     }
-    printf("pWebToOS[8] should be 34, is: %d\n", lookUpTables.pWebToOS[8]);
-    printf("pOSToMac[34] should be 8, is: %d\n", lookUpTables.pOSToWeb[34]);
-    printf("pRemapTable[65].keyCode should be -1, is: %d\n", pLayerEntries->pRemapTable[65].keyCode);
-    printf("pRemapTable[1].keyCode should be 1, is: %d\n", pLayerEntries->pRemapTable[1].keyCode);
-    e = macStartMonitoring(pLayerEntries, &lookUpTables);
+    lookUpTables.pEventQueue = &eventQueue;
+
+    Layers* pLayerEntries = malloc(sizeof(Layers) * lookUpTables.universalKeyEntries);
+    if ((createLayerEntries(pLayerEntries, lookUpTables.universalKeyEntries)) != 0) 
+    {
+        return EXIT_CODE_CREATE_LAYER_ENTRIES_FAILED;
+    }
+    int entries = lookUpTables.universalKeyEntries;
+    printf("Key lookup tables");
+    for (int i = 0; i < lookUpTables.universalKeyEntries; i++)
+    {
+        printf("    pUniversalToOSLookUp[%d]: %d, pOSToUniversal[%d]: %d\n", i, lookUpTables.pUniversalToOS[i], i, lookUpTables.pOSToUniversal[i]);
+    }
+    
+    int e = macStartMonitoring(pLayerEntries, &lookUpTables);
+    exit:
     return e;
 }

@@ -8,9 +8,30 @@
 #include "./../lib/cJSON.h"
 #include "data.h"
 
-int createLookUpTables(lookUpTables*, char*);
-layers* createLayerEntries(int, char*);
-keyData* createRemapTable(cJSON*, int);
-cJSON* readJSON(char*);
+#include "./../header/storeData.h"
+
+/**
+ * @return 
+ */
+int createLookUpTables(LookUpTables* pLookUpTables, OS os);
+
+int createEventQueue(EventQueue* eventQueue);
+
+/**
+ * @return 
+ */
+int createLayerEntries(Layers* pLayerEntries, int universalEntries);
+
+
+/**
+ * Create a remap table. Should be 1 for each layer
+ */
+int createRemapTable(UniversalKeyData* pRemapTable, cJSON* pLayer, int universalKeyEntries);
+
+
+/**
+ * @internal
+ */
+cJSON* readJSON(char* path);
 
 #endif // _STOREDATA_

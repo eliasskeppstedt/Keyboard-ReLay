@@ -1,4 +1,4 @@
-mac_cc = clang
+mac_cc = clang -g
 mac_cflags = -Wall -Wextra
 mac_frameworks = -framework ApplicationServices -framework CoreFoundation
 src = ./src/main.c \
@@ -6,6 +6,7 @@ src = ./src/main.c \
 	./src/os_specific/quartzEventService.c \
 	./src/storeData.c \
 	./src/keyHandler.c \
+	./src/eventQueue.c \
 	./lib/cJSON.c
 out = ./out/keyboard_relay
 
@@ -17,3 +18,9 @@ run:
 
 clean:
 	rm $(out)
+
+debug:
+	clang backtrace
+
+test_simulatePress:
+	$(mac_cc) $(mac_cflags) ./test/simulatePress.c $(mac_frameworks) -o ./test

@@ -5,12 +5,6 @@
 #include <string.h>
 #include "keyHandler.h"
 
-typedef struct keyEntry_UNUSED {
-    char* name;
-    int webCode;
-    int osCode;
-} keyEntry_UNUSED;
-
 #define MASK(x, y) (x & y)
 
 #define	OS_CAPS_LOCK_MASK	    0x01
@@ -32,29 +26,28 @@ typedef struct keyEntry_UNUSED {
 #define	OS_R_ALTARNATE_MASK 	0x80
 
 // mac converter stuff ////////////////////////////////////////////////
+
+void setCodeFromMac(int macCode, int* pUniversalCode, int* pOSToUniversal);
+
 /**
- * @param int macCode
- * @param int* pWebCode
- * @param int* pointer to os to web look up table
+ * pUniversalToOs; pointer to universal to os lookup table
  */
-void setCodeFromMac(int, int*, int*);
-/**
- * @param int webCode
- * @param int* pMacCode
- * @param int* pointer to web to os lookup table
- */
-void setCodeToMac(int webCode, int* pMacCode, int* pWebToOs);
-/**
- * @param int macMask
- * @param int* pWebMask
- */
-void setFlagsFromMac(int macMask, int* pNewMask);
-/**
- * @param int webMask
- * @param int* pMacMask
- */
-void setFlagsToMac(int newMask, int* pMacMask);
-void macHelper(int, int, int, int, int, int, int, int*);
+void setCodeToMac(int universalCode, int* pMacCode, int* pUniversalToOs);
+
+void setFlagsFromMac(int macMask, int* pUniversalMask);
+
+void setFlagsToMac(int universalMask, int* pMacMask);
+
+void macHelper(
+    int oldMask, 
+    int oldModMask, 
+    int oldLModMask, 
+    int oldRModMask, 
+    int newModMask, 
+    int newLModMask, 
+    int newRModMask, 
+    int* pUniversalMask
+);
 
 // from IOLLEvent.h, comments from CGEventTypes.h
 

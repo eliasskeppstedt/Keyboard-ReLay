@@ -10,7 +10,7 @@ static uint32_t EVENT_MASK = (
 CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void* pRefcon) 
 {   
     struct eventTapCallBackData* pData = pRefcon;
-    return handleMacEvent(type, event, pData->runLoop, pData->pRemapTable);
+    handleMacEvent(type, event, pData->runLoop, pData->pRemapTable);
 }
 
 int macStartMonitoring(struct keyData* pRemapTable) 
