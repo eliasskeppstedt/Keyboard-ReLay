@@ -157,6 +157,7 @@ int createEventQueue(EventQueue* eventQueue)
     for (int i = 0; i < MAX_QUEUE_SIZE; i++)
     {
         eventQueue->buffer[i] = NULL;
+        eventQueue->bufferReadyForDispatch[i] = NULL;
     }
     eventQueue->head = 0;
     eventQueue->tail = 0;
@@ -255,7 +256,8 @@ int createRemapTable(UniversalKeyData* remapTable, cJSON* layer, int universalKe
             NO_VALUE, // code
             NO_VALUE, // codeOnPress
             NO_VALUE, // codeOnHold
-            false // keyDown
+            false, // keyDown
+            NORMAL // state
         };
     }
     // printf("\n");

@@ -36,10 +36,15 @@ CFRunLoopTimerCallBack myRunLoopTimerCallBack()
 
 CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void* refcon) 
 {
+    if (CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat) != 0) // simulated keypress are not market as autorepeats automatically, but it works, ill look up why. ...
+    { 
+        // Blocked for autorepeat!
+        return NULL; 
+    }
     watchdog_ping_or_die();
     printf("\n---------------------------------------------\n");
     printf(  "----------------- new event -----------------\n");
-    printf("  %s\n  mac code %d\n", type == kCGEventKeyDown ? "kew down" : "key up", CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode));
+    printf("  %s\n  mac code %llu\n", type == kCGEventKeyDown ? "kew down" : "key up", CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode));
 
     EventTapCallBackData* callbackData = refcon;
     int keyCode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
@@ -47,11 +52,6 @@ CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRe
     {
         CFRunLoopStop(callbackData->runLoop);
         return NULL;
-    }
-    if (CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat) != 0) // simulated keypress are not market as autorepeats automatically, however works now with the checker in the keyHandler file (why tho)
-    { 
-        printf("  blocked by auto repead!");
-        return NULL; 
     }
     
     GeneralizedEvent* macEvent = malloc(sizeof(GeneralizedEvent));
@@ -61,21 +61,25 @@ CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRe
         getTimeStamp(),
         type == kCGEventKeyDown
     };
-
     int e = handleMacEvent(callbackData->layerList, macEvent, callbackData->lookUpTables);
-
-    if (e == kKRSimulatedEventAutorepeat) return NULL;
-
+    if (e == kKRSimulatedEventAutorepeat) 
+    {
+        // nope bad logic
+    }
     CGEventSourceRef source = CGEventSourceCreate(kCGEventSourceStateCombinedSessionState);
     // in order to make every modifier as a press, macEvent must have a modifier buffer, where we traverse over to send a key
     // down event for each of the modifier before the accuall key is presset.
-    CGEventRef newEvent = CGEventCreateKeyboardEvent(source, macEvent->code, macEvent->keyDown);
-    
-    CGEventPost(kCGAnnotatedSessionEventTap, newEvent);
-    free(macEvent);
-    CFRelease(newEvent);
+    //GeneralizedEvent* modifiedMacEvent = callbackData->lookUpTables->eventQueue->bufferReadyForDispatch[0];
+    //CGEventRef newEvent = CGEventCreateKeyboardEvent(source, modifiedMacEvent->code, modifiedMacEvent->keyDown);
+    GeneralizedEvent* dequeuedMacEvent = NULL;
+    while (dequeuedMacEvent = dequeue(callbackData->lookUpTables->eventQueue, callbackData->lookUpTables->statusTable))
+    {
+        CGEventRef newEvent = CGEventCreateKeyboardEvent(source, dequeuedMacEvent->code, dequeuedMacEvent->keyDown);
+        CGEventSetFlags(newEvent, dequeuedMacEvent->eventFlagMask);
+        CGEventPost(kCGAnnotatedSessionEventTap, newEvent);
+        CFRelease(newEvent);
+    }
     CFRelease(source);
-
     return NULL;
 }
 

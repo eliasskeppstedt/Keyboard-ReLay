@@ -10,7 +10,8 @@
 */
 #define MAX_QUEUE_SIZE 100
 #define PRINT_REMAP_TABLE_ENTRY(remapTableKeyEntry) printf("pRemapTable[%d]\n  code: %d \n  codeOnPress: %d \n  codeOnHold: %d \n  keyDown: %s\n\n", remapTableKeyEntry.code, remapTableKeyEntry.code, remapTableKeyEntry.codeOnPress, remapTableKeyEntry.codeOnHold, remapTableKeyEntry.keyDown ? "true" : "false");
-
+#define hasCodeOnPress(remapTable, event) remapTable[event->code].codeOnPress == NO_VALUE ? false : true
+#define hasCodeOnHold(remapTable, event) remapTable[event->code].codeOnHold == NO_VALUE ? false : true
 //
 
 /*
@@ -27,7 +28,7 @@ typedef enum UniversalEventType {
 } UniversalEventType;
 
 typedef enum EventState {
-    NORMAL, REMAP_ON_HOLD_POTENTIAL, PENDING, ACTIVE
+    NORMAL, PENDING, ACTIVE
 } EventState;
 
 /*
@@ -51,8 +52,9 @@ bool isFull;
 */
 typedef struct EventQueue {
     GeneralizedEvent* buffer[MAX_QUEUE_SIZE];
+    GeneralizedEvent* bufferReadyForDispatch[MAX_QUEUE_SIZE];
     int head;
-    int tail;
+    int tail;   
     bool isFull;
 } EventQueue;
 
@@ -61,12 +63,14 @@ int code;
 int codeOnPress;
 int codeOnHold;
 bool keyDown;
+EventState state; // for holding logic
 */
 typedef struct UniversalKeyData {
     int code;
     int codeOnPress;
     int codeOnHold;
     bool keyDown;
+    EventState state; // for holding logic
 } UniversalKeyData;
 
 /*
