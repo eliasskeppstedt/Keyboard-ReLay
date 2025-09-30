@@ -27,13 +27,13 @@ typedef enum UniversalEventType {
 } UniversalEventType;
 
 typedef enum EventState {
-    NORMAL, PENDING, ACTIVE
+    NORMAL, REMAP_ON_HOLD_POTENTIAL, PENDING, ACTIVE
 } EventState;
 
 /*
 int code;
 int eventFlagMask;
-int timeStampOnPress
+uint64_t timeStampOnPress
 bool keyDown;
 */
 typedef struct GeneralizedEvent {
@@ -72,17 +72,15 @@ typedef struct UniversalKeyData {
 /*
 int code;
 int flagMask;
-int timeStampUSecOnPress;
-bool keyDown;
-EventState state
+uint64_t timeStampOnPress;
+bool keyDown; // for marking the event tupe
+EventState state; // for holding logic
 */
 typedef struct UniversalKeyStatus {
     int code;
     int flagMask;
     uint64_t timeStampOnPress;
     bool keyDown; // for marking the event tupe
-    bool keyWasDown; // for autorepeat denial
-    bool keyWasUp;
     EventState state; // for holding logic
 } UniversalKeyStatus;
 
@@ -117,10 +115,12 @@ typedef struct Layer {
 #define NO_VALUE -1
 #define MOD_ALREADY_ACTIVE 1
 #define kKRSimulatedEventAutorepeat 8 
+#define kKREventTypeKeyDown 9
+#define kKREventTypeKeyUp 10
 // new section
 // new section
 #define TIME_FOR_ON_HOLD_EVENT_U_SEC 150000 // 150 000 micro sec => 150 milli sec, TODO user uuh... choosable... constant
-#define TIME_FOR_AUTOREPEAT_DETECTION 50000 // 50 000 micro sec => 50 milli sec
+#define TIME_FOR_AUTOREPEAT_DETECTION 1000 // 1 000 micro sec => 1 milli sec
 //
 // EXIT CODES
 #define EXIT_CODE_CREATE_LOOK_UP_TABLE_FAILED 1000

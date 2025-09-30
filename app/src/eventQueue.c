@@ -4,9 +4,12 @@
 
 GeneralizedEvent* getEvent(EventQueue* eventQueue, QueuePosition pos)
 {
+    printf("  in getEvent\n    eventQueue: \n");
+    printf("      head:%d \n", eventQueue->head);
+    printf("      tail:%d \n", eventQueue->tail);
     if (!eventQueue->isFull && eventQueue->head == eventQueue->tail)
     {
-        printf("  queue empty\n");
+        printf("    queue empty\n");
         return NULL;
     }
     
@@ -27,16 +30,15 @@ GeneralizedEvent* getEvent(EventQueue* eventQueue, QueuePosition pos)
  */
 int enqueue(GeneralizedEvent* event, EventQueue* eventQueue, UniversalKeyStatus* statusTable)
 {
-    if (statusTable[event->code].keyDown)
-    {
-        return MOD_ALREADY_ACTIVE;
-    }
+    printf("  in enqueue\n    eventQueue: \n");
+    printf("      head:%d \n", eventQueue->head);
+    printf("      tail:%d \n", eventQueue->tail);
     if (eventQueue->isFull)
     {
-        printf("uuuuh this should not happen but event queue is full somehow.... ig exit program for debugging...\n");
+        printf("    uuuuh this should not happen but event queue is full somehow.... ig exit program for debugging...\n");
         exit(1);
     }
-    eventQueue->buffer[eventQueue->tail] = event;
+    eventQueue->buffer[eventQueue->tail] = event; 
     eventQueue->tail = (eventQueue->tail + 1) % MAX_QUEUE_SIZE;
     if (eventQueue->tail == eventQueue->head)
     {
@@ -48,10 +50,13 @@ int enqueue(GeneralizedEvent* event, EventQueue* eventQueue, UniversalKeyStatus*
 
 GeneralizedEvent* dequeue(EventQueue* eventQueue, UniversalKeyStatus* statusTable)
 {
+    printf("  in dequeue\n    eventQueue: \n");
+    printf("      head:%d \n", eventQueue->head);
+    printf("      tail:%d \n", eventQueue->tail);
     bool isEmpty = !eventQueue->isFull && eventQueue->head == eventQueue->tail;
     if (isEmpty)
     {
-        printf("  Queue is empty!\n");
+        printf("    Queue is empty!\n");
         return NULL;
     }
 

@@ -48,26 +48,19 @@ CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRe
         CFRunLoopStop(callbackData->runLoop);
         return NULL;
     }
-    if (CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat) != 0) // simulated keypress are not market as autorepeats
+    if (CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat) != 0) // simulated keypress are not market as autorepeats automatically, however works now with the checker in the keyHandler file (why tho)
     { 
-        printf(" blocked by auto repead!");
+        printf("  blocked by auto repead!");
         return NULL; 
     }
     
-
     GeneralizedEvent* macEvent = malloc(sizeof(GeneralizedEvent));
-    macEvent->timeStampOnPress = getTimeStamp();
-    macEvent->eventFlagMask = CGEventGetFlags(event);
-    macEvent->code = keyCode;
-
-    if (type == kCGEventKeyDown)
-    {
-        macEvent->keyDown = true;
-    } 
-    else if (type == kCGEventKeyUp)
-    {
-        macEvent->keyDown = false;
-    }
+    *macEvent = (GeneralizedEvent) {
+        keyCode,
+        CGEventGetFlags(event),
+        getTimeStamp(),
+        type == kCGEventKeyDown
+    };
 
     int e = handleMacEvent(callbackData->layerList, macEvent, callbackData->lookUpTables);
 

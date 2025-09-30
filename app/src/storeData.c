@@ -116,8 +116,6 @@ int createLookUpTables(LookUpTables* lookUpTables, OS os)
             NO_VALUE, // flag mask
             NO_VALUE, // time stamp on key down
             false, // keyDown
-            false, // keyWasPressed
-            false, // keyWasDown
             NORMAL // state
         };
     }

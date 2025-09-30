@@ -1,77 +1,76 @@
 #include "./../header/keyHandler.h"
 
-int lastDetectedKeyCode = NO_VALUE;
-
 int handleEvent(Layer* layerList, GeneralizedEvent* event, LookUpTables* lookUpTables)
 {   
+    printf("  uni code:%d\n", event->code);
     int e = 0;
     EventQueue*         eventQueue = lookUpTables->eventQueue;
     UniversalKeyStatus* statusTable = lookUpTables->statusTable;   
     UniversalKeyData*   remapTable = layerList->remapTable;
-    GeneralizedEvent*   lastEvent = getEvent(eventQueue, eventQueue->tail); 
-    if (statusTable[event->code].keyWasDown &&
+    if (statusTable[event->code].keyDown &&
         event->timeStampOnPress - statusTable[event->code].timeStampOnPress < TIME_FOR_AUTOREPEAT_DETECTION)
     {
         return kKRSimulatedEventAutorepeat;
     }
-    statusTable[event->code].keyWasDown = event->keyDown;
-
-    
+    printf("  head: %d\n", eventQueue->head);
+    printf("  tail: %d\n", eventQueue->tail);
+    statusTable[event->code].keyDown = event->keyDown;
+    statusTable[event->code].timeStampOnPress = event->timeStampOnPress;
+    statusTable[event->code].flagMask = event->eventFlagMask;
     enqueue(event, eventQueue, statusTable);
-    
-    /*if (lastEvent)
-    { 
-        printf("  in here plz...");
-        uint64_t timeSinceLastEvent = event->timeStampOnPress - lastEvent->timeStampOnPress;
-        bool sameKey = event->code == lastEvent->code;
-        if (timeSinceLastEvent < TIME_FOR_AUTOREPEAT_DETECTION && sameKey)
-        {
-            return kKRSimulatedEventAutorepeat;
-        }
-    }*/
-    //statusTable[event->code].keyDown = event->keyDown;
-    //statusTable[event->code].timeStampOnPress = event->timeStampOnPress;
-
-    GeneralizedEvent* firstEvent = getEvent(eventQueue, HEAD);
-    lastEvent = getEvent(eventQueue, eventQueue->tail);
+    GeneralizedEvent* headEvent = getEvent(eventQueue, HEAD);
+    UniversalKeyData* dataForPressedKey = &remapTable[headEvent->code];
+    printf("data for key: code: %d\n", dataForPressedKey->code);
+    GeneralizedEvent* tailEvent = getEvent(eventQueue, eventQueue->tail);
     printf("  Timestamp enqueued event: %llu\n", event->timeStampOnPress);
-    event = dequeue(eventQueue, statusTable);
     printf("  Timestamp dequeued event: %llu\n", event->timeStampOnPress);
     
-    if (!lastEvent->keyDown) goto keyUpp;
-    if (remapTable[firstEvent->code].codeOnHold != NO_VALUE) // then CAN become hold event
+    if (!headEvent->keyDown)
     {
-        if (lastEvent->timeStampOnPress - getTimeStamp() < TIME_FOR_ON_HOLD_EVENT_U_SEC)
+        // skip hold logic for now
+        if (statusTable[headEvent->code].state == REMAP_ON_HOLD_POTENTIAL) return kKREventTypeKeyUp;
+        event = dequeue(eventQueue, statusTable);
+        statusTable[event->code].state = NORMAL;
+
+        /*if (statusTable[dequeuedEvent->code].state == PENDING) 
         {
-            statusTable[event->code].state = PENDING;
+            //remove modifers from dequeuedEvent
+        }*/
+        return kKREventTypeKeyUp;
+    }
+    if (statusTable[headEvent->code].state == REMAP_ON_HOLD_POTENTIAL) // then CAN become hold event
+    {
+        /*
+        printf("  1.       REMAP_ON_HOLD_POTENTIAL\n");
+        if (headEvent->timeStampOnPress - getTimeStamp() < TIME_FOR_ON_HOLD_EVENT_U_SEC)
+        {
+        printf("  2.       REMAP_ON_HOLD_POTENTIAL\n");
+            statusTable[headEvent->code].state = NORMAL;
+            // TODO set flags
             return kKRSimulatedEventAutorepeat; // change later, currently makes for no simulated presses
         }
-        statusTable[event->code].state = ACTIVE;
-        event->code = remapTable[event->code].codeOnHold;
-        return 0;
+        printf("  3.       REMAP_ON_HOLD_POTENTIAL\n");
+        event = dequeue(eventQueue, statusTable);
+        //statusTable[headEvent->code].state = ACTIVE;
+        //dequeuedEvent->code = dataForPressedKey->codeOnHold;
+        */
     }
-
-    UniversalKeyData* dataForPressedKey = &layerList->remapTable[event->code];
-    lookUpTables->statusTable[event->code].timeStampOnPress = event->timeStampOnPress;
-    
-    
-    if (dataForPressedKey->codeOnPress != NO_VALUE) // there exist a on press remap code
-    {    
-
-        if (event->keyDown)
-        {
-            printf("  DEBUGG Key \"%d\" was pressed\n", event->code);
-            printf("  DEBUGG code %d\n", dataForPressedKey->code);
-            printf("  DEBUGG onPress %d\n", dataForPressedKey->codeOnPress);
-            printf("  DEBUGG onHold %d\n", dataForPressedKey->codeOnHold);
-        }
+    else if (remapTable[headEvent->code].codeOnPress != NO_VALUE) // has onPress remap
+    {
+        printf("  4.       codeOnPress\n");
+        event = dequeue(eventQueue, statusTable);
         event->code = dataForPressedKey->codeOnPress;
     }
+    else if (statusTable[headEvent->code].state == NORMAL) // just pass as normal key press
+    {
+        event = dequeue(eventQueue, statusTable);
+    }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    keyUpp:
-    // key on hold logic here ...
-    return 0;
+    printf("  DEBUGG Key \"%d\" was pressed\n", event->code);
+    printf("  DEBUGG code %d\n", dataForPressedKey->code);
+    printf("  DEBUGG onPress %d\n", dataForPressedKey->codeOnPress);
+    printf("  DEBUGG onHold %d\n", dataForPressedKey->codeOnHold);
+    return kKREventTypeKeyDown;
 }
 
 int handleMacEvent(Layer* layerList, GeneralizedEvent* macEvent, LookUpTables* lookUpTables)
