@@ -40,21 +40,21 @@ int macMain()
     {
         return -1;// EXIT_CODE_CREATE_EVENT_QUEUE_FAILED;
     }
-    lookUpTables.pEventQueue = &eventQueue;
+    lookUpTables.eventQueue = &eventQueue;
 
-    Layers* pLayerEntries = malloc(sizeof(Layers) * lookUpTables.universalKeyEntries);
-    if ((createLayerEntries(pLayerEntries, lookUpTables.universalKeyEntries)) != 0) 
+    Layer* layerList = malloc(sizeof(Layer) * lookUpTables.universalKeyEntries);
+    if ((createLayerEntries(layerList, lookUpTables.universalKeyEntries)) != 0) 
     {
         return EXIT_CODE_CREATE_LAYER_ENTRIES_FAILED;
     }
     int entries = lookUpTables.universalKeyEntries;
     printf("Key lookup tables");
-    for (int i = 0; i < lookUpTables.universalKeyEntries; i++)
-    {
-        printf("    pUniversalToOSLookUp[%d]: %d, pOSToUniversal[%d]: %d\n", i, lookUpTables.pUniversalToOS[i], i, lookUpTables.pOSToUniversal[i]);
+    for (int i = 0; i < lookUpTables.osKeyEntries; i++)
+    {   // of junk values in universaltoos after index 71
+        printf("    pUniversalToOSLookUp[%d]: %d, pOSToUniversal[%d]: %d\n", i, lookUpTables.universalToOS[i], i, lookUpTables.osToUniversal[i]);
     }
     
-    int e = macStartMonitoring(pLayerEntries, &lookUpTables);
+    int e = macStartMonitoring(layerList, &lookUpTables);
     exit:
     return e;
 }

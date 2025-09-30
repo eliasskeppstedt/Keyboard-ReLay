@@ -8,16 +8,30 @@
 #include "converter.h"
 #include "eventQueue.h"
 
+
+/*
+Layer* layerList, 
+GeneralizedEvent* eventvent, 
+LookUpTables* lookUpTables
+*/
 int handleEvent(
-    Layers* pLayerEntries, 
-    GeneralizedEvent* pUniversalEvent, 
+    Layer* layerList, 
+    GeneralizedEvent* eventvent, 
     LookUpTables* lookUpTables
 );
 
+/*
+Layer* layerList, 
+GeneralizedEvent* macEvent, 
+LookUpTables* lookUpTables
+*/
 int handleMacEvent(
-    Layers* pLayerEntries, 
-    GeneralizedEvent* pMacEvent, 
-    LookUpTables* pLookUpTables
+    Layer* layerList, 
+    GeneralizedEvent* macEvent, 
+    LookUpTables* lookUpTables
 );
+
+
+uint64_t getTimeStamp();
 
 #endif // _KEYHANDLER_

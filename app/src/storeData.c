@@ -2,20 +2,20 @@
 // for reading json, im using the relative path, change later? then ig change to absolute path
 // based on download location for each OS
 
-int createLookUpTables(LookUpTables* pLookUpTables, OS os)
+int createLookUpTables(LookUpTables* lookUpTables, OS os)
 {
     // printf("DEBUG storeData.c createLookUpTable\n");
     // printf("DEBUG cjson array for each to create look up table\n");
     // Create look up tables
     // works only if first universal code is 0 and increses by 1 untill universalKeyEntries - 1
-    cJSON* pJSON = readJSON("./config/keys.json");
-    if (!pJSON) 
+    cJSON* json = readJSON("./config/keys.json");
+    if (!json) 
     { 
-        printf("[ ] !pJSON keys\n"); 
+        printf("[ ] !json keys\n"); 
         return EXIT_CODE_CREATE_LOOK_UP_TABLE_FAILED;
     }
 
-    cJSON* verifyObj = cJSON_GetObjectItem(pJSON, "universalEntries");
+    cJSON* verifyObj = cJSON_GetObjectItem(json, "universalEntries");
     if (!verifyObj) 
     { 
         printf("1 !universalKeyEntries\n"); 
@@ -32,7 +32,7 @@ int createLookUpTables(LookUpTables* pLookUpTables, OS os)
         stringOS = "mac";
     }
 
-    verifyObj = cJSON_GetObjectItem(pJSON, stringOSEntries);
+    verifyObj = cJSON_GetObjectItem(json, stringOSEntries);
     if (!verifyObj) 
     { 
         printf("1 !osKeyEntries\n"); 
@@ -41,55 +41,56 @@ int createLookUpTables(LookUpTables* pLookUpTables, OS os)
     int osKeyEntries = cJSON_GetNumberValue(verifyObj);
     // if (!osKeyEntries) { printf("2 !osKeyEntries\n"); return EXIT_CODE_LOOK_UP_TABLE_FAILED; }
 
-    int* pUniversalToOSLookUp = malloc(sizeof(int) * universalKeyEntries); 
+    int* universalToOSLookUp = malloc(sizeof(int) * universalKeyEntries); 
     for (int i = 0; i < universalKeyEntries; i++)
     {
-        pUniversalToOSLookUp[i] = NO_VALUE;
+        universalToOSLookUp[i] = NO_VALUE;
     }
     
-    int* pOSToUniversalLookUp = malloc(sizeof(int) * osKeyEntries); 
+    int* osToUniversalLookUp = malloc(sizeof(int) * osKeyEntries); 
     for (int i = 0; i < osKeyEntries; i++)
     {
-        pOSToUniversalLookUp[i] = NO_VALUE;
+        osToUniversalLookUp[i] = NO_VALUE;
     }
     
-    UniversalKeyStatus* pStatusTable = malloc(sizeof(UniversalKeyStatus) * universalKeyEntries);
+    UniversalKeyStatus* statusTable = malloc(sizeof(UniversalKeyStatus) * universalKeyEntries);
 
-    cJSON* pKeys = cJSON_GetObjectItem(pJSON, "keys");
-    if (!pKeys) { 
-        printf("[ ] !pKeys\n"); 
+    cJSON* keys = cJSON_GetObjectItem(json, "keys");
+    if (!keys) { 
+        printf("[ ] !keys\n"); 
         return EXIT_CODE_CREATE_LOOK_UP_TABLE_FAILED; 
     }
-    cJSON* pKey = NULL; 
-    cJSON* pOSKeyCode = NULL;
-    cJSON* pUniversalKeyCode = NULL;
-    cJSON* pKeyCode = NULL;
-
-    cJSON_ArrayForEach(pKey, pKeys)
+    cJSON* key = NULL; 
+    cJSON* osKeyCodes = NULL;
+    cJSON* universalKeyCode = NULL;
+    cJSON* osKeyCode = NULL;
+    int test = 0;
+    cJSON_ArrayForEach(key, keys)
     {
+        printf("%d ", test++);
         // printf("New key:\n");
-        pKeyCode = cJSON_GetObjectItem(pKey, "keyCode");
-        if (!pKeyCode) {  
-            printf("[ ] !pOSKeyCode\n"); 
+        osKeyCode = cJSON_GetObjectItem(key, "keyCode");
+        if (!osKeyCode) {  
+            printf("[ ] !osKeyCodes\n"); 
             return EXIT_CODE_CREATE_LOOK_UP_TABLE_FAILED; 
         }
-        // printf("%s\n", cJSON_Print(pKeyCode));
+        // printf("%s\n", cJSON_Print(osKeyCode));
 
-        pUniversalKeyCode = cJSON_GetObjectItem(pKeyCode, "universal");
-        if (!pUniversalKeyCode) { 
-            printf("[ ] !pUniversalKeyCode\n"); 
+        universalKeyCode = cJSON_GetObjectItem(osKeyCode, "universal");
+        if (!universalKeyCode) { 
+            printf("[ ] !universalKeyCode\n"); 
             return EXIT_CODE_CREATE_LOOK_UP_TABLE_FAILED; 
         }
-        // printf("%s\n", cJSON_Print(pUniversalKeyCode));
+        // printf("%s\n", cJSON_Print(universalKeyCode));
 
-        pOSKeyCode = cJSON_GetObjectItem(pKeyCode, stringOS);
-        if (!pOSKeyCode) { 
-            printf("[ ] !pOSKeyCode\n"); 
+        osKeyCodes = cJSON_GetObjectItem(osKeyCode, stringOS);
+        if (!osKeyCodes) { 
+            printf("[ ] !osKeyCodes\n"); 
             return EXIT_CODE_CREATE_LOOK_UP_TABLE_FAILED; 
         }
-        // printf("%s\n", cJSON_Print(pOSKeyCode));
+        // printf("%s\n", cJSON_Print(osKeyCodes));
 
-        verifyObj = cJSON_GetObjectItemCaseSensitive(pUniversalKeyCode, "dec");
+        verifyObj = cJSON_GetObjectItemCaseSensitive(universalKeyCode, "dec");
         if (!verifyObj) { 
             printf("[ ] !dec universal 1\n"); 
             return EXIT_CODE_CREATE_LOOK_UP_TABLE_FAILED; 
@@ -97,7 +98,7 @@ int createLookUpTables(LookUpTables* pLookUpTables, OS os)
         int universalCode = cJSON_GetNumberValue(verifyObj);
         //if (!universalCode) { // printf("[ ] !dec universal 2\n"); return EXIT_CODE_LOOK_UP_TABLE_FAILED; }
 
-        verifyObj = cJSON_GetObjectItemCaseSensitive(pOSKeyCode, "dec");
+        verifyObj = cJSON_GetObjectItemCaseSensitive(osKeyCodes, "dec");
         if (!verifyObj) { 
             printf("[ ] !dec os 1\n"); 
             return EXIT_CODE_CREATE_LOOK_UP_TABLE_FAILED; 
@@ -106,72 +107,75 @@ int createLookUpTables(LookUpTables* pLookUpTables, OS os)
         int osCode = cJSON_GetNumberValue(verifyObj);
         //if (!osCode) { // printf("[ ] !dec os 2\n"); return EXIT_CODE_LOOK_UP_TABLE_FAILED; }
 
-        pUniversalToOSLookUp[universalCode] = osCode; // *(pUniversalToOSLookUp + universalCode) = osCode (since i work with pointers of size int, adding x to it will "move" the pointer forward to xth location)
-        pOSToUniversalLookUp[osCode] = universalCode; // -1 sparat om mapping inte universell kod finns (än)
-        // printf("DEBUG pOSToUniversalLookUp[osCode] = universalCode\n");
-        // printf("DEBUG                      ^%d       ^%d\nDEBUG\n", osCode, pOSToUniversalLookUp[osCode]);
-        pStatusTable[universalCode] = (UniversalKeyStatus) {
+        universalToOSLookUp[universalCode] = osCode; // *(universalToOSLookUp + universalCode) = osCode (since i work with pointers of size int, adding x to it will "move" the pointer forward to xth location)
+        osToUniversalLookUp[osCode] = universalCode; // -1 sparat om mapping inte universell kod finns (än)
+        // printf("DEBUG osToUniversalLookUp[osCode] = universalCode\n");
+        // printf("DEBUG                      ^%d       ^%d\nDEBUG\n", osCode, osToUniversalLookUp[osCode]);
+        statusTable[universalCode] = (UniversalKeyStatus) {
             universalCode, 
             NO_VALUE, // flag mask
             NO_VALUE, // time stamp on key down
-            false // is pressed
+            false, // keyDown
+            false, // keyWasPressed
+            false, // keyWasDown
+            NORMAL // state
         };
     }
 
-    cJSON_free(pJSON);
-    cJSON_free(pKeys);
-    cJSON_free(pKey);
-    cJSON_free(pOSKeyCode);
-    cJSON_free(pUniversalKeyCode);
+    cJSON_free(json);
+    cJSON_free(keys);
+    cJSON_free(key);
+    cJSON_free(osKeyCodes);
+    cJSON_free(universalKeyCode);
     cJSON_free(verifyObj);
-    if (!pLookUpTables)
+    if (!lookUpTables)
     {
         printf("look up table null\n");
         return EXIT_CODE_CREATE_LOOK_UP_TABLE_FAILED;
     }
     // printf("universalKeyEntries: %d\n", universalKeyEntries);
     // printf("osKeyEntries: %d\n", osKeyEntries);
-    /**pLookUpTables = (lookUpTables) {
-        pUniversalToOSLookUp,
-        pOSToUniversalLookUp,
-        pStatusTable,
+    /**lookUpTables = (lookUpTables) {
+        universalToOSLookUp,
+        osToUniversalLookUp,
+        statusTable,
         universalKeyEntries,
         osKeyEntries
     };*/
-    *pLookUpTables = (LookUpTables) {
-        pUniversalToOSLookUp,
-        pOSToUniversalLookUp,
+    *lookUpTables = (LookUpTables) {
+        universalToOSLookUp,
+        osToUniversalLookUp,
         universalKeyEntries,
         osKeyEntries, // osKeyEntries
-        pStatusTable,
+        statusTable,
         NULL
     };
     // printf("DEBUG storeData.c createLookUpTable end\n"); return EXIT_CODE_DEBUG;
     return 0;
 }
 
-int createEventQueue(EventQueue* pEventQueue)
+int createEventQueue(EventQueue* eventQueue)
 {
     for (int i = 0; i < MAX_QUEUE_SIZE; i++)
     {
-        pEventQueue->buffer[i] = NULL;
+        eventQueue->buffer[i] = NULL;
     }
-    pEventQueue->head = 0;
-    pEventQueue->tail = 0;
-    pEventQueue->isFull = false;
+    eventQueue->head = 0;
+    eventQueue->tail = 0;
+    eventQueue->isFull = false;
     return 0;
 }
 
-int createLayerEntries(Layers* pLayerEntries, int universalKeyEntries)
+int createLayerEntries(Layer* layerList, int universalKeyEntries)
 {
-    cJSON* pJSON = readJSON("./config/remaps.json");
-    if (!pJSON) 
+    cJSON* json = readJSON("./config/remaps.json");
+    if (!json) 
     { 
-        printf("[ ] !pJSON remaps\n"); 
+        printf("[ ] !json remaps\n"); 
         return -1; 
     }
 
-    cJSON* verifyObj = cJSON_GetObjectItemCaseSensitive(pJSON, "layerEntries");
+    cJSON* verifyObj = cJSON_GetObjectItemCaseSensitive(json, "layerEntries");
     if (!verifyObj)
     { 
         printf("[ ] !layerEntries 1\n"); 
@@ -182,7 +186,7 @@ int createLayerEntries(Layers* pLayerEntries, int universalKeyEntries)
     
     for (int i = 0; i < layerEntries; i++)
     {
-        pLayerEntries[i] = (Layers) {
+        layerList[i] = (Layer) {
             NULL,       // layer name
             NO_VALUE,   // layer nr
             NULL        // remapTable
@@ -190,18 +194,17 @@ int createLayerEntries(Layers* pLayerEntries, int universalKeyEntries)
     }
     
 
-    cJSON* pLayers = cJSON_GetObjectItem(pJSON, "layers");
-    if (!pLayers) 
+    cJSON* layers = cJSON_GetObjectItem(json, "layers");
+    if (!layers) 
     { 
-        printf("[ ] !pLayers\n"); 
+        printf("[ ] !layers\n"); 
         return -1; 
     }
-    cJSON* pOSKeyCode = NULL;
-    //cJSON* pOnHold = NULL;
-    cJSON* pLayer = NULL;   
-    cJSON_ArrayForEach(pLayer, pLayers)
+    cJSON* osKeyCodes = NULL;
+    cJSON* layer = NULL;   
+    cJSON_ArrayForEach(layer, layers)
     {
-        verifyObj = cJSON_GetObjectItemCaseSensitive(pLayer, "layerName");
+        verifyObj = cJSON_GetObjectItemCaseSensitive(layer, "layerName");
         if (!verifyObj) 
         { 
             printf("1 !layerName\n"); 
@@ -214,7 +217,7 @@ int createLayerEntries(Layers* pLayerEntries, int universalKeyEntries)
             return -1; 
         }
 
-        verifyObj = cJSON_GetObjectItemCaseSensitive(pLayer, "layerNr");
+        verifyObj = cJSON_GetObjectItemCaseSensitive(layer, "layerNr");
         if (!verifyObj) 
         { 
             printf("1 !layerNr\n"); 
@@ -222,35 +225,35 @@ int createLayerEntries(Layers* pLayerEntries, int universalKeyEntries)
         }
         int layerNr = cJSON_GetNumberValue(verifyObj);
         // if (!layerNr) { // printf("2 !layerNr\n"); return -1; }
-        UniversalKeyData* pRemapTable = malloc(sizeof(UniversalKeyData) * universalKeyEntries);
-        createRemapTable(pRemapTable, pLayer, universalKeyEntries);
-        if (!pRemapTable) 
+        UniversalKeyData* remapTable = malloc(sizeof(UniversalKeyData) * universalKeyEntries);
+        createRemapTable(remapTable, layer, universalKeyEntries);
+        if (!remapTable) 
         {  
-            printf("[ ] !pRemapTable\n"); 
+            printf("[ ] !remapTable\n"); 
             return -1; 
         }
-        pLayerEntries[layerNr].layerName = strdup(layerName); // deep copy of string
-        pLayerEntries[layerNr].layerNr = layerNr;
-        pLayerEntries[layerNr].pRemapTable = pRemapTable;
+        layerList[layerNr].layerName = strdup(layerName); // deep copy of string
+        layerList[layerNr].layerNr = layerNr;
+        layerList[layerNr].remapTable = remapTable;
     }
 
-    cJSON_free(pJSON);
-    cJSON_free(pLayer);
-    cJSON_free(pLayers);
-    cJSON_free(pOSKeyCode);
+    cJSON_free(json);
+    cJSON_free(layer);
+    cJSON_free(layers);
+    cJSON_free(osKeyCodes);
     cJSON_free(verifyObj);
 
     return 0;
 }
 
-int createRemapTable(UniversalKeyData* pRemapTable, cJSON* pLayer, int universalKeyEntries)
+int createRemapTable(UniversalKeyData* remapTable, cJSON* layer, int universalKeyEntries)
 {
     // printf("universal entries: %d\n", universalKeyEntries);
     for (int i = 0; i < universalKeyEntries; i++)
     {
         // compound literal initializer, C99 standard or later 
         // (compiler version can be manually set by flag -std=C[version nr])
-        pRemapTable[i] = (UniversalKeyData) { 
+        remapTable[i] = (UniversalKeyData) { 
             NO_VALUE, // code
             NO_VALUE, // codeOnPress
             NO_VALUE, // codeOnHold
@@ -258,11 +261,22 @@ int createRemapTable(UniversalKeyData* pRemapTable, cJSON* pLayer, int universal
         };
     }
     // printf("\n");
-    cJSON* pOSKeyCode = cJSON_GetObjectItem(pLayer, "keyCode");
-    cJSON* pKeyCode = NULL;
-    cJSON_ArrayForEach(pKeyCode, pOSKeyCode)
+    cJSON* osKeyCodes = cJSON_GetObjectItem(layer, "keyCode");
+    if (!osKeyCodes) 
+    { 
+        printf("1 !osKeyCodes\n"); 
+        return -1; 
+    }
+    for (int i = 0; i < universalKeyEntries; i++)
     {
-        cJSON* verifyObj = cJSON_GetObjectItemCaseSensitive(pKeyCode, "from");
+        printf("%d", remapTable[i].code);
+    } printf("\n");
+    
+    
+    cJSON* osKeyCode = NULL;
+    cJSON_ArrayForEach(osKeyCode, osKeyCodes)
+    {
+        cJSON* verifyObj = cJSON_GetObjectItemCaseSensitive(osKeyCode, "from");
         if (!verifyObj) 
         { 
             printf("[ ] !from 1\n"); 
@@ -271,7 +285,7 @@ int createRemapTable(UniversalKeyData* pRemapTable, cJSON* pLayer, int universal
         int from = cJSON_GetNumberValue(verifyObj);
         // if (!from) { // printf("[ ] !from 2\n"); return -1; }
 
-        verifyObj = cJSON_GetObjectItemCaseSensitive(pKeyCode, "toOnPress");
+        verifyObj = cJSON_GetObjectItemCaseSensitive(osKeyCode, "toOnPress");
         if (!verifyObj) { 
             printf("[ ] !toOnPress 1\n"); 
             return 1; 
@@ -279,7 +293,7 @@ int createRemapTable(UniversalKeyData* pRemapTable, cJSON* pLayer, int universal
         int toOnPress = cJSON_GetNumberValue(verifyObj);
         // if (!toOnPress) { // printf("[ ] !toOnPress 2\n"); return -1; }
 
-        verifyObj = cJSON_GetObjectItemCaseSensitive(pKeyCode, "toOnHold");
+        verifyObj = cJSON_GetObjectItemCaseSensitive(osKeyCode, "toOnHold");
         if (!verifyObj) 
         { 
             printf("[ ] !toOnHold 1\n"); 
@@ -288,42 +302,46 @@ int createRemapTable(UniversalKeyData* pRemapTable, cJSON* pLayer, int universal
         int toOnHold = cJSON_GetNumberValue(verifyObj);
         // if (!toOnHold) { // printf("[ ] !toOnHold 2\n"); return -1; }
 
-        pRemapTable[from] = (UniversalKeyData) {
+        remapTable[from] = (UniversalKeyData) {
             from,
             toOnPress,
             toOnHold,
             false
         };
-        PRINT_REMAP_TABLE_ENTRY(pRemapTable[from]);
+        PRINT_REMAP_TABLE_ENTRY(remapTable[from]);
     }
+    for (int i = 0; i < universalKeyEntries; i++)
+    {
+        printf("%s%d", remapTable[i].code == NO_VALUE ? "" : " ", remapTable[i].code);
+    } printf("\n");
     return 0;
 }
 
 cJSON* readJSON(char* path) 
 {
-    FILE* pF = fopen(path, "r");
+    FILE* f = fopen(path, "r");
 
-    if (!pF) 
+    if (!f) 
     {
         // printf("Could not open json file! => ");
         return NULL;
     }
 
     char buffer[32768];
-    fread(buffer, 1, sizeof(buffer), pF);
-    fclose(pF);
+    fread(buffer, 1, sizeof(buffer), f);
+    fclose(f);
 
     // parse the JSON data
-    cJSON* pJSON = cJSON_Parse(buffer);
-    if (!pJSON) 
+    cJSON* json = cJSON_Parse(buffer);
+    if (!json) 
     {
         const char *error_ptr = cJSON_GetErrorPtr();
         if (error_ptr) 
         {
             // printf("Error: %s => ", error_ptr);
         }
-        cJSON_Delete(pJSON);
+        cJSON_Delete(json);
         return NULL;
     }
-    return pJSON;
+    return json;
 }

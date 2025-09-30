@@ -29,55 +29,65 @@ static inline void watchdog_ping_or_die(void) {
     last = now;
 }
 
-CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void* pRefcon) 
+CFRunLoopTimerCallBack myRunLoopTimerCallBack()
+{
+    printf("run loop timer\n");
+}
+
+CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void* refcon) 
 {
     watchdog_ping_or_die();
+    printf("\n---------------------------------------------\n");
+    printf(  "----------------- new event -----------------\n");
+    printf("  %s\n  mac code %d\n", type == kCGEventKeyDown ? "kew down" : "key up", CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode));
 
-    printf("%s\n", type == kCGEventKeyDown ? "kew down" : "key up");
-
-    EventTapCallBackData* pData = pRefcon;
+    EventTapCallBackData* callbackData = refcon;
     int keyCode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
     if (keyCode == MAC_ESCAPE)
     {
-        CFRunLoopStop(pData->runLoop);
+        CFRunLoopStop(callbackData->runLoop);
         return NULL;
     }
-    if (CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat) != 0) 
+    if (CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat) != 0) // simulated keypress are not market as autorepeats
     { 
+        printf(" blocked by auto repead!");
         return NULL; 
-    } 
+    }
+    
 
-    struct timeval timeOnPress;
-    gettimeofday(&timeOnPress, NULL);
-
-    GeneralizedEvent* pMacEvent = malloc(sizeof(GeneralizedEvent));
-    pMacEvent->eventFlagMask = CGEventGetFlags(event);
-    pMacEvent->code = keyCode;
+    GeneralizedEvent* macEvent = malloc(sizeof(GeneralizedEvent));
+    macEvent->timeStampOnPress = getTimeStamp();
+    macEvent->eventFlagMask = CGEventGetFlags(event);
+    macEvent->code = keyCode;
 
     if (type == kCGEventKeyDown)
     {
-        pMacEvent->keyDown = true;
+        macEvent->keyDown = true;
     } 
     else if (type == kCGEventKeyUp)
     {
-        pMacEvent->keyDown = false;
+        macEvent->keyDown = false;
     }
 
-    int e = handleMacEvent(pData->pLayerEntries, pMacEvent, pData->pLookUpTables);
+    int e = handleMacEvent(callbackData->layerList, macEvent, callbackData->lookUpTables);
+
+    if (e == kKRSimulatedEventAutorepeat) return NULL;
 
     CGEventSourceRef source = CGEventSourceCreate(kCGEventSourceStateCombinedSessionState);
-    // in order to make every modifier as a press, pmacevent must have a modifier buffer, where we traverse over to send a key
+    // in order to make every modifier as a press, macEvent must have a modifier buffer, where we traverse over to send a key
     // down event for each of the modifier before the accuall key is presset.
-    CGEventRef newEvent = CGEventCreateKeyboardEvent(source, pMacEvent->code, pMacEvent->keyDown);
+    CGEventRef newEvent = CGEventCreateKeyboardEvent(source, macEvent->code, macEvent->keyDown);
+    
     CGEventPost(kCGAnnotatedSessionEventTap, newEvent);
+    free(macEvent);
     CFRelease(newEvent);
-    printf("\n");
+    CFRelease(source);
 
     return NULL;
 }
 
 #include <stddef.h>
-int macStartMonitoring(Layers* pLayerEntries, LookUpTables* pLookUpTables) 
+int macStartMonitoring(Layer* layerList, LookUpTables* lookUpTables) 
 {
     printf("Setting upp run loop... ");
     CFRunLoopRef runLoop = CFRunLoopGetMain();
@@ -88,11 +98,11 @@ int macStartMonitoring(Layers* pLayerEntries, LookUpTables* pLookUpTables)
     }
     printf("ok\n");
 
-    EventTapCallBackData* pData = malloc(sizeof(EventTapCallBackData));
-    *pData = (EventTapCallBackData) {
+    EventTapCallBackData* callbackData = malloc(sizeof(EventTapCallBackData));
+    *callbackData = (EventTapCallBackData) {
         runLoop,
-        pLayerEntries,
-        pLookUpTables
+        layerList,
+        lookUpTables
     };
 
     printf("Setting upp event tap... ");
@@ -102,7 +112,7 @@ int macStartMonitoring(Layers* pLayerEntries, LookUpTables* pLookUpTables)
         K_CG_EVENT_TAP_OPTION_DEFAULT, // options; default, listen only
         EVENT_MASK, // eventsOfInterest; mouse, keyboard, etc
         myEventTapCallBack, // callback func called when a quartz event is triggered
-        pData // userInfo, I pass pointer to the runLoop to be able to close it from within the callback
+        callbackData // userInfo, I pass pointer to the runLoop to be able to close it from within the callback
     );
     if (!eventTap) 
     {
@@ -143,7 +153,7 @@ int macStartMonitoring(Layers* pLayerEntries, LookUpTables* pLookUpTables)
     CFMachPortInvalidate(eventTap);        // ensures no more messages are delivered - chatgpt
     CFRelease(runLoopSource);              // if you created one - chatgpt
     CFRelease(eventTap);
-    free(pData);
+    free(callbackData);
 
     printf("\nEvent loop closed\n");
     return 0;

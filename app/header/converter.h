@@ -27,16 +27,16 @@
 
 // mac converter stuff ////////////////////////////////////////////////
 
-void setCodeFromMac(int macCode, int* pUniversalCode, int* pOSToUniversal);
+int setCodeFromMac(int macCode, int* universalCode, int* osToUniversal);
 
 /**
  * pUniversalToOs; pointer to universal to os lookup table
  */
-void setCodeToMac(int universalCode, int* pMacCode, int* pUniversalToOs);
+void setCodeToMac(int universalCode, int* macCode, int* universalToOs);
 
-void setFlagsFromMac(int macMask, int* pUniversalMask);
+void setFlagsFromMac(int macMask, int* universalMask);
 
-void setFlagsToMac(int universalMask, int* pMacMask);
+void setFlagsToMac(int universalMask, int* macMask);
 
 void macHelper(
     int oldMask, 
@@ -46,7 +46,7 @@ void macHelper(
     int newModMask, 
     int newLModMask, 
     int newRModMask, 
-    int* pUniversalMask
+    int* universalMask
 );
 
 // from IOLLEvent.h, comments from CGEventTypes.h

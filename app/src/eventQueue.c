@@ -2,43 +2,63 @@
 
 // implemented as a ring buffer
 
+GeneralizedEvent* getEvent(EventQueue* eventQueue, QueuePosition pos)
+{
+    if (!eventQueue->isFull && eventQueue->head == eventQueue->tail)
+    {
+        printf("  queue empty\n");
+        return NULL;
+    }
+    
+    if (pos == HEAD)
+    {
+        return eventQueue->buffer[eventQueue->head];
+    }
+    int tail = eventQueue->tail - 1;
+    if (tail == -1)
+    {
+        tail = MAX_QUEUE_SIZE - 1;
+    }
+    return eventQueue->buffer[tail];   
+}
+
 /**
  * Does not enqueue if the key is already activated somewhere else 
  */
-int enqueue(GeneralizedEvent* pEvent, EventQueue* pEventQueue, UniversalKeyStatus* pStatusTable)
+int enqueue(GeneralizedEvent* event, EventQueue* eventQueue, UniversalKeyStatus* statusTable)
 {
-    if (pStatusTable[pEvent->code].keyDown)
+    if (statusTable[event->code].keyDown)
     {
         return MOD_ALREADY_ACTIVE;
     }
-    if (pEventQueue->isFull)
+    if (eventQueue->isFull)
     {
         printf("uuuuh this should not happen but event queue is full somehow.... ig exit program for debugging...\n");
-        return EXIT_CODE_EVENT_QUEUE_FULL;
+        exit(1);
     }
-    pEventQueue->buffer[pEventQueue->tail] = pEvent;
-    pEventQueue->tail = (pEventQueue->tail + 1) % MAX_QUEUE_SIZE;
-    if (pEventQueue->tail == pEventQueue->head)
+    eventQueue->buffer[eventQueue->tail] = event;
+    eventQueue->tail = (eventQueue->tail + 1) % MAX_QUEUE_SIZE;
+    if (eventQueue->tail == eventQueue->head)
     {
-        pEventQueue->isFull = true;
+        eventQueue->isFull = true;
     }
     // TODO implement double press support
     return 0;
 }
 
-GeneralizedEvent* dequeue(EventQueue* pEventQueue, UniversalKeyStatus* pStatusTable)
+GeneralizedEvent* dequeue(EventQueue* eventQueue, UniversalKeyStatus* statusTable)
 {
-    bool isEmpty = !pEventQueue->isFull && pEventQueue->head == pEventQueue->tail;
+    bool isEmpty = !eventQueue->isFull && eventQueue->head == eventQueue->tail;
     if (isEmpty)
     {
-        printf("Queue is empty!\n");
+        printf("  Queue is empty!\n");
         return NULL;
     }
 
-    GeneralizedEvent* pEvent = pEventQueue->buffer[pEventQueue->head];
-    pEventQueue->buffer[pEventQueue->head] = NULL;
-    pEventQueue->isFull = false;
-    pEventQueue->head = (pEventQueue->head + 1) % MAX_QUEUE_SIZE;
+    GeneralizedEvent* event = eventQueue->buffer[eventQueue->head];
+    eventQueue->buffer[eventQueue->head] = NULL;
+    eventQueue->isFull = false;
+    eventQueue->head = (eventQueue->head + 1) % MAX_QUEUE_SIZE;
     // TODO implement double press support
-    return pEvent;
+    return event;
 }

@@ -8,25 +8,28 @@
 #include <sys/time.h>
 #include <stdlib.h>
 
-/**
- * @param EventQueue* pEventQueue
- */
-#define VIEW_FIRST(pEventQueue) pEventQueue->buffer[pEventQueue->head]
+typedef enum QueuePosition {
+    HEAD, TAIL
+} QueuePosition;
+/*
+@param EventQueue* eventQueue
+*/
+GeneralizedEvent* getEvent(EventQueue* eventQueue, QueuePosition pos);
 
-/**
- * GeneralizedEvent* pEvent
- * EventQueue* pEventQueue
- * UniversalKeyStatus* pStatusTable
- * @return EXIT_CODE_EVENT_QUEUE_FULL (999), exit program start debugging...
- */
-int enqueue(GeneralizedEvent* pEvent, EventQueue* pEventQueue, UniversalKeyStatus* pStatusTable);
+/*
+GeneralizedEvent* event, 
+EventQueue* eventQueue, 
+UniversalKeyStatus* statusTable
+return EXIT_CODE_EVENT_QUEUE_FULL (999), exit program start debugging...
+*/
+int enqueue(GeneralizedEvent* event, EventQueue* eventQueue, UniversalKeyStatus* statusTable);
 
-/**
- * EventQueue* pEventQueue
- * UniversalKeyStatus* pStatusTable
- * @return NULL if empty
- * @return dequeued event
- */
-GeneralizedEvent* dequeue(EventQueue* pEventQueue, UniversalKeyStatus* pStatusTable);
+/*
+EventQueue* eventQueue
+UniversalKeyStatus* statusTable
+return NULL if empty
+return dequeued event
+*/
+GeneralizedEvent* dequeue(EventQueue* eventQueue, UniversalKeyStatus* statusTable);
 
 #endif // _EVENTQUEUE_

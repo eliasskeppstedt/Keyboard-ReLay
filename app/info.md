@@ -1,7 +1,8 @@
 # Keyboard ReLay - info
 ## Quartz Event Service
 
-[**Quartz Event Service Reference (PDF)**](https://leopard-adc.pepas.com/documentation/Carbon/Reference/QuartzEventServicesRef/QuartzEventServicesRef.pdf)
+[**Quartz Event Service Reference (PDF)**](https://leopard-adc.pepas.com/documentation/Carbon/Reference/QuartzEventServicesRef/QuartzEventServicesRef.pdf) //
+[**CFRunLoop Reference**](https://leopard-adc.pepas.com/documentation/CoreFoundation/Reference/CFRunLoopRef/CFRunLoopRef.pdf)
 
 For enabling listening for certain events, every one of those events needs to be masked and put inside the
 insteresting events spot at creation of the event tap.
@@ -68,6 +69,18 @@ void CGEventSetIntegerValueField (
 void CGEventTapEnable (
     CFMachPortRef myTap,
     bool enable
+);
+```
+#### Run loop reference
+```c
+CFRunLoopTimerRef CFRunLoopTimerCreate(
+    CFAllocatorRef allocator, 
+    CFAbsoluteTime fireDate, 
+    CFTimeInterval interval, 
+    CFOptionFlags flags, 
+    CFIndex order, 
+    CFRunLoopTimerCallBack callout, 
+    CFRunLoopTimerContext * context
 );
 ```
 #### Somewhere else...

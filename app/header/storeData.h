@@ -13,20 +13,20 @@
 /**
  * @return 
  */
-int createLookUpTables(LookUpTables* pLookUpTables, OS os);
+int createLookUpTables(LookUpTables* lookUpTables, OS os);
 
 int createEventQueue(EventQueue* eventQueue);
 
 /**
  * @return 
  */
-int createLayerEntries(Layers* pLayerEntries, int universalEntries);
+int createLayerEntries(Layer* layerList, int universalEntries);
 
 
 /**
  * Create a remap table. Should be 1 for each layer
  */
-int createRemapTable(UniversalKeyData* pRemapTable, cJSON* pLayer, int universalKeyEntries);
+int createRemapTable(UniversalKeyData* remapTable, cJSON* layer, int universalKeyEntries);
 
 
 /**
