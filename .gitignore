@@ -20,3 +20,5 @@ $RECYCLE.BIN/
 # Misc
 *.log
 .env
+
+out/
