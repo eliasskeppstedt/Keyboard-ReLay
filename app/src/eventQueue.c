@@ -9,7 +9,7 @@ GeneralizedEvent* getEvent(EventQueue* eventQueue, QueuePosition pos)
     //printf("      tail:%d \n", eventQueue->tail);
     if (!eventQueue->isFull && eventQueue->head == eventQueue->tail)
     {
-        printf("    queue empty\n");
+        //printf("    queue empty\n");
         return NULL;
     }
     
@@ -28,7 +28,7 @@ GeneralizedEvent* getEvent(EventQueue* eventQueue, QueuePosition pos)
 /**
  * Does not enqueue if the key is already activated somewhere else 
  */
-int enqueue(GeneralizedEvent* event, EventQueue* eventQueue, UniversalKeyStatus* statusTable)
+int enqueue(GeneralizedEvent* event, EventQueue* eventQueue, KRKeyStatus* statusTable)
 {
     //printf("  in enqueue\n    eventQueue: \n");
     //printf("      head:%d \n", eventQueue->head);
@@ -48,7 +48,7 @@ int enqueue(GeneralizedEvent* event, EventQueue* eventQueue, UniversalKeyStatus*
     return 0;
 }
 
-GeneralizedEvent* dequeue(EventQueue* eventQueue, UniversalKeyStatus* statusTable)
+GeneralizedEvent* dequeue(EventQueue* eventQueue, KRKeyStatus* statusTable)
 {
     //printf("  in dequeue\n    eventQueue: \n");
     //printf("      head:%d \n", eventQueue->head);
@@ -56,7 +56,7 @@ GeneralizedEvent* dequeue(EventQueue* eventQueue, UniversalKeyStatus* statusTabl
     bool isEmpty = !eventQueue->isFull && eventQueue->head == eventQueue->tail;
     if (isEmpty)
     {
-        printf("    Queue is empty!\n");
+        //printf("    Queue is empty!\n");
         return NULL;
     }
 

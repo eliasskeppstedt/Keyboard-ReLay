@@ -16,7 +16,7 @@ LookUpTables* lookUpTables
 */
 int handleEvent(
     Layer* layerList, 
-    GeneralizedEvent* eventvent, 
+    GeneralizedEvent* event, 
     LookUpTables* lookUpTables
 );
 

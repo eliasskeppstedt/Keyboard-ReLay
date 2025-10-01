@@ -23,21 +23,21 @@ typedef enum OS {
     MACOS, LINUX, WINDOWS
 } OS;
 
-typedef enum UniversalEventType {
+typedef enum KREventType {
     KEY_UP, KEY_DOWN
-} UniversalEventType;
+} KREventType;
 
 typedef enum EventState {
     NORMAL, PENDING, ACTIVE
 } EventState;
 
 /*
-int code;
-int eventFlagMask;
-uint64_t timeStampOnPress
-bool keyDown;
+    int code;
+    int eventFlagMask;
+    uint64_t timeStampOnPress;
+    bool keyDown;
 */
-typedef struct GeneralizedEvent {
+typedef struct GeneralizedEvent { // change name to KR
     int code;
     int eventFlagMask;
     uint64_t timeStampOnPress;
@@ -45,10 +45,11 @@ typedef struct GeneralizedEvent {
 } GeneralizedEvent;
 
 /*
-GeneralizedEvent* buffer[MAX_QUEUE_SIZE];
-int head;
-int tail;
-bool isFull;
+    GeneralizedEvent* buffer[MAX_QUEUE_SIZE];
+    GeneralizedEvent* bufferReadyForDispatch[MAX_QUEUE_SIZE];
+    int head;
+    int tail;   
+    bool isFull;
 */
 typedef struct EventQueue {
     GeneralizedEvent* buffer[MAX_QUEUE_SIZE];
@@ -59,61 +60,56 @@ typedef struct EventQueue {
 } EventQueue;
 
 /*
-int code;
-int codeOnPress;
-int codeOnHold;
-bool keyDown;
-EventState state; // for holding logic
-*/
-typedef struct UniversalKeyData {
     int code;
     int codeOnPress;
     int codeOnHold;
     bool keyDown;
-    EventState state; // for holding logic
-} UniversalKeyData;
+*/
+typedef struct KRKeyData {
+    int code;
+    int codeOnPress;
+    int codeOnHold;
+    bool keyDown;
+} KRKeyData;
 
 /*
-int code;
-int flagMask;
-uint64_t timeStampOnPress;
-bool keyDown; // for marking the event tupe
-EventState state; // for holding logic
-*/
-typedef struct UniversalKeyStatus {
     int code;
-    int flagMask;
-    uint64_t timeStampOnPress;
     bool keyDown; // for marking the event tupe
     EventState state; // for holding logic
-} UniversalKeyStatus;
+*/
+typedef struct KRKeyStatus {
+    int code;
+    bool keyDown; // for marking the event tupe
+    EventState state; // for holding logic
+} KRKeyStatus;
+
 
 /*
-int* universalToOS;
-int* osToUniversal;
-int universalKeyEntries;
-int osKeyEntries;
-UniversalKeyStatus* statusTable;
-EventQueue* eventQueue;
+    int* krToOS;
+    int* osToKR;
+    int krKeyEntries;
+    int osKeyEntries;
+    KRKeyStatus* statusTable;
+    EventQueue* eventQueue;
 */
 typedef struct LookUpTables {
-    int* universalToOS;
-    int* osToUniversal;
-    int universalKeyEntries;
+    int* krToOS;
+    int* osToKR;
+    int krKeyEntries;
     int osKeyEntries;
-    UniversalKeyStatus* statusTable;
+    KRKeyStatus* statusTable;
     EventQueue* eventQueue;
 } LookUpTables;
 
 /*
-char* layerName;
-int layerNr;
-UniversalKeyData* pRemapTable;
+    char* name;
+    int nr;
+    KRKeyData* remapTable;
 */
 typedef struct Layer {
-    char* layerName;
-    int layerNr;
-    UniversalKeyData* remapTable;
+    char* name;
+    int nr;
+    KRKeyData* remapTable;
 } Layer;
 
 #define NO_VALUE -1
@@ -121,10 +117,11 @@ typedef struct Layer {
 #define kKRSimulatedEventAutorepeat 8 
 #define kKREventTypeKeyDown 9
 #define kKREventTypeKeyUp 10
+#define kKREventSupress 11
 // new section
 // new section
-#define TIME_FOR_ON_HOLD_EVENT_U_SEC 150000 // 150 000 micro sec => 150 milli sec, TODO user uuh... choosable... constant
-#define TIME_FOR_AUTOREPEAT_DETECTION 1000 // 1 000 micro sec => 1 milli sec
+#define U_SEC_FOR_ON_HOLD_EVENT 150 // 150 000 micro sec => 150 milli sec, TODO user uuh... choosable... constant
+#define U_SEC_FOR_AUTOREPEAT_DETECTION 1000 // 1 000 micro sec => 1 milli sec
 //
 // EXIT CODES
 #define EXIT_CODE_CREATE_LOOK_UP_TABLE_FAILED 1000

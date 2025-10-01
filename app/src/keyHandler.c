@@ -2,40 +2,44 @@
 
 int handleEvent(Layer* layerList, GeneralizedEvent* event, LookUpTables* lookUpTables)
 {   
-    printf("  uni code:%d\n", event->code);
+    printf("  handleEvent:\n");
+    if (!event) return kKREventSupress;
+    printf("  kr code: %d\n", event->code);
     int e = 0;
 
-    EventQueue*         eventQueue = lookUpTables->eventQueue;
-    UniversalKeyStatus* statusTable = lookUpTables->statusTable;   
-    UniversalKeyData*   remapTable = layerList->remapTable;
-    
-    printf("  head: %d\n", eventQueue->head);
-    printf("  tail: %d\n", eventQueue->tail);
+    EventQueue*  eventQueue = lookUpTables->eventQueue;
+    KRKeyStatus* statusTable = lookUpTables->statusTable;   
+    KRKeyData*   remapTable = layerList->remapTable;
 
-    statusTable[event->code].keyDown = event->keyDown;
-    statusTable[event->code].timeStampOnPress = event->timeStampOnPress;
-    statusTable[event->code].flagMask = event->eventFlagMask;
+    // if (lookUpTables->statusTable[event->code].state == PENDING) return kKREventSupress; // logical error
+
+    //statusTable[event->code].keyDown = event->keyDown;
 
     enqueue(event, eventQueue, statusTable);
     GeneralizedEvent* headEvent = getEvent(eventQueue, HEAD);
-    UniversalKeyData* dataForPressedKey = &remapTable[headEvent->code];
+    KRKeyData* dataForPressedKey = &remapTable[headEvent->code];
     //printf("data for key: code: %d\n", dataForPressedKey->code);
     //printf("  Timestamp enqueued event: %llu\n", event->timeStampOnPress);
     //printf("  Timestamp dequeued event: %llu\n", event->timeStampOnPress);
-    
     if (!headEvent->keyDown)
     {
-        if (hasCodeOnHold(remapTable, headEvent)) // then CAN become hold event
+        /*if (hasCodeOnHold(remapTable, headEvent)) // then CAN become hold event
         {
-            printf("Key was held, here should onHold key be activated...\n");
-            // skip hold logic for now
-        }
-        statusTable[event->code].state = NORMAL;
+            printf("  keyUpp \n");
+        }*/
+        statusTable[headEvent->code].state = NORMAL;
         return kKREventTypeKeyUp;
     }
-    if (statusTable[headEvent->code].state == PENDING) // then CAN become hold event
+    if (hasCodeOnHold(remapTable, headEvent)) // then CAN become hold event
     {
-        headEvent->code = remapTable[headEvent->code].codeOnPress;
+
+        /*if (getTimeStamp() - headEvent->timeStampOnPress < U_SEC_FOR_ON_HOLD_EVENT)
+        {
+            statusTable[headEvent->code].state = PENDING;
+            return kKREventSupress;
+        }
+        
+        headEvent->code = remapTable[headEvent->code].codeOnPress;*/
     }
     else if (hasCodeOnPress(remapTable, headEvent)) // has onPress remap
     {
@@ -44,10 +48,10 @@ int handleEvent(Layer* layerList, GeneralizedEvent* event, LookUpTables* lookUpT
     {
     }
 
-    printf("  DEBUGG Key \"%d\" was pressed\n", event->code);
+    /*printf("  DEBUGG Key \"%d\" was pressed\n", event->code);
     printf("  DEBUGG code %d\n", remapTable[headEvent->code].code);
     printf("  DEBUGG onPress %d\n", remapTable[headEvent->code].codeOnPress);
-    printf("  DEBUGG onHold %d\n", remapTable[headEvent->code].codeOnHold);
+    printf("  DEBUGG onHold %d\n", remapTable[headEvent->code].codeOnHold);*/
     return kKREventTypeKeyDown;
 }
 
@@ -55,19 +59,19 @@ int handleMacEvent(Layer* layerList, GeneralizedEvent* macEvent, LookUpTables* l
 {
     int e = 0;
     // different name just for clarity, use to indicate that the event info now has
-    // the "universal" information about the OS key
-    GeneralizedEvent* pUniversalEvent = macEvent;
-    if ((e = setCodeFromMac(macEvent->code, &pUniversalEvent->code, lookUpTables->osToUniversal) == 1)) 
+    // the "kr" information about the OS key
+    GeneralizedEvent* krEvent = macEvent;
+    if ((e = setCodeFromMac(macEvent->code, &krEvent->code, lookUpTables->osToKR) == 1)) 
     {
         printf("No remap for this key\n");
         return 0;
     }
-    setFlagsFromMac(macEvent->eventFlagMask, &pUniversalEvent->eventFlagMask);
+    setFlagsFromMac(macEvent->eventFlagMask, &krEvent->eventFlagMask);
 
-    e = handleEvent(layerList, pUniversalEvent, lookUpTables);
+    e = handleEvent(layerList, krEvent, lookUpTables);
     
-    setCodeToMac(pUniversalEvent->code, &macEvent->code, lookUpTables->universalToOS);
-    setFlagsToMac(pUniversalEvent->eventFlagMask, &macEvent->eventFlagMask);
+    setCodeToMac(krEvent->code, &macEvent->code, lookUpTables->krToOS);
+    setFlagsToMac(krEvent->eventFlagMask, &macEvent->eventFlagMask);
 
     return e;
 }

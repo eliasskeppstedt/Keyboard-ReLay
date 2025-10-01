@@ -19,17 +19,17 @@ GeneralizedEvent* getEvent(EventQueue* eventQueue, QueuePosition pos);
 /*
 GeneralizedEvent* event, 
 EventQueue* eventQueue, 
-UniversalKeyStatus* statusTable
+KRKeyStatus* statusTable
 return EXIT_CODE_EVENT_QUEUE_FULL (999), exit program start debugging...
 */
-int enqueue(GeneralizedEvent* event, EventQueue* eventQueue, UniversalKeyStatus* statusTable);
+int enqueue(GeneralizedEvent* event, EventQueue* eventQueue, KRKeyStatus* statusTable);
 
 /*
 EventQueue* eventQueue
-UniversalKeyStatus* statusTable
+KRKeyStatus* statusTable
 return NULL if empty
 return dequeued event
 */
-GeneralizedEvent* dequeue(EventQueue* eventQueue, UniversalKeyStatus* statusTable);
+GeneralizedEvent* dequeue(EventQueue* eventQueue, KRKeyStatus* statusTable);
 
 #endif // _EVENTQUEUE_

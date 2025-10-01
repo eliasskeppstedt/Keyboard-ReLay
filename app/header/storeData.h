@@ -20,13 +20,13 @@ int createEventQueue(EventQueue* eventQueue);
 /**
  * @return 
  */
-int createLayerEntries(Layer* layerList, int universalEntries);
+int createLayerEntries(Layer* layerList, int krEntries);
 
 
 /**
  * Create a remap table. Should be 1 for each layer
  */
-int createRemapTable(UniversalKeyData* remapTable, cJSON* layer, int universalKeyEntries);
+int createRemapTable(KRKeyData* remapTable, cJSON* layer, int krKeyEntries);
 
 
 /**

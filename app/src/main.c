@@ -42,16 +42,16 @@ int macMain()
     }
     lookUpTables.eventQueue = &eventQueue;
 
-    Layer* layerList = malloc(sizeof(Layer) * lookUpTables.universalKeyEntries);
-    if ((createLayerEntries(layerList, lookUpTables.universalKeyEntries)) != 0) 
+    Layer* layerList = malloc(sizeof(Layer) * lookUpTables.krKeyEntries);
+    if ((createLayerEntries(layerList, lookUpTables.krKeyEntries)) != 0) 
     {
         return EXIT_CODE_CREATE_LAYER_ENTRIES_FAILED;
     }
-    int entries = lookUpTables.universalKeyEntries;
+    int entries = lookUpTables.krKeyEntries;
     printf("Key lookup tables");
     for (int i = 0; i < lookUpTables.osKeyEntries; i++)
-    {   // of junk values in universaltoos after index 71
-        printf("    pUniversalToOSLookUp[%d]: %d, pOSToUniversal[%d]: %d\n", i, lookUpTables.universalToOS[i], i, lookUpTables.osToUniversal[i]);
+    {   // of junk values in krtoos after index 71
+        printf("    pKRToOSLookUp[%d]: %d, pOSToKR[%d]: %d\n", i, lookUpTables.krToOS[i], i, lookUpTables.osToKR[i]);
     }
     
     int e = macStartMonitoring(layerList, &lookUpTables);
