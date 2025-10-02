@@ -28,19 +28,22 @@ typedef enum KREventType {
 } KREventType;
 
 typedef enum EventState {
-    NORMAL, PENDING, ACTIVE
+    NORMAL, PENDING, SEND
 } EventState;
 
 /*
 int code;
 int flagMask;
 uint64_t timeStampOnPress;
+EventState state; // for holding logic
+bool hardwareRespons;
 bool keyDown;
 */
 typedef struct GeneralizedEvent {
     int code;
     int flagMask;
     uint64_t timeStampOnPress;
+    EventState state; // for holding logic
     bool keyDown;
 } GeneralizedEvent;
 
@@ -53,7 +56,6 @@ bool isFull;
 */
 typedef struct EventQueue {
     GeneralizedEvent* buffer[MAX_QUEUE_SIZE];
-    GeneralizedEvent* bufferReadyForDispatch[MAX_QUEUE_SIZE];
     int head;
     int tail;   
     bool isFull;
@@ -75,12 +77,10 @@ typedef struct KRKeyData {
 /*
 int code;
 bool keyDown; // for marking the event tupe
-EventState state; // for holding logic
 */
 typedef struct KRKeyStatus {
     int code;
-    bool keyDown; // for marking the event tupe
-    EventState state; // for holding logic
+    bool keyDown;
 } KRKeyStatus;
 
 
@@ -120,7 +120,7 @@ typedef struct Layer {
 #define kKREventSupress 11
 // new section
 // new section
-#define U_SEC_FOR_ON_HOLD_EVENT 150 // 150 000 micro sec => 150 milli sec, TODO user uuh... choosable... constant
+#define U_SEC_FOR_ON_HOLD_EVENT (uint64_t)150000 // 150 000 micro sec => 150 milli sec, TODO user uuh... choosable... constant
 #define U_SEC_FOR_AUTOREPEAT_DETECTION 1000 // 1 000 micro sec => 1 milli sec
 //
 // EXIT CODES

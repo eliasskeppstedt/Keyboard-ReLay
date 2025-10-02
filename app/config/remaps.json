@@ -5,8 +5,9 @@
             "layerName": "Main",
             "layerNr": "0",
             "keyCode": [
-                { "from": 1, "toOnPress": 0, "toOnHold": -1, "fromS": "b", "toOnPressS": "a", "toOnHoldS": "" },
-                { "from": 0, "toOnPress": 2, "toOnHold": 36, "fromS": "a", "toOnPressS": "b", "toOnHoldS": "leftShift" }
+                { "from": 0, "toOnPress": 2, "toOnHold": 3, "fromS": "a", "toOnPressS": "b", "toOnHoldS": "uh letter..." },
+                { "from": 1, "toOnPress": 0, "toOnHold": -1, "fromS": "b", "toOnPressS": "a", "toOnHoldS": "" }
+                
             ]
         }
     ]

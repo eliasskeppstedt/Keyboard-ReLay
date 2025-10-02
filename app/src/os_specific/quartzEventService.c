@@ -42,14 +42,13 @@ CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRe
     watchdog_ping_or_die(); // should not need since autorepeat works properly, just in case tho...
     printf("\n---------------------------------------------\n");
     printf(  "----------------- new event -----------------\n");
-    printf("  key down: %s, ", type == kCGEventKeyDown ? "YES" : "NO");
-    printf("key up: %s\n", type == kCGEventKeyUp   ? "YES" : "NO");
-    printf("  mac code %llu\n", CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode));
+    printf("  key %s\n", type == kCGEventKeyDown ? "down" : "up");
+    printf("  mac code %llu, ", CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode));
     
     if (keyCode == MAC_ESCAPE)
     {
-        // CFRunLoopStop(CFRunLoopGetCurrent());
-        CFRunLoopStop(callbackData->runLoop);
+        CFRunLoopStop(CFRunLoopGetCurrent());
+        //CFRunLoopStop(callbackData->runLoop);
         return NULL;
     }
     
@@ -58,25 +57,30 @@ CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRe
         keyCode,
         CGEventGetFlags(event),
         getTimeStamp(),
+        NORMAL,
         type == kCGEventKeyDown
     };
 
-    printf("  code before handleMacEvent: %d\n", keyCode);
     int e = handleMacEvent(callbackData->layerList, macEvent, callbackData->lookUpTables);
 
     if (e == kKREventSupress) return NULL;
     
     CGEventSourceRef source = CGEventSourceCreate(kCGEventSourceStateCombinedSessionState);
+    GeneralizedEvent* headMacEvent = NULL;
     GeneralizedEvent* dequeuedMacEvent = NULL;
     CGEventRef newEvent = NULL;
-    while ((dequeuedMacEvent = dequeue(callbackData->lookUpTables->eventQueue)))
+    printf("  try to print \n");
+    while ((headMacEvent = getEvent(callbackData->lookUpTables->eventQueue, HEAD)))
     {
+        if (headMacEvent->state == PENDING) break;
+
+        dequeuedMacEvent = dequeue(callbackData->lookUpTables->eventQueue);
         newEvent = CGEventCreateKeyboardEvent(source, dequeuedMacEvent->code, dequeuedMacEvent->keyDown);
-        CGEventSetFlags(newEvent, dequeuedMacEvent->flagMask);
         CGEventPost(kCGAnnotatedSessionEventTap, newEvent);
 
         CFRelease(newEvent);
         free(dequeuedMacEvent);
+
     }
     CFRelease(source);
     return NULL;

@@ -114,7 +114,6 @@ int createLookUpTables(LookUpTables* lookUpTables, OS os)
         statusTable[krCode] = (KRKeyStatus) {
             krCode, 
             false, // keyDown
-            NORMAL // state
         };
     }
 
@@ -155,7 +154,6 @@ int createEventQueue(EventQueue* eventQueue)
     for (int i = 0; i < MAX_QUEUE_SIZE; i++)
     {
         eventQueue->buffer[i] = NULL;
-        eventQueue->bufferReadyForDispatch[i] = NULL;
     }
     eventQueue->head = 0;
     eventQueue->tail = 0;

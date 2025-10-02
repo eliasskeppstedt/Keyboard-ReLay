@@ -2,77 +2,56 @@
 
 int handleEvent(Layer* layerList, GeneralizedEvent* event, LookUpTables* lookUpTables)
 {   
-    printf("  handleEvent:\n");
     if (!event) return kKREventSupress;
-    printf("  kr code: %d\n", event->code);
+    printf("kr code: %d\n", event->code);
+    
     int e = 0;
 
     EventQueue*  eventQueue = lookUpTables->eventQueue;
-    KRKeyStatus* statusTable = lookUpTables->statusTable;   
     KRKeyData*   remapTable = layerList->remapTable;
-
-    // if (lookUpTables->statusTable[event->code].state == PENDING) return kKREventSupress; // logical error
-
-    //statusTable[event->code].keyDown = event->keyDown;
 
     enqueue(event, eventQueue);
     GeneralizedEvent* headEvent = getEvent(eventQueue, HEAD);
-    //printf("data for key: code: %d\n", dataForPressedKey->code);
-    //printf("  Timestamp enqueued event: %llu\n", event->timeStampOnPress);
-    //printf("  Timestamp dequeued event: %llu\n", event->timeStampOnPress);
+    printf("  isHoldEvent: %s, %llu\n", getTimeStamp() - headEvent->timeStampOnPress > U_SEC_FOR_ON_HOLD_EVENT ? "true" : "false", getTimeStamp() - headEvent->timeStampOnPress);
     
-    if (!headEvent->keyDown) goto keyUpEvent;
+    // NO SUPPORT FOR MULTIPLE KEYS FOR SAME CODES
+    if (headEvent->state != PENDING) goto notPending;
 
-    if (hasCodeOnHold(remapTable, event))
-    {   
-        statusTable[event->code].state = PENDING;
-        return kKREventSupress;
+    bool isHoldEvent = getTimeStamp() - headEvent->timeStampOnPress > U_SEC_FOR_ON_HOLD_EVENT;
+    if (isHoldEvent)
+    {   // headEvent already in queue, just modify its code
+        headEvent->code = remapTable[headEvent->code].codeOnHold;
+        headEvent->state = SEND;
     }
-    else if (hasCodeOnPress(remapTable, event)) // has onPress remap
+    else
     {
-        event->code = remapTable[event->code].codeOnPress;
+        if (headEvent->code == event->code)
+        {   // since this happens before the threshold is met, event will be keyUp eqvivalent to the 
+            // headEvent keyDown, send this combo as first when dequeuing
+            headEvent = dequeue(eventQueue);
+            event = dequeueFromTail(eventQueue);
+            event->state = SEND;
+            headEvent->state = SEND;
+            enqueueSqueezeToFront(event, eventQueue);
+            enqueueSqueezeToFront(headEvent, eventQueue);
+        }
     }
+    return 0;
 
-    /*printf("  DEBUGG Key \"%d\" was pressed\n", event->code);
-    printf("  DEBUGG code %d\n", remapTable[headEvent->code].code);
-    printf("  DEBUGG onPress %d\n", remapTable[headEvent->code].codeOnPress);
-    printf("  DEBUGG onHold %d\n", remapTable[headEvent->code].codeOnHold);*/
-    return kKREventTypeKeyDown;
-
-    keyUpEvent:
-
-    if (statusTable[headEvent->code].state == PENDING)
+    notPending:
+    if (event->keyDown) 
     {
-        printf("  getTimeStamp(): %llu\n", getTimeStamp());
-        printf("  headEvent->timeStampOnPress: %llu\n", headEvent->timeStampOnPress);
-        printf("  getTimeStamp() - headEvent->timeStampOnPress < U_SEC_FOR_ON_HOLD_EVENT: %s\n", getTimeStamp() - headEvent->timeStampOnPress < U_SEC_FOR_ON_HOLD_EVENT ? "true" : "false");
-        if (getTimeStamp() - headEvent->timeStampOnPress < U_SEC_FOR_ON_HOLD_EVENT)
+        if (hasCodeOnHold(remapTable, event))
+        {   
+            event->state = event->state == NORMAL ? PENDING : SEND;
+        }
+        else if (hasCodeOnPress(remapTable, event))
         {
-            headEvent->code = remapTable[headEvent->code].codeOnHold;
+            event->code = remapTable[event->code].codeOnPress;
         }
-        else
-        {            
-            printf("hey\n");
-            GeneralizedEvent* eventKeyDown = malloc(sizeof(GeneralizedEvent));
-            GeneralizedEvent* eventKeyUp = malloc(sizeof(GeneralizedEvent));
-            *eventKeyDown = (GeneralizedEvent) {
-                headEvent->code,
-                headEvent->flagMask,
-                getTimeStamp(),
-                true // keyDown
-            };
-            *eventKeyUp = (GeneralizedEvent) {
-                headEvent->code,
-                headEvent->flagMask,
-                getTimeStamp(),
-                false // keyDown
-            };
-
-            enqueueForHoldException(eventKeyDown, eventKeyUp, eventQueue);
-        }
-        statusTable[headEvent->code].state = NORMAL;
     }
-    return kKREventTypeKeyUp;
+    
+    return 0;
 }
 
 int handleMacEvent(Layer* layerList, GeneralizedEvent* macEvent, LookUpTables* lookUpTables)

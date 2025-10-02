@@ -11,6 +11,8 @@
 typedef enum QueuePosition {
     HEAD, TAIL
 } QueuePosition;
+
+#define queueForEach(event, queue) for(element = (queue != NULL) ? (queue)->buffer[(queue)->head] : NULL; element != NULL; element = dequeue(queue))
 /*
 @param EventQueue* eventQueue
 */
@@ -25,11 +27,10 @@ return EXIT_CODE_EVENT_QUEUE_FULL (999), exit program start debugging...
 int enqueue(GeneralizedEvent* event, EventQueue* eventQueue);
 
 /*
-GeneralizedEvent* eventKeyDown, 
-GeneralizedEvent* eventKeyUp, 
+GeneralizedEvent* event,
 EventQueue* eventQueue
 */
-void enqueueForHoldException(GeneralizedEvent* eventKeyDown, GeneralizedEvent* eventKeyUp, EventQueue* eventQueue);
+void enqueueSqueezeToFront(GeneralizedEvent* event, EventQueue* eventQueue);
 
 /*
 EventQueue* eventQueue
@@ -37,5 +38,7 @@ return NULL if empty
 return dequeued event
 */
 GeneralizedEvent* dequeue(EventQueue* eventQueue);
+
+GeneralizedEvent* dequeueFromTail(EventQueue* eventQueue);
 
 #endif // _EVENTQUEUE_
