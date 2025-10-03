@@ -33,17 +33,18 @@ typedef enum EventState {
 
 /*
 int code;
-int flagMask;
+uint64_t flagMask;
 uint64_t timeStampOnPress;
 EventState state; // for holding logic
-bool hardwareRespons;
+bool isModifier;
 bool keyDown;
 */
 typedef struct GeneralizedEvent {
     int code;
-    int flagMask;
+    uint64_t flagMask;
     uint64_t timeStampOnPress;
     EventState state; // for holding logic
+    bool isModifier;
     bool keyDown;
 } GeneralizedEvent;
 
@@ -76,12 +77,21 @@ typedef struct KRKeyData {
 
 /*
 int code;
-bool keyDown; // for marking the event tupe
+bool keyDown;
 */
 typedef struct KRKeyStatus {
     int code;
     bool keyDown;
 } KRKeyStatus;
+
+/*
+KRKeyStatus* table;
+uint64_t activeFlags;
+*/
+typedef struct KRKeyStatusTable {
+    KRKeyStatus* table;
+    uint64_t activeFlags;
+} KRKeyStatusTable;
 
 
 /*
@@ -97,7 +107,7 @@ typedef struct LookUpTables {
     int* osToKR;
     int krKeyEntries;
     int osKeyEntries;
-    KRKeyStatus* statusTable;
+    KRKeyStatusTable* statusTable;
     EventQueue* eventQueue;
 } LookUpTables;
 
@@ -115,9 +125,10 @@ typedef struct Layer {
 #define NO_VALUE -1
 #define MOD_ALREADY_ACTIVE 1
 #define kKRSimulatedEventAutorepeat 8 
-#define kKREventTypeKeyDown 9
-#define kKREventTypeKeyUp 10
-#define kKREventSupress 11
+#define kKREventKeyDown 9
+#define kKREventKeyUp 10
+#define kKREventFlagsChanged 11
+#define kKREventSupress 12
 // new section
 // new section
 #define U_SEC_FOR_ON_HOLD_EVENT (uint64_t)150000 // 150 000 micro sec => 150 milli sec, TODO user uuh... choosable... constant

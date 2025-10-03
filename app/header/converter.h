@@ -7,23 +7,24 @@
 
 #define MASK(x, y) (x & y)
 
-#define	OS_CAPS_LOCK_MASK	    0x01
-#define	OS_SHIFT_MASK		    0x02
-#define	OS_CONTROL_MASK	    	0x03
-#define	OS_ALTERNATE_MASK	    0x04
-#define	OS_COMMAND_MASK		    0x05
-#define	OS_HELP_MASK		    0x06
-#define	OS_SECONDARY_FN_MASK    0x07
-#define	OS_NUMERIC_PAD_MASK	    0x08
 
-#define	OS_L_CONTROL_MASK	    0x10
-#define OS_R_CONTROL_MASK   	0x20
-#define	OS_L_SHIFT_MASK 	    0x30
-#define	OS_R_SHIFT_MASK     	0x40
-#define	OS_L_COMMAND_MASK   	0x50
-#define	OS_R_COMMAND_MASK   	0x60
-#define	OS_L_ALTARNATE_MASK 	0x70
-#define	OS_R_ALTARNATE_MASK 	0x80
+#define	KR_CAPS_LOCK_MASK	    0x00010000ull
+#define	KR_SHIFT_MASK		    0x00020000ull
+#define	KR_CONTROL_MASK	    	0x00040000ull
+#define	KR_ALTERNATE_MASK	    0x00080000ull
+#define	KR_COMMAND_MASK		    0x00100000ull
+#define	KR_HELP_MASK		    0x00400000ull
+#define	KR_SECONDARY_FN_MASK    0x00800000ull
+#define	KR_NUMERIC_PAD_MASK	    0x00200000ull
+
+#define	KR_L_CONTROL_MASK	    0x00000001ull
+#define KR_R_CONTROL_MASK   	0x00002000ull
+#define	KR_L_SHIFT_MASK 	    0x00000002ull
+#define	KR_R_SHIFT_MASK     	0x00000004ull
+#define	KR_L_COMMAND_MASK   	0x00000008ull
+#define	KR_R_COMMAND_MASK   	0x00000010ull
+#define	KR_L_ALTARNATE_MASK 	0x00000020ull
+#define	KR_R_ALTARNATE_MASK 	0x00000040ull
 
 // mac converter stuff ////////////////////////////////////////////////
 
@@ -34,52 +35,49 @@ int setCodeFromMac(int macCode, int* krCode, int* osToKR);
  */
 void setCodeToMac(int krCode, int* macCode, int* krToOs);
 
-void setFlagsFromMac(int macMask, int* krMask);
+void setFlagsFromMac(uint64_t macMask, uint64_t* krMask);
 
-void setFlagsToMac(int krMask, int* macMask);
+void setFlagsToMac(uint64_t krMask, uint64_t* macMask);
 
 void macHelper(
-    int oldMask, 
-    int oldModMask, 
-    int oldLModMask, 
-    int oldRModMask, 
-    int newModMask, 
-    int newLModMask, 
-    int newRModMask, 
-    int* krMask
+    uint64_t oldMask, 
+    uint64_t oldModMask, 
+    uint64_t oldLModMask, 
+    uint64_t oldRModMask, 
+    uint64_t newModMask, 
+    uint64_t newLModMask, 
+    uint64_t newRModMask, 
+    uint64_t* krMask
 );
 
 // from IOLLEvent.h, comments from CGEventTypes.h
 
 /* Masks for the bits in event.flags */
 
+
 /* device-independent */
-#define NX_COMBINED_MOD_MASK NX_ALPHASHIFTMASK || NX_SHIFTMASK || NX_CONTROLMASK || NX_ALTERNATEMASK || NX_COMMANDMASK || NX_DEVICELCTLKEYMASK || NX_DEVICELSHIFTKEYMASK || NX_DEVICERSHIFTKEYMASK || NX_DEVICELCMDKEYMASK || NX_DEVICERCMDKEYMASK || NX_DEVICERALTKEYMASK || NX_DEVICERCTLKEYMASK
-#define	NX_ALPHASHIFTMASK	0x00010000
-#define	NX_SHIFTMASK		0x00020000
-#define	NX_CONTROLMASK		0x00040000
-#define	NX_ALTERNATEMASK	0x00080000
-#define	NX_COMMANDMASK		0x00100000
 
-/* Special key identifiers. */
-
-#define	NX_HELPMASK		    0x00400000
-#define	NX_SECONDARYFNMASK	0x00800000
-
-/* Identifies key events from numeric keypad area on extended keyboards. */
-
-#define	NX_NUMERICPADMASK	0x00200000
+#define	NX_ALPHASHIFTMASK	0x00010000ull
+#define	NX_SHIFTMASK		0x00020000ull
+#define	NX_CONTROLMASK		0x00040000ull
+#define	NX_ALTERNATEMASK	0x00080000ull
+#define	NX_COMMANDMASK		0x00100000ull
+#define	NX_NUMERICPADMASK	0x00200000ull
+#define	NX_HELPMASK		    0x00400000ull
+#define	NX_SECONDARYFNMASK	0x00800000ull
+//#define NX_ALPHASHIFT_STATELESS_MASK    0x01000000ull
 
 /* device-dependent (really?) */
 
-#define	NX_DEVICELCTLKEYMASK	0x00000001
-#define	NX_DEVICELSHIFTKEYMASK	0x00000002
-#define	NX_DEVICERSHIFTKEYMASK	0x00000004
-#define	NX_DEVICELCMDKEYMASK	0x00000008
-#define	NX_DEVICERCMDKEYMASK	0x00000010
-#define	NX_DEVICELALTKEYMASK	0x00000020
-#define	NX_DEVICERALTKEYMASK	0x00000040
-#define NX_DEVICERCTLKEYMASK	0x00002000
+#define	NX_DEVICELCTLKEYMASK	0x00000001ull
+#define	NX_DEVICELSHIFTKEYMASK	0x00000002ull
+#define	NX_DEVICERSHIFTKEYMASK	0x00000004ull
+#define	NX_DEVICELCMDKEYMASK	0x00000008ull
+#define	NX_DEVICERCMDKEYMASK	0x00000010ull
+#define	NX_DEVICELALTKEYMASK	0x00000020ull
+#define	NX_DEVICERALTKEYMASK	0x00000040ull
+//#define NX_DEVICE_ALPHASHIFT_STATELESS_MASK 0x00000080ull
+#define NX_DEVICERCTLKEYMASK	0x00002000ull
 // end from //
 
 // end mac converter stuff //

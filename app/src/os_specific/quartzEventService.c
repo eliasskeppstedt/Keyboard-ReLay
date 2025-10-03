@@ -34,6 +34,7 @@ CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRe
     if (CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat) != 0) // simulated keypress are not market as autorepeats automatically, but it works, ill look up why. ...
     { 
         // Blocked for autorepeat!
+        printf("  Blocked for autorepeat!\n");
         return NULL; 
     }
     EventTapCallBackData* callbackData = refcon;
@@ -42,40 +43,50 @@ CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRe
     watchdog_ping_or_die(); // should not need since autorepeat works properly, just in case tho...
     printf("\n---------------------------------------------\n");
     printf(  "----------------- new event -----------------\n");
-    printf("  key %s\n", type == kCGEventKeyDown ? "down" : "up");
-    printf("  mac code %llu, ", CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode));
+    printf("  key down: %s, key up: %s, modifier: %s\n", type == kCGEventKeyDown ? "YES" : "NO", type ==  kCGEventKeyUp? "YES" : "NO", type == kCGEventFlagsChanged ? "YES" : "NO");
+    printf("  pressed mac code %llu, flag %d, ", CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode), CGEventGetFlags(event));
     
     if (keyCode == MAC_ESCAPE)
     {
-        CFRunLoopStop(CFRunLoopGetCurrent());
-        //CFRunLoopStop(callbackData->runLoop);
+        if (type == kCGEventKeyUp) CFRunLoopStop(CFRunLoopGetCurrent());
         return NULL;
     }
-    
+
     GeneralizedEvent* macEvent = malloc(sizeof(GeneralizedEvent));
     *macEvent = (GeneralizedEvent) { // freed when dequeued, thus this macEvent should NOT be freed now
         keyCode,
         CGEventGetFlags(event),
         getTimeStamp(),
         NORMAL,
-        type == kCGEventKeyDown
+        type == kCGEventFlagsChanged, // isModifier
+        type == kCGEventKeyDown // keyDown
     };
 
     int e = handleMacEvent(callbackData->layerList, macEvent, callbackData->lookUpTables);
-
-    if (e == kKREventSupress) return NULL;
-    
+    printf("  will return physical event: %s\n", e == kKREventFlagsChanged ? "YES" : "NO");
     CGEventSourceRef source = CGEventSourceCreate(kCGEventSourceStateCombinedSessionState);
-    GeneralizedEvent* headMacEvent = NULL;
     GeneralizedEvent* dequeuedMacEvent = NULL;
     CGEventRef newEvent = NULL;
-    printf("  try to print \n");
+    if (e == kKREventFlagsChanged) 
+    {
+        dequeuedMacEvent = dequeue(callbackData->lookUpTables->eventQueue);
+        newEvent = CGEventCreateKeyboardEvent(source, dequeuedMacEvent->code, dequeuedMacEvent->keyDown);
+        CGEventSetFlags(newEvent, callbackData->lookUpTables->statusTable->activeFlags);
+        free(dequeuedMacEvent);
+        return newEvent; // is released by the event system 
+    }
+
+    if (e == kKREventSupress) return NULL;
+    printf("  pressed mac code %lld\n", CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode));
+    GeneralizedEvent* headMacEvent = NULL;
     while ((headMacEvent = getEvent(callbackData->lookUpTables->eventQueue, HEAD)))
     {
         if (headMacEvent->state == PENDING) break;
 
         dequeuedMacEvent = dequeue(callbackData->lookUpTables->eventQueue);
         newEvent = CGEventCreateKeyboardEvent(source, dequeuedMacEvent->code, dequeuedMacEvent->keyDown);
+        CGEventSetFlags(newEvent, dequeuedMacEvent->flagMask);
+        printf("  posting now code %d with flag %llu\n", dequeuedMacEvent->code, dequeuedMacEvent->flagMask);
         CGEventPost(kCGAnnotatedSessionEventTap, newEvent);
 
         CFRelease(newEvent);

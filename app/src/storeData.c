@@ -42,18 +42,28 @@ int createLookUpTables(LookUpTables* lookUpTables, OS os)
     // if (!osKeyEntries) { printf("2 !osKeyEntries\n"); return EXIT_CODE_LOOK_UP_TABLE_FAILED; }
 
     int* krToOSLookUp = malloc(sizeof(int) * krKeyEntries); 
+    KRKeyStatusTable* statusTable = malloc(sizeof(KRKeyStatusTable));
+    KRKeyStatus* status = malloc(sizeof(KRKeyStatus) * krKeyEntries);
+    *statusTable = (KRKeyStatusTable) {
+        status,
+        0
+    };
     for (int i = 0; i < krKeyEntries; i++)
     {
         krToOSLookUp[i] = NO_VALUE;
+        *status = (KRKeyStatus) {
+            NO_VALUE,
+            false
+        };
     }
-    
+
     int* osToKRLookUp = malloc(sizeof(int) * osKeyEntries); 
     for (int i = 0; i < osKeyEntries; i++)
     {
         osToKRLookUp[i] = NO_VALUE;
     }
     
-    KRKeyStatus* statusTable = malloc(sizeof(KRKeyStatus) * krKeyEntries);
+    //KRKeyStatusTable* statusTable = malloc(sizeof(KRKeyStatus) * krKeyEntries);
 
     cJSON* keys = cJSON_GetObjectItem(json, "keys");
     if (!keys) { 
@@ -111,9 +121,9 @@ int createLookUpTables(LookUpTables* lookUpTables, OS os)
         osToKRLookUp[osCode] = krCode; // -1 sparat om mapping inte universell kod finns (än)
         // printf("DEBUG osToKRLookUp[osCode] = krCode\n");
         // printf("DEBUG                      ^%d       ^%d\nDEBUG\n", osCode, osToKRLookUp[osCode]);
-        statusTable[krCode] = (KRKeyStatus) {
+        status[krCode] = (KRKeyStatus) {
             krCode, 
-            false, // keyDown
+            false // keyDown
         };
     }
 
@@ -128,24 +138,14 @@ int createLookUpTables(LookUpTables* lookUpTables, OS os)
         printf("look up table null\n");
         return EXIT_CODE_CREATE_LOOK_UP_TABLE_FAILED;
     }
-    // printf("krKeyEntries: %d\n", krKeyEntries);
-    // printf("osKeyEntries: %d\n", osKeyEntries);
-    /**lookUpTables = (lookUpTables) {
-        krToOSLookUp,
-        osToKRLookUp,
-        statusTable,
-        krKeyEntries,
-        osKeyEntries
-    };*/
     *lookUpTables = (LookUpTables) {
         krToOSLookUp,
         osToKRLookUp,
         krKeyEntries,
         osKeyEntries, // osKeyEntries
-        statusTable,
+        statusTable, //statusTable,
         NULL
     };
-    // printf("DEBUG storeData.c createLookUpTable end\n"); return EXIT_CODE_DEBUG;
     return 0;
 }
 
