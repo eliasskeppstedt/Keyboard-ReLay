@@ -86,3 +86,8 @@ GeneralizedEvent* dequeueFromTail(EventQueue* eventQueue)
     eventQueue->isFull = false;
     return tailEvent;
 }
+
+bool isEmpty(EventQueue* eventQueue)
+{
+    return !eventQueue->isFull && eventQueue->head == eventQueue->tail;
+}

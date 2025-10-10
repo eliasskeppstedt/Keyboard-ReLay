@@ -12,8 +12,6 @@ typedef enum QueuePosition {
     HEAD, TAIL
 } QueuePosition;
 
-#define isEmpty(queue) !queue->isFull && queue->head == queue->tail
-
 #define queueForEach(event, queue) for(element = (queue != NULL) ? (queue)->buffer[(queue)->head] : NULL; element != NULL; element = dequeue(queue))
 /*
 @param EventQueue* eventQueue

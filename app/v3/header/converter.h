@@ -7,16 +7,15 @@
 
 #define MASK(x, y) (x & y)
 
-/* device-independent */
 
 #define	KR_CAPS_LOCK_MASK	    0x00010000ull
 #define	KR_SHIFT_MASK		    0x00020000ull
 #define	KR_CONTROL_MASK	    	0x00040000ull
 #define	KR_ALTERNATE_MASK	    0x00080000ull
 #define	KR_COMMAND_MASK		    0x00100000ull
-#define	KR_NUMERIC_PAD_MASK	    0x00200000ull
 #define	KR_HELP_MASK		    0x00400000ull
 #define	KR_SECONDARY_FN_MASK    0x00800000ull
+#define	KR_NUMERIC_PAD_MASK	    0x00200000ull
 
 #define	KR_L_CONTROL_MASK	    0x00000001ull
 #define KR_R_CONTROL_MASK   	0x00002000ull
@@ -56,8 +55,8 @@ void macHelper(
 /* Masks for the bits in event.flags */
 
 
-// device-independent //
-/*
+/* device-independent */
+
 #define	NX_ALPHASHIFTMASK	0x00010000ull
 #define	NX_SHIFTMASK		0x00020000ull
 #define	NX_CONTROLMASK		0x00040000ull
@@ -68,7 +67,7 @@ void macHelper(
 #define	NX_SECONDARYFNMASK	0x00800000ull
 //#define NX_ALPHASHIFT_STATELESS_MASK    0x01000000ull
 
-// device-dependent (really?) //
+/* device-dependent (really?) */
 
 #define	NX_DEVICELCTLKEYMASK	0x00000001ull
 #define	NX_DEVICELSHIFTKEYMASK	0x00000002ull
@@ -79,7 +78,6 @@ void macHelper(
 #define	NX_DEVICERALTKEYMASK	0x00000040ull
 //#define NX_DEVICE_ALPHASHIFT_STATELESS_MASK 0x00000080ull
 #define NX_DEVICERCTLKEYMASK	0x00002000ull
-*/
 // end from //
 
 // end mac converter stuff //
