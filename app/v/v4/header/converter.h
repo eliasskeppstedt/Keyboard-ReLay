@@ -2,44 +2,43 @@
 #define _KEYCODECONVERTER_
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include "data.h"
+#include "keyHandler.h"
 
 #define MASK(x, y) (x & y)
 
 /* device-independent */
 
-#define	RL_CAPS_LOCK_MASK	    0x00010000ull
-#define	RL_SHIFT_MASK		    0x00020000ull
-#define	RL_CONTROL_MASK	    	0x00040000ull
-#define	RL_ALTERNATE_MASK	    0x00080000ull
-#define	RL_COMMAND_MASK		    0x00100000ull
-#define	RL_NUMERIC_PAD_MASK	    0x00200000ull
-#define	RL_HELP_MASK		    0x00400000ull
-#define	RL_SECONDARY_FN_MASK    0x00800000ull
+#define	KR_CAPS_LOCK_MASK	    0x00010000ull
+#define	KR_SHIFT_MASK		    0x00020000ull
+#define	KR_CONTROL_MASK	    	0x00040000ull
+#define	KR_ALTERNATE_MASK	    0x00080000ull
+#define	KR_COMMAND_MASK		    0x00100000ull
+#define	KR_NUMERIC_PAD_MASK	    0x00200000ull
+#define	KR_HELP_MASK		    0x00400000ull
+#define	KR_SECONDARY_FN_MASK    0x00800000ull
 
-#define	RL_L_CONTROL_MASK	    0x00000001ull
-#define RL_R_CONTROL_MASK   	0x00002000ull
-#define	RL_L_SHIFT_MASK 	    0x00000002ull
-#define	RL_R_SHIFT_MASK     	0x00000004ull
-#define	RL_L_COMMAND_MASK   	0x00000008ull
-#define	RL_R_COMMAND_MASK   	0x00000010ull
-#define	RL_L_ALTARNATE_MASK 	0x00000020ull
-#define	RL_R_ALTARNATE_MASK 	0x00000040ull
+#define	KR_L_CONTROL_MASK	    0x00000001ull
+#define KR_R_CONTROL_MASK   	0x00002000ull
+#define	KR_L_SHIFT_MASK 	    0x00000002ull
+#define	KR_R_SHIFT_MASK     	0x00000004ull
+#define	KR_L_COMMAND_MASK   	0x00000008ull
+#define	KR_R_COMMAND_MASK   	0x00000010ull
+#define	KR_L_ALTARNATE_MASK 	0x00000020ull
+#define	KR_R_ALTARNATE_MASK 	0x00000040ull
 
 // mac converter stuff ////////////////////////////////////////////////
 
-int setCodeFromMac(int macCode, int* rlCode, int* osToRL);
+int setCodeFromMac(int macCode, int* krCode, int* osToKR);
 
 /**
- * pRLToOs; pointer to rl to os lookup table
+ * pKRToOs; pointer to kr to os lookup table
  */
-void setCodeToMac(int rlCode, int* macCode, int* rlToOs);
+void setCodeToMac(int krCode, int* macCode, int* krToOs);
 
-void setFlagsFromMac(uint64_t macMask, uint64_t* rlMask);
+void setFlagsFromMac(uint64_t macMask, uint64_t* krMask);
 
-void setFlagsToMac(uint64_t rlMask, uint64_t* macMask);
+void setFlagsToMac(uint64_t krMask, uint64_t* macMask);
 
 void macHelper(
     uint64_t oldMask, 
@@ -49,7 +48,7 @@ void macHelper(
     uint64_t newModMask, 
     uint64_t newLModMask, 
     uint64_t newRModMask, 
-    uint64_t* rlMask
+    uint64_t* krMask
 );
 
 // from IOLLEvent.h, comments from CGEventTypes.h

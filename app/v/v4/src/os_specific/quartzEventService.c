@@ -52,7 +52,7 @@ CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRe
     printf("  key down: %s, key up: %s, modifier: %s\n", type == kCGEventKeyDown ? "YES" : "NO", type ==  kCGEventKeyUp? "YES" : "NO", type == kCGEventFlagsChanged ? "YES" : "NO");
     printf("  pressed mac code %llu, flag %llu, ", CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode), CGEventGetFlags(event));
 
-    if ((flags & NX_COMMANDMASK) && keyCode == MAC_ESCAPE)
+    if ((flags & (NX_COMMANDMASK | NX_CONTROLMASK)) && keyCode == MAC_ESCAPE)
     {
         CFRunLoopStop(CFRunLoopGetCurrent());
         return NULL;
@@ -78,10 +78,10 @@ CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRe
     while ((headMacEvent = getEvent(callbackData->lookUpTables->eventQueue, HEAD)))
     {
         if (headMacEvent->state == PENDING) break;
-
+        printf("  Now dequeuing: %d\n", headMacEvent->code);
         dequeuedMacEvent = dequeue(callbackData->lookUpTables->eventQueue);
         newEvent = CGEventCreateKeyboardEvent(source, dequeuedMacEvent->code, dequeuedMacEvent->keyDown);
-        
+
         CGEventSetIntegerValueField(newEvent, kCGEventSourceUserData, SIMULATED);
         CGEventSetFlags(newEvent, dequeuedMacEvent->flagMask);
         CGEventPost(kCGHIDEventTap, newEvent);

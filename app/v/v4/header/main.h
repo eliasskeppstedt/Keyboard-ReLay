@@ -1,12 +1,11 @@
 #ifndef _MAIN_
 #define _MAIN_
 
-#include <stdlib.h>
-
-#include "storeData.h"
+#include "quartzEventService.h"
 #include "data.h"
+#include "storeData.h"
 
 int main();
-void cleanup();
+int macMain();
 
 #endif // _MAIN_

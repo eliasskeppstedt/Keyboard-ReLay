@@ -2,10 +2,11 @@
 #define _EVENTQUEUE_
 
 #include <stdio.h>
-#include <stdlib.h>
+#include "data.h"
+
 #include <dispatch/dispatch.h>
 #include <sys/time.h>
-#include "data.h"
+#include <stdlib.h>
 
 typedef enum QueuePosition {
     HEAD, TAIL

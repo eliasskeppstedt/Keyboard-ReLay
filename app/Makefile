@@ -3,10 +3,8 @@ mac_cflags = -Wall -Wextra
 mac_frameworks = -framework ApplicationServices -framework CoreFoundation
 src = ./src/main.c \
 	./src/converter.c \
-	./src/os_specific/quartzEventService.c \
+	./src/data.c \
 	./src/storeData.c \
-	./src/keyHandler.c \
-	./src/eventQueue.c \
 	./lib/cJSON.c
 out = ./out/keyboard_relay
 

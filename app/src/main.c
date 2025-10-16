@@ -2,59 +2,47 @@
 
 int main()
 {
-    int os = MACOS;
-    int e = 0;
-    if (os == MACOS)
-    {
-        e = macMain();
-    }
-    if (e == EXIT_CODE_DEBUG)
-    {
-        printf("found the bug yet?!?!?!?!?!?\n");
-    }
-    else if (e == EXIT_CODE_CREATE_LOOK_UP_TABLE_FAILED)
-    {
-        printf("Could not create look up table");
-    }
-    else if (e == EXIT_CODE_CREATE_LAYER_ENTRIES_FAILED)
-    {
-        printf("Could not create layer entries");
-    }
-    else if (e != 0)
-    {
-        printf("oops error :D\n");
-    }
-    printf("Exiting program...\n");
-    return 0;
+    atexit(cleanup);
+
+    cJSON* cKeys = readJSON("./config/keys.json");
+    if (!cKeys) return ERROR_READ_JSON;
+    cJSON* cRemaps = readJSON("./config/remaps.json");
+    if (!cRemaps) return ERROR_READ_JSON;
+    cJSON* cEntries = cJSON_GetObjectItemCaseSensitive(cKeys, "rlEntries");
+    if (!cEntries) return 1;
+    cJSON* cLayerEntries = cJSON_GetObjectItemCaseSensitive(cKeys, "rlEntries");
+    if (!cLayerEntries) return 1;
+    int entries = cJSON_GetNumberValue(cEntries);
+    int layerEntries = cJSON_GetNumberValue(cLayerEntries);
+
+    MyReLay myReLay;
+
+    EventQueue eventQueue; 
+    initEventQueue(&eventQueue);
+
+    bool keyDownTable[entries];
+    for (int i = 0; i < entries; i++) keyDownTable[i] = false;
+
+    int osToRL[entries];
+    int rlToOS[entries];
+    initCodeConverters(cKeys, &osToRL[0], &rlToOS[0], entries, MACOS);
+
+    KeyInfo** remapTable = NULL;
+    initRemapTable(cRemaps, &remapTable, layerEntries, entries);
+
+    myReLay.remapTable = remapTable;
+    myReLay.activeLayer = 0;
+    myReLay.keyDownTable = keyDownTable;
+    myReLay.eventQueue = eventQueue;
+    myReLay.osToRL = osToRL;
+    myReLay.rlToOS = rlToOS;
+    myReLay.keyEntries = entries;
+
+    cJSON_Delete(cKeys);
+    cJSON_Delete(cRemaps);
 }
 
-int macMain()
+void cleanup()
 {
-    LookUpTables lookUpTables;
-    if ((createLookUpTables(&lookUpTables, MACOS)) != 0) 
-    {
-        return EXIT_CODE_CREATE_LOOK_UP_TABLE_FAILED;
-    }
-    EventQueue eventQueue;
-    if ((createEventQueue(&eventQueue)) != 0) 
-    {
-        return -1;// EXIT_CODE_CREATE_EVENT_QUEUE_FAILED;
-    }
-    lookUpTables.eventQueue = &eventQueue;
-
-    Layer* layerList = malloc(sizeof(Layer) * lookUpTables.krKeyEntries);
-    if ((createLayerEntries(layerList, lookUpTables.krKeyEntries)) != 0) 
-    {
-        return EXIT_CODE_CREATE_LAYER_ENTRIES_FAILED;
-    }
-    int entries = lookUpTables.krKeyEntries;
-    printf("Key lookup tables");
-    for (int i = 0; i < lookUpTables.osKeyEntries; i++)
-    {   // of junk values in krtoos after index 71
-        printf("    pKRToOSLookUp[%d]: %d, pOSToKR[%d]: %d\n", i, lookUpTables.krToOS[i], i, lookUpTables.osToKR[i]);
-    }
-    
-    int e = macStartMonitoring(layerList, &lookUpTables);
-    exit:
-    return e;
+    printf("CLEANUP :D \n");
 }

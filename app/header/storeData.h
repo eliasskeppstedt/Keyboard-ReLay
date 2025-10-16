@@ -2,36 +2,15 @@
 #define _STOREDATA_
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include "./../lib/cJSON.h"
 #include "data.h"
+#include "./../lib/cJSON.h"
 
-#include "./../header/storeData.h"
+void initEventQueue(EventQueue* queue);
 
-/**
- * @return 
- */
-int createLookUpTables(LookUpTables* lookUpTables, OS os);
+void initCodeConverters(cJSON* json, int* osToRL, int* rlToOS, int entries, OS os);
 
-int createEventQueue(EventQueue* eventQueue);
+void initRemapTable(cJSON* json, KeyInfo*** pRemapTable, int layerEntries, int entries);
 
-/**
- * @return 
- */
-int createLayerEntries(Layer* layerList, int krEntries);
-
-
-/**
- * Create a remap table. Should be 1 for each layer
- */
-int createRemapTable(KRKeyData* remapTable, cJSON* layer, int krKeyEntries);
-
-
-/**
- * @internal
- */
 cJSON* readJSON(char* path);
 
 #endif // _STOREDATA_

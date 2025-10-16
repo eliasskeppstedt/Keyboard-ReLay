@@ -20,22 +20,22 @@ int handleEvent(Layer* layerList, GeneralizedEvent* event, LookUpTables* lookUpT
         {
             event->state = PENDING;
         }
-    }    
+    } 
 
     // handle outgoing event //
 
-    if (headEvent->state == PENDING &&
-        getTimeStamp() - headEvent->timeStampOnPress > U_SEC_FOR_ON_HOLD_EVENT)
+    if (headEvent->state == PENDING) // set to pending if it HAS a hold code
     {
-        headEvent->code = remapTable[headEvent->code].codeOnHold;
-        headEvent->state = SEND;
-    }
-    else
-    {
-        if (remapTable[headEvent->code].codeOnPress != NO_VALUE)
+        if (getTimeStamp() - headEvent->timeStampOnPress > U_SEC_FOR_ON_HOLD_EVENT)
         {
-            headEvent->code = remapTable[headEvent->code].codeOnPress;
+            headEvent->code = remapTable[headEvent->code].codeOnHold;
+            headEvent->state = SEND;
         }
+    }
+    else if (remapTable[headEvent->code].codeOnPress != NO_VALUE)
+    {
+        printf("code on press: %d\n", remapTable[headEvent->code].codeOnPress);
+        headEvent->code = remapTable[headEvent->code].codeOnPress;
     }
 
     if (headEvent->isModifier)
@@ -56,8 +56,6 @@ int handleEvent(Layer* layerList, GeneralizedEvent* event, LookUpTables* lookUpT
 
 int handleMacEvent(Layer* layerList, GeneralizedEvent* macEvent, LookUpTables* lookUpTables)
 {
-    enqueue(macEvent, lookUpTables->eventQueue);
-    return 0;
     printf("  flag %lld\n", macEvent->flagMask);
     int e = 0;
 

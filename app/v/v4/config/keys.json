@@ -1,508 +1,508 @@
 {
-    "rlEntries": 72,
+    "krEntries": 72,
     "macEntries": 127,
     "keys": [
         {
             "keyName": "a",
             "keyCode": {
-                "rl": { "dec": 0,  "hexString": "0x00" },
+                "kr": { "dec": 0,  "hexString": "0x00" },
                 "mac": { "dec": 0,  "hexString": "0x00" }
             }
         },
         {
             "keyName": "b",
             "keyCode": {
-                "rl": { "dec": 1,  "hexString": "0x01" },
+                "kr": { "dec": 1,  "hexString": "0x01" },
                 "mac": { "dec": 11, "hexString": "0x0B" }
             }
         },
         {
             "keyName": "c",
             "keyCode": {
-                "rl": { "dec": 2,  "hexString": "0x02" },
+                "kr": { "dec": 2,  "hexString": "0x02" },
                 "mac": { "dec": 8,  "hexString": "0x08" }
             }
         },
         {
             "keyName": "d",
             "keyCode": {
-                "rl": { "dec": 3,  "hexString": "0x03" },
+                "kr": { "dec": 3,  "hexString": "0x03" },
                 "mac": { "dec": 2,  "hexString": "0x02" }
             }
         },
         {
             "keyName": "e",
             "keyCode": {
-                "rl": { "dec": 4,  "hexString": "0x04" },
+                "kr": { "dec": 4,  "hexString": "0x04" },
                 "mac": { "dec": 14, "hexString": "0x0E" }
             }
         },
         {
             "keyName": "f",
             "keyCode": {
-                "rl": { "dec": 5,  "hexString": "0x05" },
+                "kr": { "dec": 5,  "hexString": "0x05" },
                 "mac": { "dec": 3,  "hexString": "0x03" }
             }
         },
         {
             "keyName": "g",
             "keyCode": {
-                "rl": { "dec": 6,  "hexString": "0x06" },
+                "kr": { "dec": 6,  "hexString": "0x06" },
                 "mac": { "dec": 5,  "hexString": "0x05" }
             }
         },
         {
             "keyName": "h",
             "keyCode": {
-                "rl": { "dec": 7,  "hexString": "0x07" },
+                "kr": { "dec": 7,  "hexString": "0x07" },
                 "mac": { "dec": 4,  "hexString": "0x04" }
             }
         },
         {
             "keyName": "i",
             "keyCode": {
-                "rl": { "dec": 8,  "hexString": "0x08" },
+                "kr": { "dec": 8,  "hexString": "0x08" },
                 "mac": { "dec": 34, "hexString": "0x22" }
             }
         },
         {
             "keyName": "j",
             "keyCode": {
-                "rl": { "dec": 9,  "hexString": "0x09" },
+                "kr": { "dec": 9,  "hexString": "0x09" },
                 "mac": { "dec": 38, "hexString": "0x26" }
             }
         },
         {
             "keyName": "k",
             "keyCode": {
-                "rl": { "dec": 10, "hexString": "0x0A" },
+                "kr": { "dec": 10, "hexString": "0x0A" },
                 "mac": { "dec": 40, "hexString": "0x28" }
             }
         },
         {
             "keyName": "l",
             "keyCode": {
-                "rl": { "dec": 11, "hexString": "0x0B" },
+                "kr": { "dec": 11, "hexString": "0x0B" },
                 "mac": { "dec": 37, "hexString": "0x25" }
             }
         },
         {
             "keyName": "m",
             "keyCode": {
-                "rl": { "dec": 12, "hexString": "0x0C" },
+                "kr": { "dec": 12, "hexString": "0x0C" },
                 "mac": { "dec": 46, "hexString": "0x2E" }
             }
         },
         {
             "keyName": "n",
             "keyCode": {
-                "rl": { "dec": 13, "hexString": "0x0D" },
+                "kr": { "dec": 13, "hexString": "0x0D" },
                 "mac": { "dec": 45, "hexString": "0x2D" }
             }
         },
         {
             "keyName": "o",
             "keyCode": {
-                "rl": { "dec": 14, "hexString": "0x0E" },
+                "kr": { "dec": 14, "hexString": "0x0E" },
                 "mac": { "dec": 31, "hexString": "0x1F" }
             }
         },
         {
             "keyName": "p",
             "keyCode": {
-                "rl": { "dec": 15, "hexString": "0x0F" },
+                "kr": { "dec": 15, "hexString": "0x0F" },
                 "mac": { "dec": 35, "hexString": "0x23" }
             }
         },
         {
             "keyName": "q",
             "keyCode": {
-                "rl": { "dec": 16, "hexString": "0x10" },
+                "kr": { "dec": 16, "hexString": "0x10" },
                 "mac": { "dec": 12, "hexString": "0x0C" }
             }
         },
         {
             "keyName": "r",
             "keyCode": {
-                "rl": { "dec": 17, "hexString": "0x11" },
+                "kr": { "dec": 17, "hexString": "0x11" },
                 "mac": { "dec": 15, "hexString": "0x0F" }
             }
         },
         {
             "keyName": "s",
             "keyCode": {
-                "rl": { "dec": 18, "hexString": "0x12" },
+                "kr": { "dec": 18, "hexString": "0x12" },
                 "mac": { "dec": 1,  "hexString": "0x01" }
             }
         },
         {
             "keyName": "t",
             "keyCode": {
-                "rl": { "dec": 19, "hexString": "0x13" },
+                "kr": { "dec": 19, "hexString": "0x13" },
                 "mac": { "dec": 17, "hexString": "0x11" }
             }
         },
         {
             "keyName": "u",
             "keyCode": {
-                "rl": { "dec": 20, "hexString": "0x14" },
+                "kr": { "dec": 20, "hexString": "0x14" },
                 "mac": { "dec": 32, "hexString": "0x20" }
             }
         },
         {
             "keyName": "v",
             "keyCode": {
-                "rl": { "dec": 21, "hexString": "0x15" },
+                "kr": { "dec": 21, "hexString": "0x15" },
                 "mac": { "dec": 9,  "hexString": "0x09" }
             }
         },
         {
             "keyName": "w",
             "keyCode": {
-                "rl": { "dec": 22, "hexString": "0x16" },
+                "kr": { "dec": 22, "hexString": "0x16" },
                 "mac": { "dec": 13, "hexString": "0x0D" }
             }
         },
         {
             "keyName": "x",
             "keyCode": {
-                "rl": { "dec": 23, "hexString": "0x17" },
+                "kr": { "dec": 23, "hexString": "0x17" },
                 "mac": { "dec": 7,  "hexString": "0x07" }
             }
         },
         {
             "keyName": "y",
             "keyCode": {
-                "rl": { "dec": 24, "hexString": "0x18" },
+                "kr": { "dec": 24, "hexString": "0x18" },
                 "mac": { "dec": 16, "hexString": "0x10" }
             }
         },
         {
             "keyName": "z",
             "keyCode": {
-                "rl": { "dec": 25, "hexString": "0x19" },
+                "kr": { "dec": 25, "hexString": "0x19" },
                 "mac": { "dec": 6,  "hexString": "0x06" }
             }
         },
         {
             "keyName": "0",
             "keyCode": {
-                "rl": { "dec": 26, "hexString": "0x1A" },
+                "kr": { "dec": 26, "hexString": "0x1A" },
                 "mac": { "dec": 29, "hexString": "0x1D" }
             }
         },
         {
             "keyName": "1",
             "keyCode": {
-                "rl": { "dec": 27, "hexString": "0x1B" },
+                "kr": { "dec": 27, "hexString": "0x1B" },
                 "mac": { "dec": 18, "hexString": "0x12" }
             }
         },
         {
             "keyName": "2",
             "keyCode": {
-                "rl": { "dec": 28, "hexString": "0x1C" },
+                "kr": { "dec": 28, "hexString": "0x1C" },
                 "mac": { "dec": 19, "hexString": "0x13" }
             }
         },
         {
             "keyName": "3",
             "keyCode": {
-                "rl": { "dec": 29, "hexString": "0x1D" },
+                "kr": { "dec": 29, "hexString": "0x1D" },
                 "mac": { "dec": 20, "hexString": "0x14" }
             }
         },
         {
             "keyName": "4",
             "keyCode": {
-                "rl": { "dec": 30, "hexString": "0x1E" },
+                "kr": { "dec": 30, "hexString": "0x1E" },
                 "mac": { "dec": 21, "hexString": "0x15" }
             }
         },
         {
             "keyName": "5",
             "keyCode": {
-                "rl": { "dec": 31, "hexString": "0x1F" },
+                "kr": { "dec": 31, "hexString": "0x1F" },
                 "mac": { "dec": 23, "hexString": "0x17" }
             }
         },
         {
             "keyName": "6",
             "keyCode": {
-                "rl": { "dec": 32, "hexString": "0x20" },
+                "kr": { "dec": 32, "hexString": "0x20" },
                 "mac": { "dec": 22, "hexString": "0x16" }
             }
         },
         {
             "keyName": "7",
             "keyCode": {
-                "rl": { "dec": 33, "hexString": "0x21" },
+                "kr": { "dec": 33, "hexString": "0x21" },
                 "mac": { "dec": 26, "hexString": "0x1A" }
             }
         },
         {
             "keyName": "8",
             "keyCode": {
-                "rl": { "dec": 34, "hexString": "0x22" },
+                "kr": { "dec": 34, "hexString": "0x22" },
                 "mac": { "dec": 28, "hexString": "0x1C" }
             }
         },
         {
             "keyName": "9",
             "keyCode": {
-                "rl": { "dec": 35, "hexString": "0x23" },
+                "kr": { "dec": 35, "hexString": "0x23" },
                 "mac": { "dec": 25, "hexString": "0x19" }
             }
         },
         {
             "keyName": "leftShift",
             "keyCode": {
-                "rl": { "dec": 36, "hexString": "0x24" },
+                "kr": { "dec": 36, "hexString": "0x24" },
                 "mac": { "dec": 56, "hexString": "0x38" }
             }
         },
         {
             "keyName": "rightShift",
             "keyCode": {
-                "rl": { "dec": 37, "hexString": "0x25" },
+                "kr": { "dec": 37, "hexString": "0x25" },
                 "mac": { "dec": 60, "hexString": "0x3C" }
             }
         },
         {
             "keyName": "leftCtrl",
             "keyCode": {
-                "rl": { "dec": 38, "hexString": "0x26" },
+                "kr": { "dec": 38, "hexString": "0x26" },
                 "mac": { "dec": 59, "hexString": "0x3B" }
             }
         },
         {
             "keyName": "rightCtrl",
             "keyCode": {
-                "rl": { "dec": 39, "hexString": "0x27" },
+                "kr": { "dec": 39, "hexString": "0x27" },
                 "mac": { "dec": 62, "hexString": "0x3E" }
             }
         },
         {
             "keyName": "leftMeta",
             "keyCode": {
-                "rl": { "dec": 40, "hexString": "0x28" },
+                "kr": { "dec": 40, "hexString": "0x28" },
                 "mac": { "dec": 55, "hexString": "0x37" }
             }
         },
         {
             "keyName": "rightMeta",
             "keyCode": {
-                "rl": { "dec": 41, "hexString": "0x29" },
+                "kr": { "dec": 41, "hexString": "0x29" },
                 "mac": { "dec": 54, "hexString": "0x36" }
             }
         },
         {
             "keyName": "leftAlt",
             "keyCode": {
-                "rl": { "dec": 42, "hexString": "0x2A" },
+                "kr": { "dec": 42, "hexString": "0x2A" },
                 "mac": { "dec": 58, "hexString": "0x3A" }
             }
         },
         {
             "keyName": "rightAlt",
             "keyCode": {
-                "rl": { "dec": 43, "hexString": "0x2B" },
+                "kr": { "dec": 43, "hexString": "0x2B" },
                 "mac": { "dec": 61, "hexString": "0x3D" }
             }
         },
         {
             "keyName": "capsLock",
             "keyCode": {
-                "rl": { "dec": 44, "hexString": "0x2C" },
+                "kr": { "dec": 44, "hexString": "0x2C" },
                 "mac": { "dec": 57, "hexString": "0x39" }
             }
         },
         {
             "keyName": "backspace",
             "keyCode": {
-                "rl": { "dec": 45, "hexString": "0x2D" },
+                "kr": { "dec": 45, "hexString": "0x2D" },
                 "mac": { "dec": 51, "hexString": "0x33" }
             }
         },
         {
             "keyName": "tab",
             "keyCode": {
-                "rl": { "dec": 46, "hexString": "0x2E" },
+                "kr": { "dec": 46, "hexString": "0x2E" },
                 "mac": { "dec": 48, "hexString": "0x30" }
             }
         },
         {
             "keyName": "enter",
             "keyCode": {
-                "rl": { "dec": 47, "hexString": "0x2F" },
+                "kr": { "dec": 47, "hexString": "0x2F" },
                 "mac": { "dec": 76, "hexString": "0x4C" }
             }
         },
         {
             "keyName": "escape",
             "keyCode": {
-                "rl": { "dec": 48, "hexString": "0x30" },
+                "kr": { "dec": 48, "hexString": "0x30" },
                 "mac": { "dec": 53, "hexString": "0x35" }
             }
         },
         {
             "keyName": "space",
             "keyCode": {
-                "rl": { "dec": 49, "hexString": "0x31" },
+                "kr": { "dec": 49, "hexString": "0x31" },
                 "mac": { "dec": 49, "hexString": "0x31" }
             }
         },
         {
             "keyName": "pageUp",
             "keyCode": {
-                "rl": { "dec": 50, "hexString": "0x32" },
+                "kr": { "dec": 50, "hexString": "0x32" },
                 "mac": { "dec": 116, "hexString": "0x74" }
             }
         },
         {
             "keyName": "pageDown",
             "keyCode": {
-                "rl": { "dec": 51, "hexString": "0x33" },
+                "kr": { "dec": 51, "hexString": "0x33" },
                 "mac": { "dec": 121, "hexString": "0x79" }
             }
         },
         {
             "keyName": "end",
             "keyCode": {
-                "rl": { "dec": 52, "hexString": "0x34" },
+                "kr": { "dec": 52, "hexString": "0x34" },
                 "mac": { "dec": 119, "hexString": "0x77" }
             }
         },
         {
             "keyName": "home",
             "keyCode": {
-                "rl": { "dec": 53, "hexString": "0x35" },
+                "kr": { "dec": 53, "hexString": "0x35" },
                 "mac": { "dec": 115, "hexString": "0x73" }
             }
         },
         {
             "keyName": "arrowLeft",
             "keyCode": {
-                "rl": { "dec": 54, "hexString": "0x36" },
+                "kr": { "dec": 54, "hexString": "0x36" },
                 "mac": { "dec": 123, "hexString": "0x7B" }
             }
         },
         {
             "keyName": "arrowUp",
             "keyCode": {
-                "rl": { "dec": 55, "hexString": "0x37" },
+                "kr": { "dec": 55, "hexString": "0x37" },
                 "mac": { "dec": 126, "hexString": "0x7E" }
             }
         },
         {
             "keyName": "arrowRight",
             "keyCode": {
-                "rl": { "dec": 56, "hexString": "0x38" },
+                "kr": { "dec": 56, "hexString": "0x38" },
                 "mac": { "dec": 124, "hexString": "0x7C" }
             }
         },
         {
             "keyName": "arrowDown",
             "keyCode": {
-                "rl": { "dec": 57, "hexString": "0x39" },
+                "kr": { "dec": 57, "hexString": "0x39" },
                 "mac": { "dec": 125, "hexString": "0x7D" }
             }
         },
         {
             "keyName": "delete",
             "keyCode": {
-                "rl": { "dec": 58, "hexString": "0x3A" },
+                "kr": { "dec": 58, "hexString": "0x3A" },
                 "mac": { "dec": 117, "hexString": "0x75" }
             }
         },
         {
             "keyName": "f1",
             "keyCode": {
-                "rl": { "dec": 59, "hexString": "0x3B" },
+                "kr": { "dec": 59, "hexString": "0x3B" },
                 "mac": { "dec": 122, "hexString": "0x7A" }
             }
         },
         {
             "keyName": "f2",
             "keyCode": {
-                "rl": { "dec": 60, "hexString": "0x3C" },
+                "kr": { "dec": 60, "hexString": "0x3C" },
                 "mac": { "dec": 120, "hexString": "0x78" }
             }
         },
         {
             "keyName": "f3",
             "keyCode": {
-                "rl": { "dec": 61, "hexString": "0x3D" },
+                "kr": { "dec": 61, "hexString": "0x3D" },
                 "mac": { "dec": 99,  "hexString": "0x63" }
             }
         },
         {
             "keyName": "f4",
             "keyCode": {
-                "rl": { "dec": 62, "hexString": "0x3E" },
+                "kr": { "dec": 62, "hexString": "0x3E" },
                 "mac": { "dec": 118, "hexString": "0x76" }
             }
         },
         {
             "keyName": "f5",
             "keyCode": {
-                "rl": { "dec": 63, "hexString": "0x3F" },
+                "kr": { "dec": 63, "hexString": "0x3F" },
                 "mac": { "dec": 96,  "hexString": "0x60" }
             }
         },
         {
             "keyName": "f6",
             "keyCode": {
-                "rl": { "dec": 64, "hexString": "0x40" },
+                "kr": { "dec": 64, "hexString": "0x40" },
                 "mac": { "dec": 97,  "hexString": "0x61" }
             }
         },
         {
             "keyName": "f7",
             "keyCode": {
-                "rl": { "dec": 65, "hexString": "0x41" },
+                "kr": { "dec": 65, "hexString": "0x41" },
                 "mac": { "dec": 98,  "hexString": "0x62" }
             }
         },
         {
             "keyName": "f8",
             "keyCode": {
-                "rl": { "dec": 66, "hexString": "0x42" },
+                "kr": { "dec": 66, "hexString": "0x42" },
                 "mac": { "dec": 100, "hexString": "0x64" }
             }
         },
         {
             "keyName": "f9",
             "keyCode": {
-                "rl": { "dec": 67, "hexString": "0x43" },
+                "kr": { "dec": 67, "hexString": "0x43" },
                 "mac": { "dec": 101, "hexString": "0x65" }
             }
         },
         {
             "keyName": "f10",
             "keyCode": {
-                "rl": { "dec": 68, "hexString": "0x44" },
+                "kr": { "dec": 68, "hexString": "0x44" },
                 "mac": { "dec": 109, "hexString": "0x6D" }
             }
         },
         {
             "keyName": "f11",
             "keyCode": {
-                "rl": { "dec": 69, "hexString": "0x45" },
+                "kr": { "dec": 69, "hexString": "0x45" },
                 "mac": { "dec": 103, "hexString": "0x67" }
             }
         },
         {
             "keyName": "f12",
             "keyCode": {
-                "rl": { "dec": 70, "hexString": "0x46" },
+                "kr": { "dec": 70, "hexString": "0x46" },
                 "mac": { "dec": 111, "hexString": "0x6F" }
             }
         },
         {
             "keyName": "return",
             "keyCode": {
-                "rl": { "dec": 71, "hexString": "0x47" },
+                "kr": { "dec": 71, "hexString": "0x47" },
                 "mac": { "dec": 36, "hexString": "0x24" }
             }
         }
@@ -511,252 +511,252 @@
         {
             "keyName": "macSection",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 10, "hexString": "0x0A" }
             }
         },
         {
             "keyName": "macEqual",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 24, "hexString": "0x18" }
             }
         },
         {
             "keyName": "macRightBracket",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 30, "hexString": "0x1E" }
             }
         },
         {
             "keyName": "macLeftBracket",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 33, "hexString": "0x21" }
             }
         },
         {
             "keyName": "macApostrophe",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 39, "hexString": "0x27" }
             }
         },
         {
             "keyName": "macSemicolon",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 41, "hexString": "0x29" }
             }
         },
         {
             "keyName": "macBackslash",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 42, "hexString": "0x2A" }
             }
         },
         {
             "keyName": "macComma",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 43, "hexString": "0x2B" }
             }
         },
         {
             "keyName": "macSlash",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 44, "hexString": "0x2C" }
             }
         },
         {
             "keyName": "macPeriod",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 47, "hexString": "0x2F" }
             }
         },
         {
             "keyName": "macTilde",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 50, "hexString": "0x32" }
             }
         },
         {
             "keyName": "macEnterPb",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 52, "hexString": "0x34" }
             }
         },
         {
             "keyName": "macFn",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 63, "hexString": "0x3F" }
             }
         },
         {
             "keyName": "macF17",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 64, "hexString": "0x40" }
             }
         },
         {
             "keyName": "macKpDot",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 65, "hexString": "0x41" }
             }
         },
         {
             "keyName": "macKpMultiply",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 67, "hexString": "0x43" }
             }
         },
         {
             "keyName": "macKpPlus",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 69, "hexString": "0x45" }
             }
         },
         {
             "keyName": "macClear",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 71, "hexString": "0x47" }
             }
         },
         {
             "keyName": "macVolUp",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 72, "hexString": "0x48" }
             }
         },
         {
             "keyName": "macVolDown",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 73, "hexString": "0x49" }
             }
         },
         {
             "keyName": "macMute",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 74, "hexString": "0x4A" }
             }
         },
         {
             "keyName": "macKpDivide",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 75, "hexString": "0x4B" }
             }
         },
         {
             "keyName": "macKpMinus",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 78, "hexString": "0x4E" }
             }
         },
         {
             "keyName": "macF18",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 79, "hexString": "0x4F" }
             }
         },
         {
             "keyName": "macF19",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 80, "hexString": "0x50" }
             }
         },
         {
             "keyName": "macKpEqual",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 81, "hexString": "0x51" }
             }
         },
         {
             "keyName": "macKp0",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 82, "hexString": "0x52" }
             }
         },
         {
             "keyName": "macKp1",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 83, "hexString": "0x53" }
             }
         },
         {
             "keyName": "macKp2",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 84, "hexString": "0x54" }
             }
         },
         {
             "keyName": "macKp3",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 85, "hexString": "0x55" }
             }
         },
         {
             "keyName": "macKp4",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 86, "hexString": "0x56" }
             }
         },
         {
             "keyName": "macKp5",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 87, "hexString": "0x57" }
             }
         },
         {
             "keyName": "macKp6",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 88, "hexString": "0x58" }
             }
         },
         {
             "keyName": "macKp7",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 89, "hexString": "0x59" }
             }
         },
         {
             "keyName": "macKp8",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 91, "hexString": "0x5B" }
             }
         },
         {
             "keyName": "macKp9",
             "keyCode": {
-                "rl": { "dec": -1, "hexString": "" },
+                "kr": { "dec": -1, "hexString": "" },
                 "mac": { "dec": 92, "hexString": "0x5C" }
             }
         }
