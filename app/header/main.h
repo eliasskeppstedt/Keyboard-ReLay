@@ -5,6 +5,7 @@
 
 #include "storeData.h"
 #include "data.h"
+#include "relayEventHandler.h"
 
 int main();
 void cleanup();

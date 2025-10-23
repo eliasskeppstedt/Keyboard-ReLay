@@ -8,11 +8,14 @@ int main()
     if (!cKeys) return ERROR_READ_JSON;
     cJSON* cRemaps = readJSON("./config/remaps.json");
     if (!cRemaps) return ERROR_READ_JSON;
-    cJSON* cEntries = cJSON_GetObjectItemCaseSensitive(cKeys, "rlEntries");
-    if (!cEntries) return 1;
-    cJSON* cLayerEntries = cJSON_GetObjectItemCaseSensitive(cKeys, "rlEntries");
+    cJSON* cRLEntries = cJSON_GetObjectItemCaseSensitive(cKeys, "rlEntries");
+    if (!cRLEntries) return 1;
+    cJSON* cOSEntries = cJSON_GetObjectItemCaseSensitive(cKeys, "macEntries");
+    if (!cOSEntries) return 1;
+    cJSON* cLayerEntries = cJSON_GetObjectItemCaseSensitive(cRemaps, "layerEntries");
     if (!cLayerEntries) return 1;
-    int entries = cJSON_GetNumberValue(cEntries);
+    int rlEntries = cJSON_GetNumberValue(cRLEntries);
+    int osEntries = cJSON_GetNumberValue(cOSEntries);
     int layerEntries = cJSON_GetNumberValue(cLayerEntries);
 
     MyReLay myReLay;
@@ -20,26 +23,42 @@ int main()
     EventQueue eventQueue; 
     initEventQueue(&eventQueue);
 
-    bool keyDownTable[entries];
-    for (int i = 0; i < entries; i++) keyDownTable[i] = false;
+    KeyStatus statusTable[rlEntries];
+    for (int i = 0; i < rlEntries; i++) 
+    {
+        statusTable[i] = (KeyStatus) {
+            .keyDown = false,
+            .timer = NULL
+        };
+    }
 
-    int osToRL[entries];
-    int rlToOS[entries];
-    initCodeConverters(cKeys, &osToRL[0], &rlToOS[0], entries, MACOS);
+    int* osToRL = malloc(sizeof(int) * osEntries);
+    int* rlToOS = malloc(sizeof(int) * rlEntries);
+    initCodeConverters(cKeys, osToRL, rlToOS, osEntries, rlEntries, MACOS);
 
     KeyInfo** remapTable = NULL;
-    initRemapTable(cRemaps, &remapTable, layerEntries, entries);
+    initRemapTable(cRemaps, &remapTable, layerEntries, rlEntries);
 
-    myReLay.remapTable = remapTable;
-    myReLay.activeLayer = 0;
-    myReLay.keyDownTable = keyDownTable;
-    myReLay.eventQueue = eventQueue;
-    myReLay.osToRL = osToRL;
-    myReLay.rlToOS = rlToOS;
-    myReLay.keyEntries = entries;
+    myReLay = (MyReLay) {
+        .remapTable = remapTable,
+        .activeLayer = 0,
+        .statusTable = statusTable,
+        .eventQueue = eventQueue,
+        .osToRL = osToRL,
+        .rlToOS = rlToOS,
+        .osKeyEntries = osEntries,
+        .rlKeyEntries = rlEntries
+    };
+    for (int i = 0; i < osEntries; i++)
+    {
+        printf("osToRL: %d -> %d\n", i, osToRL[i]);
+    }
+    
 
     cJSON_Delete(cKeys);
     cJSON_Delete(cRemaps);
+
+    start(&myReLay);
 }
 
 void cleanup()

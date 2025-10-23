@@ -7,7 +7,7 @@
 
 void initEventQueue(EventQueue* queue);
 
-void initCodeConverters(cJSON* json, int* osToRL, int* rlToOS, int entries, OS os);
+void initCodeConverters(cJSON* json, int* osToRL, int* rlToOS, int osEntries, int rlEntries, OS os);
 
 void initRemapTable(cJSON* json, KeyInfo*** pRemapTable, int layerEntries, int entries);
 

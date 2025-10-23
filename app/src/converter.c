@@ -3,9 +3,13 @@
 
 int setCodeFromMac(int macCode, int* rlCode, int* osToRL)
 {
-    if (osToRL[macCode] == NO_VALUE) return 1;
-
-    *rlCode = osToRL[macCode]; // OStoRL will contain mac and rl codes if run on mac machine when multi OS support is implemented
+    int code = osToRL[macCode];
+    *rlCode = code; // OStoRL will contain mac and rl codes if run on mac machine when multi OS support is implemented
+    if (code == NO_VALUE) 
+    {
+        printf("  no relay key found\n");
+        return 1;
+    }
     // printf("DEBUG osToRLLookUp[osCode] = rlCode\n");
     // printf("DEBUG                      ^%d       ^%d\n\n", macCode, osToRL[macCode]);
     return 0;

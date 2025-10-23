@@ -6,8 +6,11 @@
 #include <stdlib.h>
 
 #define MAX_QUEUE_SIZE 100
+#define SIMULATED_EVENT 1
+#define ON_HOLD_TIMER_EVENT 2
 #define NO_VALUE -1
 #define ERROR_READ_JSON 100
+#define ON_HOLD_THRESHOLD 150000 // 150 000 us => 150 ms 
 
 typedef enum OS {
     MACOS, LINUX, WINDOWS
@@ -67,14 +70,21 @@ int activeLayer; // to index into correct layer
     int* rlToOS;
     int keyEntries;
 */
+
+typedef struct KeyStatus {
+    bool keyDown;
+    void* timer; // for handling timer in different OS's, cast to the correct timer type
+} KeyStatus;
+
 typedef struct MyReLay {
     KeyInfo** remapTable;
     int activeLayer;
-    bool* keyDownTable;
+    KeyStatus* statusTable;
     EventQueue eventQueue;
     int* osToRL;
     int* rlToOS;
-    int keyEntries;
+    int osKeyEntries;
+    int rlKeyEntries;
 } MyReLay;
 
 #endif // _DATA_

@@ -11,11 +11,14 @@ void initEventQueue(EventQueue* queue)
     queue->isFull = false;
 }
 
-void initCodeConverters(cJSON* json, int* osToRL, int* rlToOS, int entries, OS os)
+void initCodeConverters(cJSON* json, int* osToRL, int* rlToOS, int osEntries, int rlEntries, OS os)
 {
-    for (int i = 0; i < entries; i++)
+    for (int i = 0; i < osEntries; i++)
     {
         osToRL[i] = NO_VALUE;
+    }
+    for (int i = 0; i < rlEntries; i++)
+    {
         rlToOS[i] = NO_VALUE;
     }
     
@@ -50,10 +53,7 @@ void initCodeConverters(cJSON* json, int* osToRL, int* rlToOS, int entries, OS o
         int osCode = cJSON_GetNumberValue(cOSCode);
 
         rlToOS[relayCode] = osCode;
-        if (osCode < entries)
-        {
-            osToRL[osCode] = relayCode;
-        }
+        osToRL[osCode] = relayCode;
     }
     printf("%d\n", osToRL[24]);
     printf("%d\n", rlToOS[24]);
