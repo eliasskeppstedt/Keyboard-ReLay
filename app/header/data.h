@@ -12,6 +12,7 @@
 #define NO_VALUE -1
 #define ERROR_READ_JSON 100
 #define ON_HOLD_THRESHOLD 150000 // 150 000 us => 150 ms 
+#define CF_ON_HOLD_THRESHOLD 0.150 // ummm olika tidsenheter, byt till samma vid tillfälle 0.150 s => 150 ms
 
 #define KEY_INFO(myReLay, event) myReLay->remapTable[myReLay->activeLayer][event->code]
 

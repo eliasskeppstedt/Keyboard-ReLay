@@ -26,12 +26,19 @@ void eventCallBack(MyReLay* myReLay, RLEvent* incomingEvent)
     RLEvent* headEventPreview = NULL;
     RLEvent* outgoingEvent = NULL;
 
+    if (incomingEvent->code == NO_VALUE)
+    {
+        headEventPreview = getEvent(&myReLay->eventQueue, HEAD);
+        goto timerTriggeredEvent;
+    }
+
     enqueue(incomingEvent, &myReLay->eventQueue);
     headEventPreview = getEvent(&myReLay->eventQueue, HEAD);
 
     if (incomingEvent->keyDown && KEY_INFO(myReLay, incomingEvent).codeOnHold != NO_VALUE)
     {
         incomingEvent->state = PENDING;
+        startOnHoldTimer(&incomingEvent->timer);
     }
     else
     {
@@ -41,7 +48,6 @@ void eventCallBack(MyReLay* myReLay, RLEvent* incomingEvent)
     //printf("\n> current time       : %llu\n", getTimeStamp());
     //printf("> time on press      : %llu\n", incomingEvent->timeStampOnPress);
     //printf("> time since pressed : %llu\n", getTimeStamp() - incomingEvent->timeStampOnPress);
-
 
     if (headEventPreview->state != PENDING) 
     {
@@ -56,7 +62,8 @@ void eventCallBack(MyReLay* myReLay, RLEvent* incomingEvent)
     {
         headEventPreview->code = KEY_INFO(myReLay, headEventPreview).codeOnHold;
         headEventPreview->state = SEND;
-    }
+        invalidateTimer(&headEventPreview->timer);
+    } 
     else if (headEventPreview->code == incomingEvent->code && !incomingEvent->keyDown) // i.e. if it is a key down/key up pair
     {
         int codeOnPress = KEY_INFO(myReLay, headEventPreview).codeOnPress;
@@ -65,7 +72,14 @@ void eventCallBack(MyReLay* myReLay, RLEvent* incomingEvent)
             headEventPreview->code = codeOnPress;
         }
         headEventPreview->state = SEND;
+        invalidateTimer(&headEventPreview->timer);
     }
+    goto notPending;
+
+    timerTriggeredEvent:
+    headEventPreview->code = KEY_INFO(myReLay, headEventPreview).codeOnHold;
+    headEventPreview->state = SEND;
+
     notPending:
 
     if (headEventPreview->isModifier && headEventPreview->state == SEND)
@@ -86,7 +100,6 @@ void eventCallBack(MyReLay* myReLay, RLEvent* incomingEvent)
     while (headEventPreview)
     {
         if (headEventPreview->state == PENDING) break;
-
         headEventPreview->flagMask = activeEventFlags;
         outgoingEvent = dequeue(&myReLay->eventQueue);
         postEvent(outgoingEvent, myReLay->rlToOS, SIMULATED_EVENT);

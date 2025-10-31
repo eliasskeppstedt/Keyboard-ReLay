@@ -95,6 +95,7 @@ void postEvent(RLEvent* rlEvent, int* rlToOS, int userDefinedData)
 
 void timerCallBack(CFRunLoopTimerRef timer, void* info)
 {
+    printf("> runn loop timer xcallback!\n");
     void** eventTimer = info;
     CFRelease(*eventTimer);
     *eventTimer = NULL;
@@ -105,6 +106,14 @@ void timerCallBack(CFRunLoopTimerRef timer, void* info)
     CGEventPost(kCGHIDEventTap, onHoldTimerEvent);
     CFRelease(src);
     CFRelease(onHoldTimerEvent);
+}
+
+void invalidateTimer(void** eventTimer)
+{
+    CFRunLoopTimerRef timer = *eventTimer;
+    CFRunLoopTimerInvalidate(timer);
+    CFRelease(timer);
+    *eventTimer = NULL;
 }
 
 void startOnHoldTimer(void** eventTimer)
@@ -119,7 +128,7 @@ void startOnHoldTimer(void** eventTimer)
 
     CFRunLoopTimerRef timer = CFRunLoopTimerCreate(
         kCFAllocatorDefault, //CFAllocatorRef allocator, 
-        getTimeStamp() + ON_HOLD_THRESHOLD, //CFAbsoluteTime fireDate, 
+        CFAbsoluteTimeGetCurrent() + CF_ON_HOLD_THRESHOLD, //CFAbsoluteTime fireDate, 
         0, //CFTimeInterval interval, // no interval => system will free this timer when it has fired
         0, //CFOptionFlags flags, 
         0, //CFIndex order, 
@@ -129,14 +138,6 @@ void startOnHoldTimer(void** eventTimer)
     *eventTimer = timer;
     CFRunLoopRef rl = CFRunLoopGetCurrent();
     CFRunLoopAddTimer(rl, timer, kCFRunLoopCommonModes); // constant make this timer visible for all run loops, we only have one so no concern there 
-}
-
-void invalidateTimer(void** eventTimer)
-{
-    CFRunLoopTimerRef timer = *eventTimer;
-    CFRunLoopTimerInvalidate(timer);
-    CFRelease(timer);
-    *eventTimer = NULL;
 }
 
 void closeRunLoop(void* ctx)
