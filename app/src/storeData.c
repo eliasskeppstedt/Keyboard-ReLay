@@ -67,7 +67,7 @@ void initRemapTable(cJSON* json, KeyInfo*** pRemapTable, int layerEntries, int e
     {
         remapTable[i] = malloc(sizeof(KeyInfo) * entries);
     }
-    
+
     cJSON* cLayers = cJSON_GetObjectItem(json, "layers");
     if (!cLayers) exit(301);
 
@@ -76,9 +76,9 @@ void initRemapTable(cJSON* json, KeyInfo*** pRemapTable, int layerEntries, int e
         for (int j = 0; j < entries; j++)
         {
             remapTable[i][j] = (KeyInfo) {
-                NO_VALUE,
-                NO_VALUE,
-                NO_VALUE
+                .code = NO_VALUE,
+                .codeOnPress = NO_VALUE,
+                .codeOnHold = NO_VALUE
             };
         }
     }
@@ -100,6 +100,7 @@ void initRemapTable(cJSON* json, KeyInfo*** pRemapTable, int layerEntries, int e
         if (!cCodes) exit(303);
 
         int layerNr = cJSON_GetNumberValue(cLayerNr);
+
         cJSON_ArrayForEach(cCode, cCodes)
         {
             cFrom = cJSON_GetObjectItem(cCode, "from");
@@ -113,9 +114,9 @@ void initRemapTable(cJSON* json, KeyInfo*** pRemapTable, int layerEntries, int e
             int onPress = cJSON_GetNumberValue(cOnPress);
             int onHold = cJSON_GetNumberValue(cOnHold);
             remapTable[layerNr][from] = (KeyInfo) {
-                from,
-                onPress,
-                onHold
+                .code = from,
+                .codeOnPress = onPress,
+                .codeOnHold = onHold
             };
         }
     }

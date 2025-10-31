@@ -6,6 +6,7 @@ src = src/main.c \
 	src/data.c \
 	src/storeData.c \
 	src/relayEventHandler.c \
+	src/eventQueue.c \
 	src/os/quartzEventService.c \
 	lib/cJSON.c
 out = ./out/keyboard_relay

@@ -4,8 +4,9 @@
 #include <sys/time.h>
 #include "../data.h"
 
-void postEvent(RLEvent* event, int* rlToOS);
-void startOnHoldTimer(KeyStatus* keyStatus);
+void postEvent(RLEvent* event, int* rlToOS, int userDefinedData);
+void startOnHoldTimer(void** eventTimer);
+void invalidateTimer(void** eventTimer);
 int initRunLoop(MyReLay* myReLay);
 void closeRunLoop(void* ctx);
 

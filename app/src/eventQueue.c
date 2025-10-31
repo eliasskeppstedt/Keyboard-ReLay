@@ -2,7 +2,7 @@
 
 // implemented as a ring buffer
 
-GeneralizedEvent* getEvent(EventQueue* eventQueue, QueuePosition pos)
+RLEvent* getEvent(EventQueue* eventQueue, QueuePosition pos)
 {
     if (!eventQueue->isFull && eventQueue->head == eventQueue->tail)
     {
@@ -18,10 +18,7 @@ GeneralizedEvent* getEvent(EventQueue* eventQueue, QueuePosition pos)
     return eventQueue->buffer[tail];   
 }
 
-/**
- * Does not enqueue if the key is already activated somewhere else 
- */
-int enqueue(GeneralizedEvent* event, EventQueue* eventQueue)
+int enqueue(RLEvent* event, EventQueue* eventQueue)
 {
     if (eventQueue->isFull)
     {
@@ -30,16 +27,15 @@ int enqueue(GeneralizedEvent* event, EventQueue* eventQueue)
     }
     eventQueue->buffer[eventQueue->tail] = event; 
     eventQueue->tail = (eventQueue->tail + 1) % MAX_QUEUE_SIZE;
-    if (eventQueue->tail == eventQueue->head)
-    {
-        eventQueue->isFull = true;
-    }
+    
+    eventQueue->isFull = eventQueue->tail == eventQueue->head;
+
     // TODO implement double press support
     return 0;
 
 }
 
-void enqueueSqueezeToFront(GeneralizedEvent* event, EventQueue* eventQueue)
+void enqueueSqueezeToFront(RLEvent* event, EventQueue* eventQueue)
 {
     if (eventQueue->isFull)
     {
@@ -49,13 +45,10 @@ void enqueueSqueezeToFront(GeneralizedEvent* event, EventQueue* eventQueue)
     eventQueue->head = (eventQueue->head - 1 + MAX_QUEUE_SIZE) % MAX_QUEUE_SIZE;
     eventQueue->buffer[eventQueue->head] = event;
 
-    if (eventQueue->head == eventQueue->tail)
-    {
-        eventQueue->isFull = true;
-    }
+    eventQueue->isFull = eventQueue->head == eventQueue->tail;
 }
 
-GeneralizedEvent* dequeue(EventQueue* eventQueue)
+RLEvent* dequeue(EventQueue* eventQueue)
 {
     bool isEmpty = !eventQueue->isFull && eventQueue->head == eventQueue->tail;
     if (isEmpty)
@@ -64,7 +57,7 @@ GeneralizedEvent* dequeue(EventQueue* eventQueue)
         return NULL;
     }
 
-    GeneralizedEvent* headEvent = eventQueue->buffer[eventQueue->head];
+    RLEvent* headEvent = eventQueue->buffer[eventQueue->head];
     eventQueue->buffer[eventQueue->head] = NULL;
     eventQueue->isFull = false;
     eventQueue->head = (eventQueue->head + 1) % MAX_QUEUE_SIZE;
@@ -72,7 +65,7 @@ GeneralizedEvent* dequeue(EventQueue* eventQueue)
     return headEvent;
 }
 
-GeneralizedEvent* dequeueFromTail(EventQueue* eventQueue)
+RLEvent* dequeueFromTail(EventQueue* eventQueue)
 {
     bool isEmpty = !eventQueue->isFull && eventQueue->head == eventQueue->tail;
     if (isEmpty)
@@ -81,7 +74,7 @@ GeneralizedEvent* dequeueFromTail(EventQueue* eventQueue)
         return NULL;
     }
     eventQueue->tail = (eventQueue->tail - 1 + MAX_QUEUE_SIZE) % MAX_QUEUE_SIZE;
-    GeneralizedEvent* tailEvent = eventQueue->buffer[eventQueue->tail];
+    RLEvent* tailEvent = eventQueue->buffer[eventQueue->tail];
     eventQueue->buffer[eventQueue->tail] = NULL;
     eventQueue->isFull = false;
     return tailEvent;

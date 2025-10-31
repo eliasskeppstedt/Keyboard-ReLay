@@ -10,6 +10,7 @@
 #include <CoreFoundation/CoreFoundation.h> // umm for CFAbsoluteTimeGetCurrent() i think
 #include "../data.h"
 #include "../converter.h"
+#include "interface.h"
 
 typedef struct EventTapCallBackData {
 

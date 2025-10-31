@@ -1,5 +1,4 @@
 #include "../../header/os/quartzEventService.h"
-#include "../../header/os/interface.h"
 
 static uint32_t K_CG_EVENT_TAP_OPTION_DEFAULT = 0x00000000; // for Mac OS X v10.4 support
 static uint32_t EVENT_MASK = (
@@ -12,39 +11,42 @@ CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRe
 {
     watchdog_ping_or_die(); // infinite feedback loop prevention. Should not be needed, just in case tho...
 
-    if (CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode) == 0x30) // tab, just in case i break something with the convertion. Else esc is the key to quit
+    if (CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode) == 0x35) // esc, just in case i break something with the convertion. Else esc is the key to quit
     {
         CFRunLoopStop(CFRunLoopGetCurrent());
         return NULL;
     }
     
-    int evSrcUserData = CGEventGetIntegerValueField(event, kCGEventSourceUserData);
+    uint64_t evSrcUserData = CGEventGetIntegerValueField(event, kCGEventSourceUserData);
+    if (evSrcUserData == DONT_POST_DUE_TO_PENDING_EVENT ||
+        CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat)/* fix better logic for this such that auto repeat is ok */) 
+    {
+        return NULL;
+    }
     if (evSrcUserData == SIMULATED_EVENT)
     {
         return event;
     }
-    
+
     RLEvent* rlEvent = malloc(sizeof(RLEvent));
     MyReLay* myReLay = (MyReLay*)refcon;
 
     if (evSrcUserData == ON_HOLD_TIMER_EVENT)
     {
-        printf("hello\n");
         *rlEvent = (RLEvent) {
             .code = NO_VALUE,
             .flagMask = NO_VALUE,
             .timeStampOnPress = NO_VALUE,
+            .preservedOSFlagMask = CGEventGetFlags(event),
             .state = NORMAL,
             .isModifier = false,
-            .keyDown = false
+            .keyDown = false,
+            .timer = NULL
         };
     }
-    else
+    else if (eventOSToReLay(type, event, rlEvent, myReLay->osToRL) == 1)
     {
-        if (eventOSToReLay(type, event, rlEvent, myReLay->osToRL) == 1)
-        {
-            return event;
-        }
+        return event;
     }
     eventCallBack(myReLay, rlEvent);
     return NULL;
@@ -57,8 +59,8 @@ int eventOSToReLay(CGEventType type, CGEventRef macEvent, RLEvent* rlEvent, int*
     {
         return 1;
     }
-
-    setFlagsFromMac(CGEventGetFlags(macEvent), &rlEvent->flagMask);
+    uint64_t macFlagMask = CGEventGetFlags(macEvent);
+    setFlagsFromMac(macFlagMask, &rlEvent->flagMask);
     rlEvent->timeStampOnPress = getTimeStamp();
     rlEvent->state = NORMAL;
     rlEvent->isModifier = type == kCGEventFlagsChanged;
@@ -67,33 +69,36 @@ int eventOSToReLay(CGEventType type, CGEventRef macEvent, RLEvent* rlEvent, int*
 }
 
 // defined in interfaces.h
-void postEvent(RLEvent* rlEvent, int* rlToOS)
+void postEvent(RLEvent* rlEvent, int* rlToOS, int userDefinedData)
 {
+    CGEventSourceRef src = CGEventSourceCreate(kCGEventSourceStateHIDSystemState);
+
     int code = NO_VALUE;
     uint64_t flags = NO_VALUE;
     setCodeToMac(rlEvent->code, &code, rlToOS);
     setFlagsToMac(rlEvent->flagMask, &flags);
-    CGEventSourceRef source = CGEventSourceCreate(kCGEventSourceStateCombinedSessionState);
+    flags |= rlEvent->preservedOSFlagMask;
 
-    printRLEvent(rlEvent);
-    CGEventRef macEvent = CGEventCreateKeyboardEvent(source, code, rlEvent->keyDown);
+    //printRLEvent(rlEvent);
+    CGEventRef macEvent = CGEventCreateKeyboardEvent(src, code, rlEvent->keyDown);
     
-    CGEventSetIntegerValueField(macEvent, kCGEventSourceUserData, SIMULATED_EVENT); // send some user defined data
+    CGEventSetIntegerValueField(macEvent, kCGEventSourceUserData, userDefinedData); // send some user defined data
 
     CGEventSetFlags(macEvent, flags);
     CGEventSetTimestamp(macEvent, rlEvent->timeStampOnPress);
-    printMacEvent(&macEvent);
+    //printMacEvent(&macEvent);
 
     CGEventPost(kCGHIDEventTap, macEvent);
-    CFRelease(source);
+    CFRelease(src);
     CFRelease(macEvent);
-    free(rlEvent);
 }
 
 void timerCallBack(CFRunLoopTimerRef timer, void* info)
 {
-    KeyStatus* keyStatus = (KeyStatus*) info;
-    keyStatus->timer = NULL;
+    void** eventTimer = info;
+    CFRelease(*eventTimer);
+    *eventTimer = NULL;
+
     CGEventSourceRef src =  CGEventSourceCreate(kCGEventSourceStateCombinedSessionState);
     CGEventRef onHoldTimerEvent = CGEventCreateKeyboardEvent(src, 0, 0); // keycode and keydown does not matter, we will react to the eventsourceuserdata when this event arrives
     CGEventSetIntegerValueField(onHoldTimerEvent, kCGEventSourceUserData, ON_HOLD_TIMER_EVENT); // send some user defined data
@@ -102,11 +107,11 @@ void timerCallBack(CFRunLoopTimerRef timer, void* info)
     CFRelease(onHoldTimerEvent);
 }
 
-void startOnHoldTimer(KeyStatus* keyStatus)
+void startOnHoldTimer(void** eventTimer)
 {
     CFRunLoopTimerContext context = (CFRunLoopTimerContext) {
         .version = 0,
-        .info = keyStatus,
+        .info = eventTimer,
         .retain = NULL,
         .release = NULL,
         .copyDescription = NULL
@@ -121,9 +126,17 @@ void startOnHoldTimer(KeyStatus* keyStatus)
         timerCallBack, //CFRunLoopTimerCallBack callout, 
         &context //CFRunLoopTimerContext * context);
     );
-    keyStatus->timer = (void*) timer;
+    *eventTimer = timer;
     CFRunLoopRef rl = CFRunLoopGetCurrent();
     CFRunLoopAddTimer(rl, timer, kCFRunLoopCommonModes); // constant make this timer visible for all run loops, we only have one so no concern there 
+}
+
+void invalidateTimer(void** eventTimer)
+{
+    CFRunLoopTimerRef timer = *eventTimer;
+    CFRunLoopTimerInvalidate(timer);
+    CFRelease(timer);
+    *eventTimer = NULL;
 }
 
 void closeRunLoop(void* ctx)
@@ -202,13 +215,13 @@ int initRunLoop(MyReLay* myReLay)
 
 void printMacEvent(CGEventRef* macEvent)
 {
-    printf("  macEvent {\n");
-    printf("    code: %lld\n", CGEventGetIntegerValueField(*macEvent, kCGKeyboardEventKeycode));
-    printf("    flagMask: %llu\n", CGEventGetFlags(*macEvent));
-    printf("    timeStampOnPress: %llu\n", CGEventGetTimestamp(*macEvent));
-    printf("    isModifier: %s\n", CGEventGetType(*macEvent) == kCGEventFlagsChanged ? "true" : "false");
-    printf("    keyDown: %s\n", CGEventGetType(*macEvent) == kCGEventKeyDown ? "true" : "false");
-    printf("  }\n");
+    printf(">  macEvent {\n");
+    printf(">   code: %lld\n", CGEventGetIntegerValueField(*macEvent, kCGKeyboardEventKeycode));
+    printf(">   flagMask: %llu\n", CGEventGetFlags(*macEvent));
+    printf(">   timeStampOnPress: %llu\n", CGEventGetTimestamp(*macEvent));
+    printf(">   isModifier: %s\n", CGEventGetType(*macEvent) == kCGEventFlagsChanged ? "true" : "false");
+    printf(">   keyDown: %s\n", CGEventGetType(*macEvent) == kCGEventKeyDown ? "true" : "false");
+    printf("> }\n");
 }
 
 static inline void watchdog_ping_or_die(void) 

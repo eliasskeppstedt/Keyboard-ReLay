@@ -17,29 +17,29 @@ typedef enum QueuePosition {
 /*
 @param EventQueue* eventQueue
 */
-GeneralizedEvent* getEvent(EventQueue* eventQueue, QueuePosition pos);
+RLEvent* getEvent(EventQueue* eventQueue, QueuePosition pos);
 
 /*
-GeneralizedEvent* event, 
+RLEvent* event, 
 EventQueue* eventQueue, 
 KRKeyStatus* statusTable
 return EXIT_CODE_EVENT_QUEUE_FULL (999), exit program start debugging...
 */
-int enqueue(GeneralizedEvent* event, EventQueue* eventQueue);
+int enqueue(RLEvent* event, EventQueue* eventQueue);
 
 /*
-GeneralizedEvent* event,
+RLEvent* event,
 EventQueue* eventQueue
 */
-void enqueueSqueezeToFront(GeneralizedEvent* event, EventQueue* eventQueue);
+void enqueueSqueezeToFront(RLEvent* event, EventQueue* eventQueue);
 
 /*
 EventQueue* eventQueue
 return NULL if empty
 return dequeued event
 */
-GeneralizedEvent* dequeue(EventQueue* eventQueue);
+RLEvent* dequeue(EventQueue* eventQueue);
 
-GeneralizedEvent* dequeueFromTail(EventQueue* eventQueue);
+RLEvent* dequeueFromTail(EventQueue* eventQueue);
 
 #endif // _EVENTQUEUE_

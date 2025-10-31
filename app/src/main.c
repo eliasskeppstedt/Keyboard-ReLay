@@ -28,7 +28,7 @@ int main()
     {
         statusTable[i] = (KeyStatus) {
             .keyDown = false,
-            .timer = NULL
+            .keysDown = 0
         };
     }
 
@@ -53,7 +53,6 @@ int main()
     {
         printf("osToRL: %d -> %d\n", i, osToRL[i]);
     }
-    
 
     cJSON_Delete(cKeys);
     cJSON_Delete(cRemaps);

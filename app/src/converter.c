@@ -3,6 +3,12 @@
 
 int setCodeFromMac(int macCode, int* rlCode, int* osToRL)
 {
+    /*if (macCode > macEntries)
+    {
+        printf("  mac key code not recognized\n");
+        return 2;
+    }*/
+    
     int code = osToRL[macCode];
     *rlCode = code; // OStoRL will contain mac and rl codes if run on mac machine when multi OS support is implemented
     if (code == NO_VALUE) 
@@ -55,5 +61,31 @@ void macHelper(uint64_t oldMask, uint64_t oldModMask, uint64_t oldLModMask, uint
         if ((oldMask & oldLModMask) == oldLModMask) *macMask |= newLModMask;
 
         if ((oldMask & oldRModMask) == oldRModMask) *macMask |= newRModMask;
+    }
+}
+
+void modKeyRLFlag(int rlCode, uint64_t* rlMask)
+{
+    *rlMask = 0;
+    switch (rlCode)
+    {
+    case 40: // cmd
+        *rlMask = RL_COMMAND_MASK;
+        break;
+    case 42: // opt
+        *rlMask = RL_ALTERNATE_MASK;
+        break;
+    case 38: // ctr
+        *rlMask = RL_CONTROL_MASK;
+        break;
+    case 36: // shift
+        *rlMask = RL_SHIFT_MASK;
+        break;
+    case 44: // capslock
+        *rlMask = RL_CAPS_LOCK_MASK;
+        break;
+    default:
+        printf("check mod key ...\n");
+        break;
     }
 }

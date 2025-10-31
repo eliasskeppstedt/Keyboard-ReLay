@@ -8,9 +8,12 @@
 #define MAX_QUEUE_SIZE 100
 #define SIMULATED_EVENT 1
 #define ON_HOLD_TIMER_EVENT 2
+#define DONT_POST_DUE_TO_PENDING_EVENT 3
 #define NO_VALUE -1
 #define ERROR_READ_JSON 100
 #define ON_HOLD_THRESHOLD 150000 // 150 000 us => 150 ms 
+
+#define KEY_INFO(myReLay, event) myReLay->remapTable[myReLay->activeLayer][event->code]
 
 typedef enum OS {
     MACOS, LINUX, WINDOWS
@@ -23,18 +26,22 @@ typedef enum EventState {
 /*
 int code;
 uint64_t flagMask;
+uint64_t preservedOSFlagMask;
 uint64_t timeStampOnPress;
 EventState state; // for holding logic
 bool isModifier;
 bool keyDown;
+void* timer; // for handling timer in different OS's, cast to the correct timer type
 */
 typedef struct RLEvent {
     int code;
     uint64_t flagMask;
+    uint64_t preservedOSFlagMask;
     uint64_t timeStampOnPress;
     EventState state; // for holding logic
     bool isModifier;
     bool keyDown;
+    void* timer; // for handling timer in different OS's, cast to the correct timer type
 } RLEvent;
 
 /*
@@ -71,9 +78,10 @@ int activeLayer; // to index into correct layer
     int keyEntries;
 */
 
+// only relevant for modifier keys
 typedef struct KeyStatus {
     bool keyDown;
-    void* timer; // for handling timer in different OS's, cast to the correct timer type
+    int keysDown;
 } KeyStatus;
 
 typedef struct MyReLay {
