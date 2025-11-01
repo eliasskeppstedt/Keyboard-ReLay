@@ -52,7 +52,7 @@ void macHelper(
     uint64_t* rlMask
 );
 
-void modKeyRLFlag(int rlCode, uint64_t* rlMask);
+bool modKeyRLFlag(int rlCode, uint64_t* rlMask);
 
 // from IOLLEvent.h, comments from CGEventTypes.h
 

@@ -64,28 +64,36 @@ void macHelper(uint64_t oldMask, uint64_t oldModMask, uint64_t oldLModMask, uint
     }
 }
 
-void modKeyRLFlag(int rlCode, uint64_t* rlMask)
+bool modKeyRLFlag(int rlCode, uint64_t* rlMask)
 {
+    int code;
     *rlMask = 0;
     switch (rlCode)
     {
     case 40: // cmd
         *rlMask = RL_COMMAND_MASK;
+        code = 40;
         break;
-    case 42: // opt
+    case 42: // opt (alt)
         *rlMask = RL_ALTERNATE_MASK;
+        code = 40;
         break;
     case 38: // ctr
         *rlMask = RL_CONTROL_MASK;
+        code = 38;
         break;
     case 36: // shift
         *rlMask = RL_SHIFT_MASK;
+        code = 36;
         break;
     case 44: // capslock
         *rlMask = RL_CAPS_LOCK_MASK;
+        code = 44;
         break;
     default:
-        printf("check mod key ...\n");
+        //printf("not a mod key OR mod key not implemented ...\n");
+        return false;
         break;
     }
+    return true;
 }

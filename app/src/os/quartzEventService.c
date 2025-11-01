@@ -61,10 +61,13 @@ int eventOSToReLay(CGEventType type, CGEventRef macEvent, RLEvent* rlEvent, int*
     }
     uint64_t macFlagMask = CGEventGetFlags(macEvent);
     setFlagsFromMac(macFlagMask, &rlEvent->flagMask);
+    rlEvent->preservedOSFlagMask = macFlagMask;
     rlEvent->timeStampOnPress = getTimeStamp();
     rlEvent->state = NORMAL;
     rlEvent->isModifier = type == kCGEventFlagsChanged;
     rlEvent->keyDown = type == kCGEventKeyDown;
+
+    printf("\n\nNEW EVENT original mac code: %d, rl code: %d\n", macCode, rlEvent->code);
     return 0;
 }
 
@@ -72,7 +75,6 @@ int eventOSToReLay(CGEventType type, CGEventRef macEvent, RLEvent* rlEvent, int*
 void postEvent(RLEvent* rlEvent, int* rlToOS, int userDefinedData)
 {
     CGEventSourceRef src = CGEventSourceCreate(kCGEventSourceStateHIDSystemState);
-
     int code = NO_VALUE;
     uint64_t flags = NO_VALUE;
     setCodeToMac(rlEvent->code, &code, rlToOS);
@@ -83,7 +85,6 @@ void postEvent(RLEvent* rlEvent, int* rlToOS, int userDefinedData)
     CGEventRef macEvent = CGEventCreateKeyboardEvent(src, code, rlEvent->keyDown);
     
     CGEventSetIntegerValueField(macEvent, kCGEventSourceUserData, userDefinedData); // send some user defined data
-
     CGEventSetFlags(macEvent, flags);
     CGEventSetTimestamp(macEvent, rlEvent->timeStampOnPress);
     //printMacEvent(&macEvent);
@@ -95,7 +96,6 @@ void postEvent(RLEvent* rlEvent, int* rlToOS, int userDefinedData)
 
 void timerCallBack(CFRunLoopTimerRef timer, void* info)
 {
-    printf("> runn loop timer xcallback!\n");
     void** eventTimer = info;
     CFRelease(*eventTimer);
     *eventTimer = NULL;

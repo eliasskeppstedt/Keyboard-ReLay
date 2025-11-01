@@ -25,6 +25,8 @@ void eventCallBack(MyReLay* myReLay, RLEvent* incomingEvent)
 
     RLEvent* headEventPreview = NULL;
     RLEvent* outgoingEvent = NULL;
+    uint64_t modKeyFlag;
+    bool isModKey;
 
     if (incomingEvent->code == NO_VALUE)
     {
@@ -58,8 +60,10 @@ void eventCallBack(MyReLay* myReLay, RLEvent* incomingEvent)
         goto notPending;
     }
 
+
     if ((getTimeStamp() - headEventPreview->timeStampOnPress) > ON_HOLD_THRESHOLD)
     {
+        myReLay->statusTable[headEventPreview->code].keyDown = true;
         headEventPreview->code = KEY_INFO(myReLay, headEventPreview).codeOnHold;
         headEventPreview->state = SEND;
         invalidateTimer(&headEventPreview->timer);
@@ -74,34 +78,64 @@ void eventCallBack(MyReLay* myReLay, RLEvent* incomingEvent)
         headEventPreview->state = SEND;
         invalidateTimer(&headEventPreview->timer);
     }
-    goto notPending;
 
+    goto notPending;
     timerTriggeredEvent:
+
+    myReLay->statusTable[headEventPreview->code].keyDown = true;
     headEventPreview->code = KEY_INFO(myReLay, headEventPreview).codeOnHold;
     headEventPreview->state = SEND;
 
     notPending:
 
-    if (headEventPreview->isModifier && headEventPreview->state == SEND)
+    if (!headEventPreview->keyDown)
     {
-        uint64_t modKeyFlag = 0;
-        modKeyRLFlag(headEventPreview->code, &modKeyFlag);
-        if (MASK(headEventPreview->flagMask, modKeyFlag) != 0) // keyDown for both modifiers AND regular characters
+        if (myReLay->statusTable[headEventPreview->code].keyDown) // if true, then prev corresponding key down event got turned into a hold event
         {
+            myReLay->statusTable[headEventPreview->code].keyDown = false;
+            headEventPreview->code = KEY_INFO(myReLay, headEventPreview).codeOnHold;
+        }
+    }
+    
+    isModKey = modKeyRLFlag(headEventPreview->code, &modKeyFlag); //modKeyFlag is also set to corresponding flag if mod key
+    if (isModKey && headEventPreview->state == SEND)
+    {
+        bool modKeyDown;
+        if (headEventPreview->isModifier)
+        {
+            modKeyDown = MASK(headEventPreview->flagMask, modKeyFlag) != 0; // keyDown for native modifiers
+            headEventPreview->keyDown = modKeyDown;
+        } 
+        else
+        { 
+            modKeyDown = headEventPreview->keyDown;
+            if (headEventPreview->keyDown) headEventPreview->flagMask = modKeyFlag;
+            myReLay->statusTable[headEventPreview->code].keyDown = false;
+        }
+
+        printf("modKeyFlag : %llu\n", modKeyFlag);
+        printf("modkeydown : %s\n", modKeyDown ? "true" : "false");
+        
+
+        printf("key %s\n", modKeyDown ? "down\n" : "up\n");
+        printf("active flags: %llu\n", activeEventFlags);
+        if (modKeyDown)
+        { 
             activeEventFlags |= headEventPreview->flagMask;
         }
         else
         {
             activeEventFlags &= headEventPreview->flagMask;
         }
+        printf("active flags: %llu\n", activeEventFlags);
     }
-    printRLEvent(headEventPreview);
-
+    //printRLEvent(headEventPreview)
+    
     while (headEventPreview)
     {
         if (headEventPreview->state == PENDING) break;
-        headEventPreview->flagMask = activeEventFlags;
         outgoingEvent = dequeue(&myReLay->eventQueue);
+        outgoingEvent->flagMask = activeEventFlags;
         postEvent(outgoingEvent, myReLay->rlToOS, SIMULATED_EVENT);
         free(outgoingEvent);
         headEventPreview = getEvent(&myReLay->eventQueue, HEAD);
