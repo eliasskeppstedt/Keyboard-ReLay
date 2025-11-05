@@ -14,45 +14,42 @@ int main()
     if (!cOSEntries) return 1;
     cJSON* cLayerEntries = cJSON_GetObjectItemCaseSensitive(cRemaps, "layerEntries");
     if (!cLayerEntries) return 1;
-    int rlEntries = cJSON_GetNumberValue(cRLEntries);
-    int osEntries = cJSON_GetNumberValue(cOSEntries);
-    int layerEntries = cJSON_GetNumberValue(cLayerEntries);
+
+    rlKeyEntries = cJSON_GetNumberValue(cRLEntries);
+    osKeyEntries = cJSON_GetNumberValue(cOSEntries);
+    layerEntries = cJSON_GetNumberValue(cLayerEntries);
 
     MyReLay myReLay;
-
     EventQueue eventQueue; 
     initEventQueue(&eventQueue);
-
-    KeyStatus statusTable[rlEntries];
-    for (int i = 0; i < rlEntries; i++) 
+    initCodeConverters(cKeys, MACOS);
+    initRemapTable(cRemaps);
+    KeyStatus statusTable[osKeyEntries];
+    for (int i = 0; i < osKeyEntries; i++) 
     {
         statusTable[i] = (KeyStatus) {
+            .code = NO_VALUE,
+            .osCode = NO_VALUE,
             .keyDown = false,
-            .keysDown = 0
+            .keysDown = 0,
+            .originalCodeDown = NO_VALUE
         };
     }
 
-    int* osToRL = malloc(sizeof(int) * osEntries);
-    int* rlToOS = malloc(sizeof(int) * rlEntries);
-    initCodeConverters(cKeys, osToRL, rlToOS, osEntries, rlEntries, MACOS);
-
-    KeyInfo** remapTable = NULL;
-    initRemapTable(cRemaps, &remapTable, layerEntries, rlEntries);
-
     myReLay = (MyReLay) {
-        .remapTable = remapTable,
-        .activeLayer = 0,
         .statusTable = statusTable,
         .eventQueue = eventQueue,
-        .osToRL = osToRL,
-        .rlToOS = rlToOS,
-        .osKeyEntries = osEntries,
-        .rlKeyEntries = rlEntries
+        .activeLayer = 0
     };
-    for (int i = 0; i < osEntries; i++)
+    for (int i = 0; i < osKeyEntries; i++)
     {
         printf("osToRL: %d -> %d\n", i, osToRL[i]);
     }
+    for (int i = 0; i < rlKeyEntries; i++)
+    {
+        printf("remapTable[0][%d].codeOnHold: %d \n", i, remapTable[0][i].codeOnHold);
+    }
+    
 
     cJSON_Delete(cKeys);
     cJSON_Delete(cRemaps);

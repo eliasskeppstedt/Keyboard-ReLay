@@ -7,17 +7,13 @@ static uint32_t EVENT_MASK = (
     CGEventMaskBit(kCGEventFlagsChanged)
 ); // only masking keyboard events as of now
 
+static uint64_t evSrcUserData;
+
 CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void* refcon) 
 {
     watchdog_ping_or_die(); // infinite feedback loop prevention. Should not be needed, just in case tho...
-
-    if (CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode) == 0x35) // esc, just in case i break something with the convertion. Else esc is the key to quit
-    {
-        CFRunLoopStop(CFRunLoopGetCurrent());
-        return NULL;
-    }
     
-    uint64_t evSrcUserData = CGEventGetIntegerValueField(event, kCGEventSourceUserData);
+    evSrcUserData = CGEventGetIntegerValueField(event, kCGEventSourceUserData);
     if (evSrcUserData == DONT_POST_DUE_TO_PENDING_EVENT ||
         CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat)/* fix better logic for this such that auto repeat is ok */) 
     {
@@ -28,66 +24,74 @@ CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRe
         return event;
     }
 
-    RLEvent* rlEvent = malloc(sizeof(RLEvent));
     MyReLay* myReLay = (MyReLay*)refcon;
+    RLEvent* rlEvent = RLEventCreate(type, event);
 
-    if (evSrcUserData == ON_HOLD_TIMER_EVENT)
-    {
-        *rlEvent = (RLEvent) {
-            .code = NO_VALUE,
-            .flagMask = NO_VALUE,
-            .timeStampOnPress = NO_VALUE,
-            .preservedOSFlagMask = CGEventGetFlags(event),
-            .state = NORMAL,
-            .isModifier = false,
-            .keyDown = false,
-            .timer = NULL
-        };
-    }
-    else if (eventOSToReLay(type, event, rlEvent, myReLay->osToRL) == 1)
-    {
-        return event;
-    }
     eventCallBack(myReLay, rlEvent);
     return NULL;
 }
 
-int eventOSToReLay(CGEventType type, CGEventRef macEvent, RLEvent* rlEvent, int* macToRL)
-{
-    int macCode = CGEventGetIntegerValueField(macEvent, kCGKeyboardEventKeycode);
-    if (setCodeFromMac(macCode, &rlEvent->code, macToRL) == 1)
-    {
-        return 1;
-    }
-    uint64_t macFlagMask = CGEventGetFlags(macEvent);
-    setFlagsFromMac(macFlagMask, &rlEvent->flagMask);
-    rlEvent->preservedOSFlagMask = macFlagMask;
-    rlEvent->timeStampOnPress = getTimeStamp();
-    rlEvent->state = NORMAL;
-    rlEvent->isModifier = type == kCGEventFlagsChanged;
-    rlEvent->keyDown = type == kCGEventKeyDown;
+RLEvent* RLEventCreate(CGEventType type, CGEventRef macEvent)
+{    
+    RLEvent* rlEvent = malloc(sizeof(RLEvent));
 
-    printf("\n\nNEW EVENT original mac code: %d, rl code: %d\n", macCode, rlEvent->code);
-    return 0;
+    if (evSrcUserData == ON_HOLD_TIMER_EVENT)
+    {
+        rlEvent->code = NO_VALUE;
+        return rlEvent;
+    }
+
+    int macCode = CGEventGetIntegerValueField(macEvent, kCGKeyboardEventKeycode);
+    int rlCode = getCodeMacToRL(macCode);
+    uint64_t macFlags = CGEventGetFlags(macEvent);
+    bool isSupported = true;
+    if (rlCode == NO_VALUE)
+    {
+        rlCode = macCode;
+        isSupported = false;
+    }
+    printf("\n\nNEW EVENT original mac code: %d, rl code: %d %s\nn", macCode, rlCode, isSupported ? "(supported)" : "(unsupported)");
+
+    *rlEvent = (RLEvent) {
+        .code = rlCode,
+        .flagMask = getFlagsMacToRL(macFlags),
+        .preservedOSFlagMask = macFlags,
+        .timeStampOnPress = getTimeStamp(),
+        .state = NORMAL,
+        .isModifier = type == kCGEventFlagsChanged,
+        .keyDown = type == kCGEventKeyDown,
+        .isSupported = isSupported,
+        .timer = NULL
+    };
+
+    return rlEvent;
 }
 
 // defined in interfaces.h
-void postEvent(RLEvent* rlEvent, int* rlToOS, int userDefinedData)
+void postEvent(RLEvent* rlEvent, int userDefinedData)
 {
     CGEventSourceRef src = CGEventSourceCreate(kCGEventSourceStateHIDSystemState);
-    int code = NO_VALUE;
+    int code;
+    if (rlEvent->isSupported)
+    {
+        code = getCodeRLToMac(rlEvent->code);
+    }
+    else
+    {
+        code = rlEvent->code;
+    }
+    
     uint64_t flags = NO_VALUE;
-    setCodeToMac(rlEvent->code, &code, rlToOS);
     setFlagsToMac(rlEvent->flagMask, &flags);
     flags |= rlEvent->preservedOSFlagMask;
-
-    //printRLEvent(rlEvent);
+    
+    printRLEvent(rlEvent);
     CGEventRef macEvent = CGEventCreateKeyboardEvent(src, code, rlEvent->keyDown);
+    printMacEvent(macEvent);
     
     CGEventSetIntegerValueField(macEvent, kCGEventSourceUserData, userDefinedData); // send some user defined data
     CGEventSetFlags(macEvent, flags);
     CGEventSetTimestamp(macEvent, rlEvent->timeStampOnPress);
-    //printMacEvent(&macEvent);
 
     CGEventPost(kCGHIDEventTap, macEvent);
     CFRelease(src);

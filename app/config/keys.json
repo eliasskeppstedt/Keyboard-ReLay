@@ -1,7 +1,13 @@
 {
     "rlEntries": 72,
     "macEntries": 127,
-    "keys": [
+    "keysRLSpecial": [
+        {
+            "keyName": "layerToggleWhileHolding",
+            "keyCode": { "dec": 1000, "hexString": "0x3E8" }
+        }
+    ],
+    "keysRL": [
         {
             "keyName": "a",
             "keyCode": {

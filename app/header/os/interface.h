@@ -4,7 +4,7 @@
 #include <sys/time.h>
 #include "../data.h"
 
-void postEvent(RLEvent* event, int* rlToOS, int userDefinedData);
+void postEvent(RLEvent* event, int userDefinedData);
 void startOnHoldTimer(void** eventTimer);
 void invalidateTimer(void** eventTimer);
 int initRunLoop(MyReLay* myReLay);
@@ -14,5 +14,6 @@ void eventCallBack(MyReLay* myReLay, RLEvent* rlEvent);
 uint64_t getTimeStamp();
 
 void printRLEvent(RLEvent* rlEvent);
+
 
 #endif // _INTERFACE_

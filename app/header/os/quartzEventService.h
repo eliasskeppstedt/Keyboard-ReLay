@@ -17,7 +17,7 @@ typedef struct EventTapCallBackData {
 } EventTapCallBackData;
 
 CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void* refcon);
-int eventOSToReLay(CGEventType type, CGEventRef macEvent, RLEvent* rlEvent, int* macToRL);
+RLEvent* RLEventCreate(CGEventType type, CGEventRef macEvent);
 void printMacEvent(CGEventRef* macEvent);
 void timerCallBack(CFRunLoopTimerRef timer, void* info);
 static inline void watchdog_ping_or_die(void);

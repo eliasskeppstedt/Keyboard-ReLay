@@ -11,13 +11,15 @@ void initEventQueue(EventQueue* queue)
     queue->isFull = false;
 }
 
-void initCodeConverters(cJSON* json, int* osToRL, int* rlToOS, int osEntries, int rlEntries, OS os)
+void initCodeConverters(cJSON* json, OS os)
 {
-    for (int i = 0; i < osEntries; i++)
+    osToRL = malloc(sizeof(int) * osKeyEntries);
+    rlToOS = malloc(sizeof(int) * rlKeyEntries);
+    for (int i = 0; i < osKeyEntries; i++)
     {
         osToRL[i] = NO_VALUE;
     }
-    for (int i = 0; i < rlEntries; i++)
+    for (int i = 0; i < rlKeyEntries; i++)
     {
         rlToOS[i] = NO_VALUE;
     }
@@ -28,7 +30,7 @@ void initCodeConverters(cJSON* json, int* osToRL, int* rlToOS, int osEntries, in
         osCodeString = "mac";
     }
     
-    cJSON* cKeys = cJSON_GetObjectItem(json, "keys");
+    cJSON* cKeys = cJSON_GetObjectItem(json, "keysRL");
     if (!cKeys) exit(101);
     cJSON* cKey = NULL;
     cJSON* cKeyCode = NULL;
@@ -59,13 +61,12 @@ void initCodeConverters(cJSON* json, int* osToRL, int* rlToOS, int osEntries, in
     printf("%d\n", rlToOS[24]);
 }
 
-void initRemapTable(cJSON* json, KeyInfo*** pRemapTable, int layerEntries, int entries)
+void initRemapTable(cJSON* json)
 {
-    KeyInfo** remapTable = NULL;
     remapTable = malloc(sizeof(KeyInfo*) * layerEntries);
     for (int i = 0; i < layerEntries; i++)
     {
-        remapTable[i] = malloc(sizeof(KeyInfo) * entries);
+        remapTable[i] = malloc(sizeof(KeyInfo) * rlKeyEntries);
     }
 
     cJSON* cLayers = cJSON_GetObjectItem(json, "layers");
@@ -73,7 +74,7 @@ void initRemapTable(cJSON* json, KeyInfo*** pRemapTable, int layerEntries, int e
 
     for (int i = 0; i < layerEntries; i++)
     {
-        for (int j = 0; j < entries; j++)
+        for (int j = 0; j < rlKeyEntries; j++)
         {
             remapTable[i][j] = (KeyInfo) {
                 .code = NO_VALUE,
@@ -120,7 +121,6 @@ void initRemapTable(cJSON* json, KeyInfo*** pRemapTable, int layerEntries, int e
             };
         }
     }
-    *pRemapTable = remapTable;
 }
 
 cJSON* readJSON(char* path) 
