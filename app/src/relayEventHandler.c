@@ -38,100 +38,97 @@ void eventCallBack(MyReLay* myReLay, RLEvent* incomingEvent)
     enqueue(incomingEvent, eventQueue);
     headEventPreview = getEvent(eventQueue, HEAD);
 
-    if (!headEventPreview->isSupported)
-    {
-        printf("  key code (%d) not supported!!!\n", headEventPreview->code);
-        goto unsupportedKeyCode;
-    }
-
-    if (incomingEvent->keyDown && getCodeOnHold(incomingEvent->code, myReLay->activeLayer) != NO_VALUE)
-    {
-        incomingEvent->state = PENDING;
-        startOnHoldTimer(&incomingEvent->timer);
-    }
-    else
-    {
-        incomingEvent->state = SEND;
-    }
-
-    int headEventCodeOnPress = getCodeOnPress(headEventPreview->code, myReLay->activeLayer);
-    if (headEventPreview->state != PENDING) 
-    {
-        if (headEventCodeOnPress != NO_VALUE)
-        {
-            headEventPreview->code = headEventCodeOnPress;
-        }
-        goto notPending;
-    }
-
-
-    if (headEventPreview->code == incomingEvent->code && !incomingEvent->keyDown) // i.e. if it is a key down/key up pair
-    {
-        printf("  keyDown/keyUp pair\n");
-        if (headEventCodeOnPress != NO_VALUE)
-        {
-            headEventPreview->code = headEventCodeOnPress;
-        }
-        headEventPreview->state = SEND;
-        invalidateTimer(&headEventPreview->timer);
-    }
-
-    goto notPending;
-    timerTriggeredEvent:
-    
-    myReLay->statusTable[headEventPreview->code].keyDown = true;
-    headEventPreview->code = getCodeOnHold(headEventPreview->code, myReLay->activeLayer);
-    headEventPreview->state = SEND;
-
-    notPending:
-
-    if (!headEventPreview->keyDown)
-    {
-        if (myReLay->statusTable[headEventPreview->code].keyDown) // if true, then prev corresponding key down event got turned into a hold event
-        {
-            myReLay->statusTable[headEventPreview->code].keyDown = false;
-            if (headEventCodeOnPress != NO_VALUE) headEventPreview->code = headEventCodeOnPress;
-            if (getCodeOnHold(headEventPreview->code, myReLay->activeLayer) != NO_VALUE) headEventPreview->code = getCodeOnHold(headEventPreview->code, myReLay->activeLayer);
-        }
-    }
-
-    unsupportedKeyCode:
-    
-    isModKey = setCorrespondingModifierFlag(headEventPreview->code, &modKeyFlag); //modKeyFlag is also set to corresponding flag if mod key
-    if (isModKey && headEventPreview->state == SEND)
-    {
-        bool modKeyDown;
-        if (headEventPreview->isModifier)
-        {
-            modKeyDown = (headEventPreview->flagMask & modKeyFlag) != 0; // keyDown for native modifiers
-            headEventPreview->keyDown = modKeyDown;
-        } 
-        else
-        { 
-            modKeyDown = headEventPreview->keyDown;
-            if (headEventPreview->keyDown) headEventPreview->flagMask = modKeyFlag;
-        }
-
-        printf("modKeyFlag : %llu\n", modKeyFlag);
-        printf("modkeydown : %s\n", modKeyDown ? "true" : "false");
-        
-
-        printf("key %s\n", modKeyDown ? "down" : "up");
-        printf("active flags: %llu\n", activeEventFlags);
-        if (modKeyDown)
-        { 
-            activeEventFlags |= headEventPreview->flagMask;
-        }
-        else
-        {
-            activeEventFlags &= headEventPreview->flagMask;
-        }
-        printf("active flags: %llu\n", activeEventFlags);
-    }
-    //printRLEvent(headEventPreview)
-
     while (headEventPreview)
     {
+        if (!headEventPreview->isSupported)
+        {
+            printf("  key code (%d) not supported!!!\n", headEventPreview->code);
+            goto unsupportedKeyCode;
+        }
+
+        if (incomingEvent->keyDown && getCodeOnHold(incomingEvent->code, myReLay->activeLayer) != NO_VALUE)
+        {
+            incomingEvent->state = PENDING;
+            startOnHoldTimer(&incomingEvent->timer);
+        }
+        else
+        {
+            incomingEvent->state = SEND;
+        }
+
+        int headEventCodeOnPress = getCodeOnPress(headEventPreview->code, myReLay->activeLayer);
+        if (headEventPreview->state != PENDING) 
+        {
+            if (headEventCodeOnPress != NO_VALUE)
+            {
+                headEventPreview->code = headEventCodeOnPress;
+            }
+            goto notPending;
+        }
+
+
+        if (headEventPreview->code == incomingEvent->code && !incomingEvent->keyDown) // i.e. if it is a key down/key up pair
+        {
+            printf("  keyDown/keyUp pair\n");
+            if (headEventCodeOnPress != NO_VALUE)
+            {
+                headEventPreview->code = headEventCodeOnPress;
+            }
+            headEventPreview->state = SEND;
+            invalidateTimer(&headEventPreview->timer);
+        }
+
+        goto notPending;
+        timerTriggeredEvent:
+        
+        myReLay->statusTable[headEventPreview->code].keyDown = true;
+        headEventPreview->code = getCodeOnHold(headEventPreview->code, myReLay->activeLayer);
+        headEventPreview->state = SEND;
+
+        notPending:
+
+        if (!headEventPreview->keyDown)
+        {
+            if (myReLay->statusTable[headEventPreview->code].keyDown) // if true, then prev corresponding key down event got turned into a hold event
+            {
+                myReLay->statusTable[headEventPreview->code].keyDown = false;
+                if (headEventCodeOnPress != NO_VALUE) headEventPreview->code = headEventCodeOnPress;
+                if (getCodeOnHold(headEventPreview->code, myReLay->activeLayer) != NO_VALUE) headEventPreview->code = getCodeOnHold(headEventPreview->code, myReLay->activeLayer);
+            }
+        }
+
+        unsupportedKeyCode:
+        
+        isModKey = setCorrespondingModifierFlag(headEventPreview->code, &modKeyFlag); //modKeyFlag is also set to corresponding flag if mod key
+        if (isModKey && headEventPreview->state == SEND)
+        {
+
+            bool modKeyDown;
+            if (headEventPreview->isModifier)
+            {
+                modKeyDown = ((headEventPreview->flagMask & modKeyFlag) != 0); // keyDown for native modifiers
+                headEventPreview->keyDown = modKeyDown;
+            } 
+            else
+            { 
+                modKeyDown = headEventPreview->keyDown;
+            }
+            headEventPreview->flagMask = modKeyFlag;
+            
+            if (modKeyDown)
+            { 
+                activeEventFlags |= headEventPreview->flagMask;
+            }
+            else
+            {
+                activeEventFlags ^= headEventPreview->flagMask;
+            }
+        }            
+        printf("current active flags: %llu\n", activeEventFlags);
+
+        //printRLEvent(headEventPreview)
+
+        // POST EVENT
         if (headEventPreview->state == PENDING) break;
         outgoingEvent = dequeue(eventQueue);
         outgoingEvent->flagMask = activeEventFlags;

@@ -28,7 +28,8 @@ CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRe
     RLEvent* rlEvent = RLEventCreate(type, event);
 
     eventCallBack(myReLay, rlEvent);
-    return NULL;
+    return NULL;    
+    printRLEvent(rlEvent);
 }
 
 RLEvent* RLEventCreate(CGEventType type, CGEventRef macEvent)
@@ -50,7 +51,7 @@ RLEvent* RLEventCreate(CGEventType type, CGEventRef macEvent)
         rlCode = macCode;
         isSupported = false;
     }
-    printf("\n\nNEW EVENT original mac code: %d, rl code: %d %s\nn", macCode, rlCode, isSupported ? "(supported)" : "(unsupported)");
+    printf("\n\nNEW EVENT original mac code: %d, rl code: %d %s\n",macCode, rlCode, isSupported ? "(supported)" : "(unsupported)");
 
     *rlEvent = (RLEvent) {
         .code = rlCode,
@@ -63,13 +64,13 @@ RLEvent* RLEventCreate(CGEventType type, CGEventRef macEvent)
         .isSupported = isSupported,
         .timer = NULL
     };
-
     return rlEvent;
 }
 
 // defined in interfaces.h
 void postEvent(RLEvent* rlEvent, int userDefinedData)
 {
+    printRLEvent(rlEvent);
     CGEventSourceRef src = CGEventSourceCreate(kCGEventSourceStateHIDSystemState);
     int code;
     if (rlEvent->isSupported)
@@ -84,10 +85,8 @@ void postEvent(RLEvent* rlEvent, int userDefinedData)
     uint64_t flags = NO_VALUE;
     setFlagsToMac(rlEvent->flagMask, &flags);
     flags |= rlEvent->preservedOSFlagMask;
-    
-    printRLEvent(rlEvent);
+    printf("keyDown? when posting event: %s\n", rlEvent->keyDown ? "true" : "false");
     CGEventRef macEvent = CGEventCreateKeyboardEvent(src, code, rlEvent->keyDown);
-    printMacEvent(macEvent);
     
     CGEventSetIntegerValueField(macEvent, kCGEventSourceUserData, userDefinedData); // send some user defined data
     CGEventSetFlags(macEvent, flags);
