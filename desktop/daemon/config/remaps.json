@@ -1,0 +1,19 @@
+{
+    "layerEntries": 1,
+    "layers": [
+        {
+            "layerName": "Main",
+            "layerNr": "0",
+            "keyCode": [
+                { "from": 0, "toOnPress": -1, "toOnHold": 36, "fromS": "a", "toOnPressS": "", "toOnHoldS": "shiftL" },
+                { "from": 3, "toOnPress": -1, "toOnHold": 38, "fromS": "d", "toOnPressS": "", "toOnHoldS": "ctrL" },
+                { "from": 5, "toOnPress": -1, "toOnHold": 42, "fromS": "f", "toOnPressS": "", "toOnHoldS": "altL" },
+                { "from": 6, "toOnPress": -1, "toOnHold": 40, "fromS": "g", "toOnPressS": "", "toOnHoldS": "cmdL" },
+                { "from": 10, "toOnPress": -1, "toOnHold": 39, "fromS": "k", "toOnPressS": "", "toOnHoldS": "ctrR" },
+                { "from": 9, "toOnPress": -1, "toOnHold": 43, "fromS": "j", "toOnPressS": "", "toOnHoldS": "altR" },
+                { "from": 7, "toOnPress": -1, "toOnHold": 40, "fromS": "h", "toOnPressS": "", "toOnHoldS": "cmdR" }
+                
+            ]
+        }
+    ]
+}
