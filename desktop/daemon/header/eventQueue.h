@@ -11,35 +11,37 @@ typedef enum QueuePosition {
     HEAD, TAIL
 } QueuePosition;
 
-#define isEmpty(queue) !queue->isFull && queue->head == queue->tail
-
-#define queueForEach(event, queue) for(element = (queue != NULL) ? (queue)->buffer[(queue)->head] : NULL; element != NULL; element = dequeue(queue))
 /*
-@param EventQueue* eventQueue
-*/
-RLEvent* getEvent(EventQueue* eventQueue, QueuePosition pos);
+ * @param QueuePosition HEAD or TAIL event
+ */
+RLEvent* getEvent(QueuePosition pos);
 
 /*
-RLEvent* event, 
-EventQueue* eventQueue, 
-KRKeyStatus* statusTable
-return EXIT_CODE_EVENT_QUEUE_FULL (999), exit program start debugging...
-*/
-int enqueue(RLEvent* event, EventQueue* eventQueue);
+ * @param RLEvent* event
+ */
+int enqueue(RLEvent* event);
 
 /*
-RLEvent* event,
-EventQueue* eventQueue
+ * @brief this will put the event at the first (head) position
+ * @param RLEvent* event
 */
-void enqueueSqueezeToFront(RLEvent* event, EventQueue* eventQueue);
+void enqueueSqueezeToFront(RLEvent* event);
 
 /*
-EventQueue* eventQueue
-return NULL if empty
-return dequeued event
+ * @brief Dequeue the first arrived event
+ * @return RLEvent* to the dequeued event
 */
-RLEvent* dequeue(EventQueue* eventQueue);
+RLEvent* dequeue();
 
-RLEvent* dequeueFromTail(EventQueue* eventQueue);
+/*
+ * @brief Dequeue the last arrived event
+ * @return RLEvent* to the dequeued event
+*/
+RLEvent* dequeueFromTail();
+
+/*
+ * @brief used by initData
+ */
+void createEventQueue();
 
 #endif // _EVENTQUEUE_

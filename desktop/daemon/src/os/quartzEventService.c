@@ -1,97 +1,94 @@
 #include "../../header/os/quartzEventService.h"
 
+// -------- statics
+/* 
+ * @attention quartzEventService.c
+ * @attention CFMutableDictionaryRef* remaps = (CFMutableDictionaryRef*) MY_RELAY.remaps;
+ * @attention CFMutableDictionaryRef* statusTable = (CFMutableDictionaryRef*) MY_RELAY.statusTable;
+ * 
+ * @brief why are so many comment @ descriptions not working?! and i want struct member not param D:
+ * 
+ * @param void* remaps is an array of CFMutableDictionaryRef
+ * @param void* statusTable is a CFMutableDictionaryRef  
+ */
+static MyReLay MY_RELAY;
 static uint32_t K_CG_EVENT_TAP_OPTION_DEFAULT = 0x00000000; // for Mac OS X v10.4 support
 static uint32_t EVENT_MASK = (
     CGEventMaskBit(kCGEventKeyDown) | 
     CGEventMaskBit(kCGEventKeyUp) |
     CGEventMaskBit(kCGEventFlagsChanged)
 ); // only masking keyboard events as of now
-
 static uint64_t evSrcUserData;
+/*
+ * @brief kills program if it missbehaves and spams keys to fast
+ */
+static inline void watchdog_ping_or_die(void);
+static void printMacEvent(CGEventRef macEvent);
+static CFMutableDictionaryRef getRemapTable();
+static CFMutableDictionaryRef getStatusTable();
+
+// --------
 
 CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void* refcon) 
 {
     watchdog_ping_or_die(); // infinite feedback loop prevention. Should not be needed, just in case tho...
-    
     evSrcUserData = CGEventGetIntegerValueField(event, kCGEventSourceUserData);
-    if (evSrcUserData == DONT_POST_DUE_TO_PENDING_EVENT ||
-        CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat)/* fix better logic for this such that auto repeat is ok */) 
+
+    bool returnNull = ( 
+        CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat)
+    );
+
+    if (returnNull)/* fix better logic for this such that auto repeat is ok */
     {
         return NULL;
     }
+
     if (evSrcUserData == SIMULATED_EVENT)
     {
         return event;
     }
 
-    MyReLay* myReLay = (MyReLay*)refcon;
     RLEvent* rlEvent = RLEventCreate(type, event);
+    
+    eventCallBack(rlEvent);
 
-    eventCallBack(myReLay, rlEvent);
     return NULL;    
-    printRLEvent(rlEvent);
 }
 
 RLEvent* RLEventCreate(CGEventType type, CGEventRef macEvent)
 {    
-    RLEvent* rlEvent = malloc(sizeof(RLEvent));
-
-    if (evSrcUserData == ON_HOLD_TIMER_EVENT)
+    if (evSrcUserData == ON_HOLD_TIMER_EVENT) // just to alert the event tap that a key hold should transform a key into the hold variant
     {
+        RLEvent* rlEvent = calloc(1, sizeof(RLEvent));
         rlEvent->code = NO_VALUE;
         return rlEvent;
     }
 
-    int macCode = CGEventGetIntegerValueField(macEvent, kCGKeyboardEventKeycode);
-    int rlCode = getCodeMacToRL(macCode);
-    uint64_t macFlags = CGEventGetFlags(macEvent);
-    bool isSupported = true;
-    if (rlCode == NO_VALUE)
-    {
-        rlCode = macCode;
-        isSupported = false;
-    }
-    printf("\n\nNEW EVENT original mac code: %d, rl code: %d %s\n",macCode, rlCode, isSupported ? "(supported)" : "(unsupported)");
-
+    RLEvent* rlEvent = malloc(sizeof(RLEvent));
     *rlEvent = (RLEvent) {
-        .code = rlCode,
-        .flagMask = getFlagsMacToRL(macFlags),
-        .preservedOSFlagMask = macFlags,
-        .timeStampOnPress = getTimeStamp(),
+        .code = CGEventGetIntegerValueField(macEvent, kCGKeyboardEventKeycode),
+        .flagMask = CGEventGetFlags(macEvent),
+        .timeStampOnPress = CGEventGetTimestamp(macEvent),
         .state = NORMAL,
         .isModifier = type == kCGEventFlagsChanged,
         .keyDown = type == kCGEventKeyDown,
-        .isSupported = isSupported,
         .timer = NULL
     };
+    
     return rlEvent;
 }
 
-// defined in interfaces.h
-void postEvent(RLEvent* rlEvent, int userDefinedData)
+void postEvent(RLEvent* rlEvent, UserDefinedData userDefinedData)
 {
-    printRLEvent(rlEvent);
-    CGEventSourceRef src = CGEventSourceCreate(kCGEventSourceStateHIDSystemState);
-    int code;
-    if (rlEvent->isSupported)
-    {
-        code = getCodeRLToMac(rlEvent->code);
-    }
-    else
-    {
-        code = rlEvent->code;
-    }
-    
-    uint64_t flags = NO_VALUE;
-    setFlagsToMac(rlEvent->flagMask, &flags);
-    flags |= rlEvent->preservedOSFlagMask;
-    printf("keyDown? when posting event: %s\n", rlEvent->keyDown ? "true" : "false");
-    CGEventRef macEvent = CGEventCreateKeyboardEvent(src, code, rlEvent->keyDown);
-    
-    CGEventSetIntegerValueField(macEvent, kCGEventSourceUserData, userDefinedData); // send some user defined data
-    CGEventSetFlags(macEvent, flags);
-    CGEventSetTimestamp(macEvent, rlEvent->timeStampOnPress);
 
+    CGEventSourceRef src = CGEventSourceCreate(kCGEventSourceStateHIDSystemState);
+
+    CGEventRef macEvent = CGEventCreateKeyboardEvent(src, rlEvent->code, rlEvent->keyDown);
+    CGEventSetIntegerValueField(macEvent, kCGEventSourceUserData, userDefinedData); // send some user defined data
+    CGEventSetFlags(macEvent, rlEvent->flagMask);
+    CGEventSetTimestamp(macEvent, rlEvent->timeStampOnPress);
+    //printRLEvent(rlEvent);
+    //printMacEvent(macEvent);
     CGEventPost(kCGHIDEventTap, macEvent);
     CFRelease(src);
     CFRelease(macEvent);
@@ -148,7 +145,7 @@ void closeRunLoop(void* ctx)
     CFRunLoopStop(CFRunLoopGetCurrent());
 }
 
-int initRunLoop(MyReLay* myReLay) 
+int initRunLoop() 
 {
     printf("Setting upp run loop... ");
     CFRunLoopRef runLoop = CFRunLoopGetMain();
@@ -170,7 +167,7 @@ int initRunLoop(MyReLay* myReLay)
         K_CG_EVENT_TAP_OPTION_DEFAULT, // options; default, listen only
         EVENT_MASK, // eventsOfInterest; mouse, keyboard, etc
         myEventTapCallBack, // callback func called when a quartz event is triggered
-        myReLay // userInfo, I pass pointer to the runLoop to be able to close it from within the callback
+        NULL // userInfo, I pass pointer to the runLoop to be able to close it from within the callback
     );
     if (!eventTap) 
     {
@@ -217,14 +214,14 @@ int initRunLoop(MyReLay* myReLay)
     return 0;
 }
 
-void printMacEvent(CGEventRef* macEvent)
+void printMacEvent(CGEventRef event)
 {
     printf(">  macEvent {\n");
-    printf(">   code: %lld\n", CGEventGetIntegerValueField(*macEvent, kCGKeyboardEventKeycode));
-    printf(">   flagMask: %llu\n", CGEventGetFlags(*macEvent));
-    printf(">   timeStampOnPress: %llu\n", CGEventGetTimestamp(*macEvent));
-    printf(">   isModifier: %s\n", CGEventGetType(*macEvent) == kCGEventFlagsChanged ? "true" : "false");
-    printf(">   keyDown: %s\n", CGEventGetType(*macEvent) == kCGEventKeyDown ? "true" : "false");
+    printf(">   code: %lld\n", CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode));
+    printf(">   flagMask: %llu\n", CGEventGetFlags(event));
+    printf(">   timeStampOnPress: %llu\n", CGEventGetTimestamp(event));
+    printf(">   isModifier: %s\n", CGEventGetType(event) == kCGEventFlagsChanged ? "true" : "false");
+    printf(">   keyDown: %s\n", CGEventGetType(event) == kCGEventKeyDown ? "true" : "false");
     printf("> }\n");
 }
 
@@ -245,4 +242,163 @@ static inline void watchdog_ping_or_die(void)
         burst = 0;
     }
     last = now;
+}
+
+void setModFlags(ModKeys* modKey)
+{
+    *modKey = (ModKeys) {
+        .CAPS_LOCK_MASK     = kCGEventFlagMaskAlphaShift,
+        .SHIFT_MASK         = kCGEventFlagMaskShift,
+        .CONTROL_MASK       = kCGEventFlagMaskControl,
+        .ALTERNATE_MASK     = kCGEventFlagMaskAlternate,
+        .META_MASK          = kCGEventFlagMaskCommand,
+        .CAPS_LOCK_CODE     = 57,
+        .L_SHIFT_CODE       = 56,
+        .R_SHIFT_CODE       = 60,
+        .L_CONTROL_CODE     = 59,
+        .R_CONTROL_CODE     = 62,
+        .L_ALTERNATE_CODE   = 58,
+        .R_ALTERNATE_CODE   = 61,
+        .L_META_CODE        = 55,
+        .R_META_CODE        = 54,
+    };
+}
+
+//////////////////////////////// MY_RELAY
+// remaps
+
+void createRemapsArray(int layers)
+{
+    MY_RELAY.remaps = calloc(layers, sizeof(CFMutableDictionaryRef));
+    MY_RELAY.layerEntries = layers;
+    MY_RELAY.activeLayer = 0;
+}
+
+void createRemapTableForLayer(int layer, int capacity)
+{
+    CFMutableDictionaryRef* remaps = (CFMutableDictionaryRef*)MY_RELAY.remaps;
+    remaps[layer] = CFDictionaryCreateMutable(
+        kCFAllocatorDefault, 
+        capacity, // capacity - hint about how many key-value pairs will be in the dic. It may optimize various operations.
+        NULL, 
+        NULL
+    );
+}
+
+void addRemapTableEntry(int layer, int from, int toOnPress, int toOnHold)
+{
+    if (from == NO_VALUE) exit(NO_VALUE_FROM);
+
+    KeyInfo* keyInfo = malloc(sizeof(KeyInfo));
+    *keyInfo = (KeyInfo) {
+        .code = from,
+        .codeOnPress = toOnPress,
+        .codeOnHold = toOnHold
+    };
+
+    // key/value fields take raw pointers since i created the dic with their callback value as NULL.
+    // cast int into an integer of the size as an integer pointer (intptr_t), then and cast an int into a constant void pointer. This is effectively an address to invalid memory
+    // and as such, NEVER dereference
+    CFDictionaryAddValue(getRemapTable(), KEY(from), keyInfo); 
+}
+
+KeyInfo* getKeyInfo(int code)
+{
+    return (KeyInfo*) CFDictionaryGetValue(getRemapTable(), KEY(code));
+}
+
+static CFMutableDictionaryRef getRemapTable()
+{
+    CFMutableDictionaryRef remapTable = ((CFMutableDictionaryRef*) MY_RELAY.remaps)[MY_RELAY.activeLayer];
+    return remapTable;
+}
+
+// status
+void createStatusTable(int uniqueKeyCodeEntries)
+{
+    MY_RELAY.statusTable = malloc(sizeof(CFMutableDictionaryRef));
+    CFMutableDictionaryRef* statusTable = (CFMutableDictionaryRef*)MY_RELAY.statusTable;
+    *statusTable = CFDictionaryCreateMutable(
+        kCFAllocatorDefault, 
+        uniqueKeyCodeEntries, // capacity - hint about how many key-value pairs will be in the dic. It may optimize various operations.
+        NULL, 
+        NULL
+    );
+}
+
+void addStatusTableEntry(int from)
+{
+    if (from == NO_VALUE) exit(NO_VALUE_FROM);
+
+    KeyStatus* keyStatus = malloc(sizeof(KeyStatus));
+    *keyStatus = (KeyStatus) {
+        .code = NO_VALUE,
+        .keysDown = 0,
+        .keyDown = false
+    };
+
+    CFDictionaryAddValue(getStatusTable(), KEY(from), keyStatus); 
+}
+
+KeyStatus* getKeyStatus(int code)
+{
+    return (KeyStatus*) CFDictionaryGetValue(getStatusTable(), KEY(code));
+}
+
+static CFMutableDictionaryRef getStatusTable()
+{
+    CFMutableDictionaryRef statusTable = *(CFMutableDictionaryRef*) MY_RELAY.statusTable;
+    return statusTable;
+}
+
+// layer
+
+void changeToLayer(int layer)
+{
+    if (layer >= MY_RELAY.layerEntries) return;
+    
+    MY_RELAY.activeLayer = layer;
+}
+
+void setLayerEntries(int layerEntries)
+{
+    MY_RELAY.layerEntries = layerEntries;
+}
+
+int getLayerEntries()
+{
+    return MY_RELAY.layerEntries;
+}
+
+int getActiveLayer()
+{
+    return MY_RELAY.activeLayer;
+}
+
+void deleteMyReMap()
+{
+    CFMutableDictionaryRef* remaps = (CFMutableDictionaryRef*)MY_RELAY.remaps;
+    for (int i = 0; i < MY_RELAY.layerEntries; i++) {
+        if (!remaps[i]) continue;
+        int count = CFDictionaryGetCount(remaps[i]);
+        const void **layer = malloc(count * sizeof(void*)); // must be used for cf dic function
+        const void **remapTable = malloc(count * sizeof(void*));
+        CFDictionaryGetKeysAndValues(remaps[i], layer, remapTable);
+        for (int j = 0; j < count; j++) {
+            if (!remapTable[j]) continue;
+            free(remapTable[j]); 
+        }
+        free(layer);
+        free(remapTable);
+
+        CFDictionaryRemoveAllValues(remaps[i]);
+        CFRelease(remaps[i]);
+    }
+    free(MY_RELAY.remaps);
+    MY_RELAY.remaps = NULL;
+
+    CFMutableDictionaryRef statusTable = *(CFMutableDictionaryRef*)MY_RELAY.statusTable;
+    CFDictionaryRemoveAllValues(statusTable);
+    CFRelease(statusTable);
+    MY_RELAY.statusTable = NULL;
 }

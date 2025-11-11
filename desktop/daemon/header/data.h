@@ -5,14 +5,13 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define MAX_QUEUE_SIZE 100
-#define SIMULATED_EVENT 1
-#define ON_HOLD_TIMER_EVENT -2
-#define DONT_POST_DUE_TO_PENDING_EVENT 3
 #define NO_VALUE -1
+
+#define MAX_QUEUE_SIZE 100
 #define ERROR_READ_JSON 100
-#define ON_HOLD_THRESHOLD 150000 // 150 000 us => 150 ms 
+//#define ON_HOLD_THRESHOLD 150000 // 150 000 us => 150 ms 
 #define CF_ON_HOLD_THRESHOLD 0.150 // ummm olika tidsenheter, byt till samma vid tillfälle 0.150 s => 150 ms
+#define ACTIVE_LAYER "active layer"
 
 typedef enum OS {
     MACOS, LINUX, WINDOWS
@@ -22,27 +21,41 @@ typedef enum EventState {
     NORMAL, PENDING, SEND
 } EventState;
 
+typedef enum ErrorCode {
+    READ_LAYERS = 1,
+    READ_LAYER_NR = 2,
+    READ_KEYCODE = 3,
+    READ_FROM = 4,
+    READ_TO_ON_PRESS = 5,
+    READ_TO_ON_HOLD = 6,
+    READ_LAYER_ENTRIES = 8,
+    READ_KEY_CODE_ENTRIES = 9,
+    NO_VALUE_FROM = 10
+} ErrorCode;
+
+typedef enum UserDefinedData {
+    SIMULATED_EVENT = 1,
+    ON_HOLD_TIMER_EVENT = 2,
+    EVENT_STILL_PENDING = 3
+} UserDefinedData;
+
 /*
  * @param int code;
- * @param int perserved code (for non supported event)
  * @param uint64_t flagMask;
- * @param uint64_t preservedOSFlagMask;
+ * @param uint64_t preservedFlagMask;
  * @param uint64_t timeStampOnPress;
  * @param EventState state; // for holding logic
  * @param bool isModifier;
  * @param bool keyDown;
- * @param bool if code is supported by 
- * @param void* timer for handling timer in different OS's, cast to the correct timer type
+ * @param void* timer; // for handling timer in different OS's, cast to the correct timer type
  */
 typedef struct RLEvent {
     int code;
     uint64_t flagMask;
-    uint64_t preservedOSFlagMask;
     uint64_t timeStampOnPress;
     EventState state; // for holding logic
     bool isModifier;
     bool keyDown;
-    bool isSupported;
     void* timer; // for handling timer in different OS's, cast to the correct timer type
 } RLEvent;
 
@@ -60,10 +73,10 @@ typedef struct EventQueue {
 } EventQueue;
 
 /*
-int code;
-int codeOnPress;
-int codeOnHold;
-*/
+ * int code;
+ * int codeOnPress;
+ * int codeOnHold;
+ */
 typedef struct KeyInfo {
     int code;
     int codeOnPress;
@@ -80,47 +93,69 @@ int activeLayer; // to index into correct layer
     int keyEntries;
 */
 
-// only relevant for modifier keys
+/*
+    int code
+    int keysDown;
+    bool keyDown;
+*/
 typedef struct KeyStatus {
     int code;
-    int osCode;
-    bool keyDown;
     int keysDown;
-    int originalCodeDown;
+    bool keyDown;
 } KeyStatus;
 
+/*
+ * @if on MACOS
+ * @param void* remaps is an array of CFMutableDictionaryRef
+ * @param void* statusTable is a CFMutableDictionaryRef
+ * @param int activeLayer initially set from initRemapTable
+ * @param int layerEntries set from initRemapTable
+ */
 typedef struct MyReLay {
-    KeyStatus* statusTable;
-    EventQueue eventQueue;
+    void* remaps;
+    void* statusTable;
     int activeLayer;
+    int layerEntries;
 } MyReLay;
 
-int* osToRL; // convertion tables
-int* rlToOS; //
-int osKeyEntries;
-int rlKeyEntries;
-int layerEntries;
-KeyInfo** remapTable;
 
-/*
- * @param int code from which to retrieve the on press code
- * @param int current active layer
- * @returns the on press code if it exists, else returns the regular code 
- */
-int getCodeOnPress(int code, int activeLayer);
-
-/*
- * @param int code from which to retrieve the on hold code
- * @param int current active layer
- * @returns the on hold code if it exists, else returns the regular code 
- */
-int getCodeOnHold(int code, int activeLayer);
-
-/*
- * @brief if possible change to new layer, else stay on current layer
- * @param int change to this layer
- * @param int* pointer to the active layer variable within MyReLay struct
- */
-void changeToLayer(int layer, int* activeLayer);
+typedef struct ModKeys { // hm better way??
+    // masks
+    uint64_t CAPS_LOCK_MASK;
+    uint64_t SHIFT_MASK;
+    uint64_t CONTROL_MASK;
+    uint64_t ALTERNATE_MASK;
+    uint64_t META_MASK;
+    uint64_t L_SHIFT_MASK;
+    uint64_t R_SHIFT_MASK;
+    uint64_t L_CONTROL_MASK;
+    uint64_t R_CONTROL_MASK;
+    uint64_t L_ALTERNATE_MASK;
+    uint64_t R_ALTERNATE_MASK;
+    uint64_t L_META_MASK;
+    uint64_t R_META_MASK;
+    // mac specific masks ig?
+    uint64_t NUMERIC_PAD_MASK;
+    uint64_t HELP_MASK;
+    uint64_t SECONDARY_FN_MASK;
+    // codes
+    uint64_t CAPS_LOCK_CODE;
+    uint64_t SHIFT_CODE;
+    uint64_t CONTROL_CODE;
+    uint64_t ALTERNATE_CODE;
+    uint64_t META_CODE;
+    uint64_t L_SHIFT_CODE;
+    uint64_t R_SHIFT_CODE;
+    uint64_t L_CONTROL_CODE;
+    uint64_t R_CONTROL_CODE;
+    uint64_t L_ALTERNATE_CODE;
+    uint64_t R_ALTERNATE_CODE;
+    uint64_t L_META_CODE;
+    uint64_t R_META_CODE;
+    // mac specific masks ig?
+    uint64_t NUMERIC_PAD_CODE;
+    uint64_t HELP_CODE;
+    uint64_t SECONDARY_FN_CODE;
+} ModKeys;
 
 #endif // _DATA_

@@ -1,10 +1,13 @@
 #include "./../header/eventQueue.h"
 
+/* @attention eventQueue.c */
+static EventQueue* EVENT_QUEUE;
+
 // implemented as a ring buffer
 
-RLEvent* getEvent(EventQueue* eventQueue, QueuePosition pos)
+RLEvent* getEvent(QueuePosition pos)
 {
-    if (!eventQueue->isFull && eventQueue->head == eventQueue->tail)
+    if (!EVENT_QUEUE->isFull && EVENT_QUEUE->head == EVENT_QUEUE->tail)
     {
         //printf("    queue empty\n");
         return NULL;
@@ -12,70 +15,82 @@ RLEvent* getEvent(EventQueue* eventQueue, QueuePosition pos)
     
     if (pos == HEAD)
     {
-        return eventQueue->buffer[eventQueue->head];
+        return EVENT_QUEUE->buffer[EVENT_QUEUE->head];
     }
-    int tail = (eventQueue->tail - 1 + MAX_QUEUE_SIZE) % MAX_QUEUE_SIZE;
-    return eventQueue->buffer[tail];   
+    int tail = (EVENT_QUEUE->tail - 1 + MAX_QUEUE_SIZE) % MAX_QUEUE_SIZE;
+    return EVENT_QUEUE->buffer[tail];   
 }
 
-int enqueue(RLEvent* event, EventQueue* eventQueue)
+int enqueue(RLEvent* event)
 {
-    if (eventQueue->isFull)
+    if (EVENT_QUEUE->isFull)
     {
         printf("    uuuuh this should not happen but event queue is full somehow.... ig exit program for debugging...\n");
         exit(1);
     }
-    eventQueue->buffer[eventQueue->tail] = event; 
-    eventQueue->tail = (eventQueue->tail + 1) % MAX_QUEUE_SIZE;
+    EVENT_QUEUE->buffer[EVENT_QUEUE->tail] = event; 
+    EVENT_QUEUE->tail = (EVENT_QUEUE->tail + 1) % MAX_QUEUE_SIZE;
     
-    eventQueue->isFull = eventQueue->tail == eventQueue->head;
+    EVENT_QUEUE->isFull = EVENT_QUEUE->tail == EVENT_QUEUE->head;
 
     // TODO implement double press support
     return 0;
 
 }
 
-void enqueueSqueezeToFront(RLEvent* event, EventQueue* eventQueue)
+void enqueueSqueezeToFront(RLEvent* event)
 {
-    if (eventQueue->isFull)
+    if (EVENT_QUEUE->isFull)
     {
         printf("    uuuuh this should not happen but event queue is full somehow.... could not sqeeze in front\nig exit program for debugging...\n");
         exit(1);
     }
-    eventQueue->head = (eventQueue->head - 1 + MAX_QUEUE_SIZE) % MAX_QUEUE_SIZE;
-    eventQueue->buffer[eventQueue->head] = event;
+    EVENT_QUEUE->head = (EVENT_QUEUE->head - 1 + MAX_QUEUE_SIZE) % MAX_QUEUE_SIZE;
+    EVENT_QUEUE->buffer[EVENT_QUEUE->head] = event;
 
-    eventQueue->isFull = eventQueue->head == eventQueue->tail;
+    EVENT_QUEUE->isFull = EVENT_QUEUE->head == EVENT_QUEUE->tail;
 }
 
-RLEvent* dequeue(EventQueue* eventQueue)
+RLEvent* dequeue()
 {
-    bool isEmpty = !eventQueue->isFull && eventQueue->head == eventQueue->tail;
+    bool isEmpty = !EVENT_QUEUE->isFull && EVENT_QUEUE->head == EVENT_QUEUE->tail;
     if (isEmpty)
     {
         //printf("    Queue is empty!\n");
         return NULL;
     }
 
-    RLEvent* headEvent = eventQueue->buffer[eventQueue->head];
-    eventQueue->buffer[eventQueue->head] = NULL;
-    eventQueue->isFull = false;
-    eventQueue->head = (eventQueue->head + 1) % MAX_QUEUE_SIZE;
+    RLEvent* headEvent = EVENT_QUEUE->buffer[EVENT_QUEUE->head];
+    EVENT_QUEUE->buffer[EVENT_QUEUE->head] = NULL;
+    EVENT_QUEUE->isFull = false;
+    EVENT_QUEUE->head = (EVENT_QUEUE->head + 1) % MAX_QUEUE_SIZE;
     // TODO implement double press support
     return headEvent;
 }
 
-RLEvent* dequeueFromTail(EventQueue* eventQueue)
+RLEvent* dequeueFromTail()
 {
-    bool isEmpty = !eventQueue->isFull && eventQueue->head == eventQueue->tail;
+    bool isEmpty = !EVENT_QUEUE->isFull && EVENT_QUEUE->head == EVENT_QUEUE->tail;
     if (isEmpty)
     {
         //printf("    Queue is empty!\n");
         return NULL;
     }
-    eventQueue->tail = (eventQueue->tail - 1 + MAX_QUEUE_SIZE) % MAX_QUEUE_SIZE;
-    RLEvent* tailEvent = eventQueue->buffer[eventQueue->tail];
-    eventQueue->buffer[eventQueue->tail] = NULL;
-    eventQueue->isFull = false;
+    EVENT_QUEUE->tail = (EVENT_QUEUE->tail - 1 + MAX_QUEUE_SIZE) % MAX_QUEUE_SIZE;
+    RLEvent* tailEvent = EVENT_QUEUE->buffer[EVENT_QUEUE->tail];
+    EVENT_QUEUE->buffer[EVENT_QUEUE->tail] = NULL;
+    EVENT_QUEUE->isFull = false;
     return tailEvent;
+}
+
+void createEventQueue() 
+{
+    EVENT_QUEUE = malloc(sizeof(EventQueue));
+    for (int i = 0; i < MAX_QUEUE_SIZE; i++)
+    {
+        EVENT_QUEUE->buffer[i] = NULL;
+    }
+    EVENT_QUEUE->head = 0;
+    EVENT_QUEUE->tail = 0;
+    EVENT_QUEUE->isFull = false;
 }

@@ -1,148 +1,248 @@
 #include "../header/relayEventHandler.h"
+#include <stdint.h>
 
+/* @attention relayEventHandler.c */
+static ModKeys MOD_KEYS;
 static uint64_t activeEventFlags = 0;
+static int ESCAPE = 53;
 
-int start(MyReLay* myReLay)
+/* if the event flag is not 0 then the mod flag is on, must be preceded by setCorrespondingModifierFlag */
+static bool isModDown(uint64_t flagMask);
+
+int start()
 {
-    initRunLoop(myReLay);
+    setModFlags(&MOD_KEYS); // uh naming is inconsistent, but this struct has mod key members and they are set by the os specific file in order to access their respective mod flags
+    initRunLoop();
     return 0;
 }
 
 // defined in interfaces.h
-void eventCallBack(MyReLay* myReLay, RLEvent* incomingEvent)
+void eventCallBack(RLEvent* incomingEvent)
 {   
-    EventQueue* eventQueue = &myReLay->eventQueue;
-    // printRLEvent(incomingEvent);
-    if (activeEventFlags & RL_SHIFT_MASK && incomingEvent->code == RL_ESCAPE) 
+    const int incomingEventCode = incomingEvent->code;
+    
+    if (incomingEventCode == ESCAPE) 
     {
-        free(incomingEvent);
-        while ((incomingEvent = dequeue(eventQueue))) 
-        {
-            free(incomingEvent);
-        }
-        closeRunLoop(NULL); 
-        return;
-    }
+        bool shiftDown = incomingEvent->flagMask & MOD_KEYS.SHIFT_MASK;
 
+        if(shiftDown)
+        {
+            printf("runloop closes from relayEventHandler\n");
+            free(incomingEvent);
+            while ((incomingEvent = dequeue())) 
+            {
+                free(incomingEvent);
+            }
+            closeRunLoop(NULL); 
+            return;
+        }
+    }
+    
     RLEvent* headEventPreview = NULL;
     RLEvent* outgoingEvent = NULL;
-    uint64_t modKeyFlag;
-    bool isModKey;
+    int code = NO_VALUE;
+    KeyInfo* keyInfo = NULL;
 
-    if (incomingEvent->code == NO_VALUE)
+    if (incomingEventCode == NO_VALUE) // from timer (e.g. incoming event is not a "valid" rl event)
     {
-        headEventPreview = getEvent(eventQueue, HEAD);
-        goto timerTriggeredEvent;
+        free(incomingEvent);
+
+        headEventPreview = getEvent(HEAD);
+        code = headEventPreview->code;
+        keyInfo = getKeyInfo(code);
+        
+        headEventPreview->code = keyInfo->codeOnHold;
+        headEventPreview->state = SEND;
+        goto checkSetEvent;
     }
 
-    enqueue(incomingEvent, eventQueue);
-    headEventPreview = getEvent(eventQueue, HEAD);
+    enqueue(incomingEvent);
+    headEventPreview = getEvent(HEAD);
 
-    while (headEventPreview)
+    if (!getKeyInfo(incomingEventCode)) // if incoming event does not have any alternation, just skip to post
     {
-        if (!headEventPreview->isSupported)
-        {
-            printf("  key code (%d) not supported!!!\n", headEventPreview->code);
-            goto unsupportedKeyCode;
-        }
-
-        if (incomingEvent->keyDown && getCodeOnHold(incomingEvent->code, myReLay->activeLayer) != NO_VALUE)
+        incomingEvent->state = SEND;
+        goto postEvent;
+    } 
+    else 
+    {
+        if (incomingEvent->keyDown && getKeyInfo(incomingEventCode)->codeOnHold != NO_VALUE)
         {
             incomingEvent->state = PENDING;
             startOnHoldTimer(&incomingEvent->timer);
         }
-        else
+        else 
         {
             incomingEvent->state = SEND;
         }
+    }
 
-        int headEventCodeOnPress = getCodeOnPress(headEventPreview->code, myReLay->activeLayer);
-        if (headEventPreview->state != PENDING) 
-        {
-            if (headEventCodeOnPress != NO_VALUE)
+    while (headEventPreview)
+    {
+        code = headEventPreview->code;
+        KeyInfo* keyInfo = getKeyInfo(code);
+
+        if (!keyInfo) goto postEvent; // no remap table entry available
+
+        keyInfo = getKeyInfo(code);
+        const int codeOnPress = keyInfo->codeOnPress;
+        
+        if (headEventPreview->state == PENDING) 
+        {        
+            if (code == incomingEventCode && !incomingEvent->keyDown) // i.e. if it is a key down/key up pair (does not work if you would press on multiple native mod key of the same key at least)
             {
-                headEventPreview->code = headEventCodeOnPress;
+                if (codeOnPress != NO_VALUE)
+                {
+                    headEventPreview->code = codeOnPress;
+                }
+                headEventPreview->state = SEND;
+
+                if (headEventPreview->timer) 
+                {
+                    invalidateTimer(&headEventPreview->timer); // should always exist a timer on this event tho
+                }
+                else 
+                {
+                    printf("                          timer did not exist o.o???\n");
+                }
             }
-            goto notPending;
-        }
-
-
-        if (headEventPreview->code == incomingEvent->code && !incomingEvent->keyDown) // i.e. if it is a key down/key up pair
-        {
-            printf("  keyDown/keyUp pair\n");
-            if (headEventCodeOnPress != NO_VALUE)
+            else 
             {
-                headEventPreview->code = headEventCodeOnPress;
+                goto postEvent;
+            }
+        }
+        else
+        {
+            if (codeOnPress != NO_VALUE)
+            {
+                headEventPreview->state = codeOnPress;
             }
             headEventPreview->state = SEND;
-            invalidateTimer(&headEventPreview->timer);
+            getKeyStatus(code)->keyDown = true;
+            getKeyStatus(code)->keysDown++;
         }
 
-        goto notPending;
-        timerTriggeredEvent:
-        
-        myReLay->statusTable[headEventPreview->code].keyDown = true;
-        headEventPreview->code = getCodeOnHold(headEventPreview->code, myReLay->activeLayer);
-        headEventPreview->state = SEND;
+        /* code is from this point the correct one for head event and will NOT change */
+        checkSetEvent:
 
-        notPending:
-
-        if (!headEventPreview->keyDown)
+        if (!headEventPreview->keyDown && keyInfo->codeOnHold != NO_VALUE)
         {
-            if (myReLay->statusTable[headEventPreview->code].keyDown) // if true, then prev corresponding key down event got turned into a hold event
+            if (!keyInfo) goto postEvent;
+            if (getKeyStatus(code)->keyDown)
             {
-                myReLay->statusTable[headEventPreview->code].keyDown = false;
-                if (headEventCodeOnPress != NO_VALUE) headEventPreview->code = headEventCodeOnPress;
-                if (getCodeOnHold(headEventPreview->code, myReLay->activeLayer) != NO_VALUE) headEventPreview->code = getCodeOnHold(headEventPreview->code, myReLay->activeLayer);
+                headEventPreview->code = keyInfo->codeOnHold;
+                getKeyStatus(code)->keyDown = false;
+                getKeyStatus(code)->keysDown--;
             }
         }
 
-        unsupportedKeyCode:
-        
-        isModKey = setCorrespondingModifierFlag(headEventPreview->code, &modKeyFlag); //modKeyFlag is also set to corresponding flag if mod key
-        if (isModKey && headEventPreview->state == SEND)
+        uint64_t flagMask = 0;
+        setCorrespondingModifierFlag(headEventPreview->code, &flagMask);
+        printf("code: %d, modflag: %llu\n", headEventPreview->code, flagMask);
+        if (flagMask && headEventPreview->state == SEND)
         {
-
-            bool modKeyDown;
-            if (headEventPreview->isModifier)
-            {
-                modKeyDown = ((headEventPreview->flagMask & modKeyFlag) != 0); // keyDown for native modifiers
-                headEventPreview->keyDown = modKeyDown;
-            } 
-            else
-            { 
-                modKeyDown = headEventPreview->keyDown;
-            }
-            headEventPreview->flagMask = modKeyFlag;
+            headEventPreview->isModifier = true;
             
-            if (modKeyDown)
-            { 
-                activeEventFlags |= headEventPreview->flagMask;
-            }
-            else
+            if (headEventPreview->keyDown) // add mod flag
             {
-                activeEventFlags ^= headEventPreview->flagMask;
+                activeEventFlags |= flagMask;
             }
-        }            
-        printf("current active flags: %llu\n", activeEventFlags);
+            else // remove mod flag
+            {
+                activeEventFlags &= ~flagMask;
+            }
+        } 
+        
+        postEvent:
+        printRLEvent(headEventPreview);
 
-        //printRLEvent(headEventPreview)
-
-        // POST EVENT
         if (headEventPreview->state == PENDING) break;
-        outgoingEvent = dequeue(eventQueue);
-        outgoingEvent->flagMask = activeEventFlags;
+        outgoingEvent = dequeue();
+        outgoingEvent->flagMask |= activeEventFlags;
         postEvent(outgoingEvent, SIMULATED_EVENT);
         free(outgoingEvent);
-        headEventPreview = getEvent(eventQueue, HEAD);
+        headEventPreview = getEvent(HEAD);
     }
 }
 
-uint64_t getTimeStamp()
+void setCorrespondingModifierFlag(int code, uint64_t* flagMask)
 {
-    struct timeval timeStamp;
-    gettimeofday(&timeStamp, NULL);
-    return (uint64_t)timeStamp.tv_sec * 1000000ULL + (uint64_t)timeStamp.tv_usec; // return value in micro seconds
+    *flagMask = 0;
+
+    if (code == MOD_KEYS.L_SHIFT_CODE)
+    {
+        *flagMask = MOD_KEYS.SHIFT_MASK | MOD_KEYS.L_SHIFT_MASK;
+    }
+    else if (code == MOD_KEYS.R_SHIFT_CODE) 
+    {
+        *flagMask = MOD_KEYS.SHIFT_MASK | MOD_KEYS.R_SHIFT_MASK;
+    }
+    else if (code == MOD_KEYS.L_CONTROL_CODE) 
+    {
+        *flagMask = MOD_KEYS.CONTROL_MASK | MOD_KEYS.L_CONTROL_MASK;
+    }
+    else if (code == MOD_KEYS.R_CONTROL_CODE) 
+    {
+        *flagMask = MOD_KEYS.CONTROL_MASK | MOD_KEYS.R_CONTROL_MASK;
+    }
+    else if (code == MOD_KEYS.L_META_CODE) 
+    {
+        *flagMask = MOD_KEYS.META_MASK | MOD_KEYS.L_META_MASK;
+    }
+    else if (code == MOD_KEYS.R_META_CODE) 
+    {
+        *flagMask = MOD_KEYS.META_MASK | MOD_KEYS.R_META_MASK;
+    }
+    else if (code == MOD_KEYS.L_ALTERNATE_CODE) 
+    {
+        *flagMask = MOD_KEYS.ALTERNATE_MASK | MOD_KEYS.L_ALTERNATE_MASK;
+    }
+    else if (code == MOD_KEYS.R_ALTERNATE_CODE) 
+    {
+        *flagMask = MOD_KEYS.ALTERNATE_MASK | MOD_KEYS.R_ALTERNATE_MASK;
+    }
+    else if (code == MOD_KEYS.CAPS_LOCK_CODE) 
+    {
+        *flagMask = MOD_KEYS.CAPS_LOCK_MASK;
+    }
+}
+
+void initModFlags()
+{
+    MOD_KEYS = (ModKeys) {
+        .CAPS_LOCK_MASK     = 0,
+        .SHIFT_MASK         = 0,
+        .CONTROL_MASK       = 0,
+        .ALTERNATE_MASK     = 0,
+        .META_MASK          = 0,
+        .L_SHIFT_MASK       = 0,
+        .R_SHIFT_MASK       = 0,
+        .L_CONTROL_MASK     = 0,
+        .R_CONTROL_MASK     = 0,
+        .L_ALTERNATE_MASK   = 0,
+        .R_ALTERNATE_MASK   = 0,
+        .L_META_MASK        = 0,
+        .R_META_MASK        = 0,
+        .NUMERIC_PAD_MASK   = 0,
+        .HELP_MASK          = 0,
+        .SECONDARY_FN_MASK  = 0,
+        .CAPS_LOCK_CODE     = 0,
+        .SHIFT_CODE         = 0,
+        .CONTROL_CODE       = 0,
+        .ALTERNATE_CODE     = 0,
+        .META_CODE          = 0,
+        .L_SHIFT_CODE       = 0,
+        .R_SHIFT_CODE       = 0,
+        .L_CONTROL_CODE     = 0,
+        .R_CONTROL_CODE     = 0,
+        .L_ALTERNATE_CODE   = 0,
+        .R_ALTERNATE_CODE   = 0,
+        .L_META_CODE        = 0,
+        .R_META_CODE        = 0,
+        .NUMERIC_PAD_CODE   = 0,
+        .HELP_CODE          = 0,
+        .SECONDARY_FN_CODE  = 0
+    };
 }
 
 void printRLEvent(RLEvent* rlEvent)
@@ -153,8 +253,18 @@ void printRLEvent(RLEvent* rlEvent)
     printf(">   timeStampOnPress: %llu\n", rlEvent->timeStampOnPress);
     char* state = "[state]";
     if (rlEvent->state == NORMAL) { state = "NORMAL"; }
-    printf(">   state: %s\n", state);
+    printf(">   state (SEND?): %s\n", rlEvent->state == SEND ? "true" : "false");
     printf(">   isModifier: %s\n", rlEvent->isModifier ? "true" : "false");
     printf(">   keyDown: %s\n", rlEvent->keyDown ? "true" : "false");
     printf("> }\n");
+}
+
+void setEscapeCode(int code)
+{
+    ESCAPE = code;
+}
+
+static bool isModDown(uint64_t flagMask)
+{
+    return flagMask != 0 ? true : false;
 }

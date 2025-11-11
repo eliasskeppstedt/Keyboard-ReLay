@@ -1,0 +1,85 @@
+{
+    "layerEntries": 1,
+    "uniqueKeyCodeEntries": 7,
+    "layers": [
+        {
+            "layerName": "Main",
+            "layerNr": 0,
+            "keyCodeEntries": 7,
+            "keyCode": [
+                {
+                    "from": 0,
+                    "toOnPress": -1,
+                    "toOnHold": 56,
+                    "fromS": "A",
+                    "toOnPressS": "",
+                    "toOnHoldS": "Left Shift"
+                },
+                {
+                    "from": 2,
+                    "toOnPress": -1,
+                    "toOnHold": 59,
+                    "fromS": "D",
+                    "toOnPressS": "",
+                    "toOnHoldS": "Left Ctrl"
+                },
+                {
+                    "from": 3,
+                    "toOnPress": -1,
+                    "toOnHold": 58,
+                    "fromS": "F",
+                    "toOnPressS": "",
+                    "toOnHoldS": "Left Opt"
+                },
+                {
+                    "from": 5,
+                    "toOnPress": -1,
+                    "toOnHold": 55,
+                    "fromS": "G",
+                    "toOnPressS": "",
+                    "toOnHoldS": "Left Cmd"
+                },
+                {
+                    "from": 4,
+                    "toOnPress": -1,
+                    "toOnHold": 54,
+                    "fromS": "H",
+                    "toOnPressS": "",
+                    "toOnHoldS": "Right Cmd"
+                },
+                {
+                    "from": 26,
+                    "toOnPress": -1,
+                    "toOnHold": 61,
+                    "fromS": "J",
+                    "toOnPressS": "",
+                    "toOnHoldS": "Right Opt"
+                },
+                {
+                    "from": 41,
+                    "toOnPress": -1,
+                    "toOnHold": 60,
+                    "fromS": "Ö",
+                    "toOnPressS": "",
+                    "toOnHoldS": "Right Shift"
+                },
+                {
+                    "from": 18,
+                    "toOnPress": 19,
+                    "toOnHold": -1,
+                    "fromS": "Digit1",
+                    "toOnPressS": "Digit2",
+                    "toOnHoldS": ""
+                },
+                {
+                    "from": 19,
+                    "toOnPress": 18,
+                    "toOnHold": 20,
+                    "fromS": "Digit2",
+                    "toOnPressS": "Digit1",
+                    "toOnHoldS": "Digit3"
+                }
+            ]
+        }
+    ]
+}
