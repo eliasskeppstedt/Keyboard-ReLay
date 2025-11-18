@@ -1,295 +1,557 @@
+/* --------------------------------------------------
+   Root variables
+-------------------------------------------------- */
 :root {
-    --accent: #cf3b33;
+    --scale: min(2.4vw, 28px);
+    --rowH: calc(var(--scale) * 1.6);
+    --gap: calc(var(--scale) * 0.35);
+    --round: calc(var(--scale) * 0.33);
+    --cols: 30;
+
+    --panel-pad: 20px;
+
+    --page-bg: #111;
+    --panel-bg: #181818;
+    --panel-box-bg: #2f2f2f;
+    --panel-border: #2A2A28;
+
+    --key-bg: #2A2927;
+    --key-edge: #3B3A36;
+    --key-text: #EDEAE3;
+
+    --pill-bg: #20201E;
+    --pill-border: #34332F;
+    --search-bg: #1A1A18;
+
+    --accent: #9f9cff;
+
+    --font: "Space Mono", -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+}
+
+/* --------------------------------------------------
+   Page layout
+-------------------------------------------------- */
+* {
+    box-sizing: border-box;
 }
 
 body {
-    background: #fafafa;
-    font-family: "Segoe UI", sans-serif;
-    color: var(--accent);
-    text-align: center;
-    margin: 2rem;
+    margin: 0;
+    background: var(--page-bg);
+    color: var(--key-text);
+    font-family: var(--font);
 }
 
-h1 {
-    font-size: 2.4rem;
-    font-weight: 800;
-    margin-bottom: 2rem;
-}
-
-/* Side-by-side layout taking up 50% each */
-#main-container {
+.app {
+    width: 100%;
+    padding: 30px;
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    flex-wrap: nowrap;
+    justify-content: center;
+}
+
+.panel-bg-box {
     width: 100%;
     max-width: 1800px;
-    margin: 0 auto;
-}
-
-/* LEFT SIDE */
-#remap-section {
-    width: 50%;
+    background: var(--panel-box-bg);
+    border-radius: 28px;
+    border: 1px solid var(--panel-border);
+    padding: var(--panel-pad);
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
+    gap: 32px;
 }
 
-/* Remap box */
-.focus-area {
-    width: 90%;
-    min-height: 170px;
-    border: 2px solid var(--accent);
-    border-radius: 12px;
-    background: #fff;
+.layout {
+    display: flex;
+    width: 100%;
+    gap: 32px;
+    min-width: 0;
+}
+
+/* --------------------------------------------------
+   Keyboard container
+-------------------------------------------------- */
+.kb-wrap {
+    flex: 1 1 auto;
+    background: var(--panel-bg);
+    border: 2px solid var(--panel-border);
+    border-radius: 20px;
+    padding: var(--panel-pad);
+    display: flex;
+}
+
+/* Keyboard grid */
+.kb {
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(var(--cols), 1fr);
+    grid-template-rows:
+        var(--rowH) var(--rowH) var(--rowH) var(--rowH) var(--rowH)
+        calc(var(--rowH)/2) calc(var(--rowH)/2);
+    gap: var(--gap);
+    background: var(--panel-bg);
+    border-radius: 16px;
+}
+
+/* Keys */
+.key {
+    grid-column: var(--c) / span var(--w);
+    grid-row: var(--r) / span var(--h);
+    background: var(--key-bg);
+    border: 1px solid var(--key-edge);
+    border-radius: var(--round);
+    color: var(--key-text);
+    font-size: calc(var(--scale) * 0.48);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px 28px;
 }
 
-.key-box {
-    width: 240px;
-    height: 130px;
-    border: 2px solid var(--accent);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 28px;
-    cursor: pointer;
-    user-select: none;
-    transition: background 0.15s ease;
+.key.active {
+    position: relative;
+    border: 2px solid #fff !important;
+    box-shadow: 0 0 8px #fff;
 }
 
-.key-box:hover {
-    background: #fdecec;
-}
-
-.key-box.waiting {
-    outline: 3px dashed var(--accent);
-    outline-offset: -6px;
-}
-
-.key-box * {
+.key.active::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: var(--round);
+    background: #ffffff;
+    opacity: 0.32;
+    filter: blur(10px);
+    z-index: -1;
     pointer-events: none;
 }
 
-.placeholder,
-.label {
-    text-align: center;
-    font-weight: 800;
-    line-height: 1.15;
-    display: block;
+.key::after {
+    content: attr(data-l);
 }
 
-.arrow {
-    font-size: 2rem;
-    font-weight: 700;
-}
-
-#instruction {
-    margin: 0.9rem 0 0;
-    font-style: italic;
-    color: var(--accent);
-}
-
-#button-section {
-    margin-top: 18px;
+/* --------------------------------------------------
+   Key Info Panel
+-------------------------------------------------- */
+.key-info {
+    flex: 0 1 340px;
+    min-width: 260px;
+    background: var(--panel-bg);
+    border-radius: 20px;
+    border: 1px solid var(--panel-border);
+    padding: var(--panel-pad);
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    overflow: visible;
+}
+
+/* Pills + Inputs */
+.pill-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pill {
+    background: var(--pill-bg);
+    border: 1px solid var(--pill-border);
+    padding: 8px 10px;
+    border-radius: 8px;
+    color: var(--key-text);
+}
+
+.pill-input {
+    cursor: pointer;
+    width: 180px;
+    text-align: left;
+    background: var(--pill-bg);
+    border: 1px solid var(--pill-border);
+    padding: 8px 10px;
+    border-radius: 8px;
+    color: var(--key-text);
+    font-family: var(--font);
+}
+
+.real-input {
+    margin-top: 5px;
+    width: 100%;
+    background: var(--pill-bg);
+    border: 1px solid var(--pill-border);
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 15px;
+    color: var(--key-text);
+    outline: none;
+    caret-color: white;
+    transition: 0.15s;
+}
+
+.real-input:focus {
+    border: 1px solid var(--accent);
+    box-shadow: 0 0 0 4px rgba(159,156,255,0.25);
+    background: #111;
+}
+
+.delete-btn {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0.4;
+    color: var(--key-text);
+}
+.delete-btn:hover { opacity: 1; }
+
+.save-btn {
+    width: 100%;
+    padding: 12px 0;
+    border-radius: 10px;
+    border: 1px solid var(--pill-border);
+    background: var(--pill-bg);
+    color: #aaa;
+    font-size: 16px;
+    transition: 0.15s;
+}
+
+.save-btn.enabled {
+    background: rgb(253, 46, 46);
+    color: black;
+    cursor: pointer;
+}
+
+.save-btn.disabled {
+    opacity: 0.4;
+}
+
+/* --------------------------------------------------
+   Key Picker Popup
+-------------------------------------------------- */
+.key-picker {
+    position: absolute;
+    top: 0;
+    right: 100%;
+    margin-right: 16px;
+    width: 100%;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 20px;
+    padding: var(--panel-pad);
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+    z-index: 5000;
+}
+
+.key-picker.open { display: flex; }
+
+.key-picker-search {
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    background: var(--search-bg);
+    border: 1px solid var(--pill-border);
+    color: var(--key-text);
+    font-family: var(--font);
+}
+
+.key-picker-list {
+    max-height: 420px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
     gap: 18px;
 }
 
-button {
-    min-width: 180px;
-    padding: 0.9rem 1.4rem;
-    font-size: 1rem;
-    border: none;
-    border-radius: 10px;
-    background: #d9d9d9;
-    color: #9a9a9a;
-    cursor: not-allowed;
-    transition: background 0.2s, color 0.2s, transform 0.02s;
+.key-picker-category {
+    font-size: 11px;
+    opacity: 0.6;
+    text-transform: uppercase;
+    padding-bottom: 2px;
 }
 
-button.active {
-    background: var(--accent);
-    color: #fff;
-    cursor: pointer;
-}
-
-button.active:active {
-    transform: translateY(1px);
-}
-
-#download-section {
-    margin-top: 1.5rem;
-}
-
-#download-btn {
-    background: var(--accent);
-    color: #fff;
-    cursor: pointer;
-    min-width: 380px;
-    padding: 1rem 1.6rem;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 1.05rem;
-    transition: background 0.2s ease;
-}
-
-#download-btn:hover {
-    background: #b42e29;
-}
-
-/* RIGHT SIDE */
-#remap-list {
-    width: 50%;
-    text-align: center;
+.key-picker-grid {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 4px 0 6px 0;
+}
+
+.key-picker-tile {
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
+    padding: 6px 14px;
+    border-radius: 8px;
+    background: var(--pill-bg);
+    border: 1px solid var(--pill-border);
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+    user-select: none;
+    white-space: nowrap;
+    min-width: 48px;
+    min-height: 48px;
+    font-family: var(--font);
 }
 
-#remap-list h2 {
-    margin: 4px 0 14px;
-    font-size: 1.7rem;
-    font-weight: 800;
+.key-picker-tile:hover {
+    background: var(--accent);
+    color: black;
 }
 
-#remap-list ul {
-    list-style: none;
-    padding: 0;
-    margin: 0 auto;
-    width: 80%;
-}
-
-#remap-list li {
-    border: 2px solid var(--accent);
-    border-radius: 12px;
-    padding: 14px 18px;
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+/* --------------------------------------------------
+   Legend Box
+-------------------------------------------------- */
+.legend-box {
+    background: var(--panel-bg);
+    border: 1px solid var(--pill-border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 20px;
     width: 100%;
 }
 
-.mapping-main {
-    font-size: 1.05rem;
-    font-weight: 700;
-}
-
-.mapping-type {
-    font-size: 0.95rem;
-    color: #5e5e5e;
-}
-
-.remove-btn {
-    background: none;
-    border: none;
-    color: var(--accent);
-    font-weight: 900;
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 6px 8px;
-}
-
-/* Responsive fallback */
-@media (max-width: 1100px) {
-    #main-container {
-        flex-direction: column;
-        align-items: center;
-        gap: 3rem;
-    }
-
-    #remap-section,
-    #remap-list {
-        width: 90%;
-    }
-}
-
-/* ---- In-site modal ---- */
-.modal.hidden {
-    display: none;
-}
-
-.modal {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-}
-
-.modal-backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(2px);
-}
-
-.modal-window {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    min-width: 320px;
-    max-width: 90vw;
-    background: #fff;
-    color: #333;
-    border-radius: 12px;
-    padding: 24px 26px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
-    border: 2px solid var(--accent);
-    text-align: center;
-    /* Center text and buttons */
-}
-
-.modal-window p {
-    margin: 0 0 18px;
-    color: #333;
-    font-size: 1.05rem;
-    line-height: 1.4;
-}
-
-.modal-actions {
+/* 3-column layout */
+.legend-columns {
     display: flex;
-    justify-content: center;
-    /* Center when one button, even layout when two */
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 28px;
+    width: 100%;
+}
+
+/* Each column */
+.legend-column {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+/* Legend column */
+.legend-column-legend {
+    flex: 1.2 1 0;
+}
+
+/* Settings column */
+.legend-column-settings {
+    flex: 1 1 0;
+}
+
+/* Remap buttons column */
+.legend-column-remap {
+    flex: 0.9 1 0;
+}
+
+.legend-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.legend-row {
+    display: flex;
+    align-items: center;
     gap: 12px;
 }
 
-.modal-actions .btn {
-    padding: 0.7rem 1.3rem;
-    border-radius: 10px;
-    border: none;
-    font-weight: 700;
-    font-size: 1rem;
+.legend-color {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 1px solid var(--panel-border);
+}
+
+.legend-text {
+    font-size: 15px;
+}
+
+/* Actual key state color reference */
+.mod-none  { background: #2a2a2a !important; }
+.mod-press { background: #2d7d2d !important; }
+.mod-hold  { background: #8a6e33 !important; }
+.mod-both  { background: #69408f !important; }
+
+#baseKeyValue {
+    display: inline-block;
+    padding: 6px 10px;
+    border: 1px solid var(--pill-border);
+    background: rgb(83, 83, 234);
+    border-radius: 8px;
+    font-size: 16px;
+    min-width: 40px;
+    text-align: center;
+    margin-top: 10px;
+}
+
+/* --------------------------------------------------
+   Vertical Dividers
+-------------------------------------------------- */
+.legend-divider {
+    width: 1px;
+    background: var(--pill-border);
+    align-self: stretch;
+    opacity: 0.4;
+}
+
+/* --------------------------------------------------
+   Settings dropdown (SE / ISO / macOS)
+-------------------------------------------------- */
+.setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.setting-label {
+    font-size: 15px;
+    opacity: 0.9;
+}
+
+.setting-dropdown {
+    position: relative;
+    width: 120px;
+}
+
+.dropdown-pill {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: var(--pill-bg);
+    border: 1px solid var(--pill-border);
+    color: var(--key-text);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     cursor: pointer;
-    /* Hand cursor */
-    transition: background 0.2s, transform 0.05s;
+    font-family: var(--font);
 }
 
-.modal-actions .btn.primary {
+.dropdown-pill-caret {
+    opacity: 0.7;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    width: 100%;
+    background: var(--panel-bg);
+    border: 1px solid var(--pill-border);
+    border-radius: 8px;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 9999;
+}
+
+.setting-dropdown.open .dropdown-menu {
+    display: flex;
+}
+
+/* Dropdown item */
+.dropdown-item {
+    padding: 8px 12px;
+    width: 100%;
+    text-align: left;
+    background: var(--panel-bg);
+    border: none;
+    color: var(--key-text);
+    cursor: pointer;
+    font-size: 14px;
+    font-family: var(--font);
+}
+
+.dropdown-item:hover {
     background: var(--accent);
-    color: #fff;
+    color: black;
 }
 
-.modal-actions .btn.primary:hover {
-    background: #b42e29;
+/* --------------------------------------------------
+   Tooltip for press/hold info
+-------------------------------------------------- */
+.label-with-tooltip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: relative;
 }
 
-.modal-actions .btn.secondary {
-    background: #e9e9e9;
-    color: #333;
+.info-icon {
+    background: var(--pill-bg);
+    border: 1px solid var(--pill-border);
+    width: 18px;
+    height: 18px;
+    font-size: 12px;
+    border-radius: 50%;
+    color: var(--key-text);
+    opacity: 0.8;
+    cursor: pointer;
+    font-family: var(--font);
 }
 
-.modal-actions .btn.secondary:hover {
-    background: #d4d4d4;
+.info-icon:hover {
+    opacity: 1;
 }
 
-.modal-actions .btn:active {
-    transform: translateY(1px);
+.tooltip-bubble {
+    display: none;
+    position: absolute;
+    left: 28px;
+    top: 0;
+    padding: 8px 10px;
+    background: var(--panel-bg);
+    border: 1px solid var(--pill-border);
+    border-radius: 8px;
+    font-size: 13px;
+    width: 210px;
+    z-index: 2000;
+}
+
+.tooltip-bubble.visible {
+    display: block;
+}
+
+/* --------------------------------------------------
+   Remap Buttons (upload / download)
+-------------------------------------------------- */
+.remap-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pill-btn {
+    width: 100%;
+    padding: 10px 0;
+    border-radius: 10px;
+    background: var(--pill-bg);
+    border: 1px solid var(--pill-border);
+    color: var(--key-text);
+    text-align: center;
+    cursor: pointer;
+    font-size: 15px;
+    transition: 0.15s;
+    font-family: var(--font);
+}
+
+.pill-btn:hover {
+    background: var(--accent);
+    color: black;
+}
+
+/* Any element that should behave like a button gets a hand cursor */
+button,
+.key,
+.pill-input,
+.delete-btn,
+.dropdown-pill,
+.dropdown-item,
+.pill-btn {
+    cursor: pointer;
 }

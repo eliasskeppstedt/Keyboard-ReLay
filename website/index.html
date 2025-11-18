@@ -3,59 +3,265 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Keyboard ReLay</title>
+    <title>Keyboard Relay</title>
     <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
-    <h1>Keyboard ReLay</h1>
+    <div class="app">
+        <div class="panel-bg-box">
+            <div class="layout">
 
-    <div id="main-container">
-        <!-- LEFT: remap input area -->
-        <section id="remap-section">
-            <div id="remap-window" class="focus-area">
-                <div id="from-key" class="key-box">
-                    <span class="placeholder">Click to set<br>“from” key</span>
+                <!-- Keyboard side -->
+                <div id="kbWrap" class="kb-wrap">
+                    <div class="kb">
+
+                        <!-- Row 1: Esc, F1–F12, Touch ID -->
+                        <div class="key" style="--c:1;  --w:3; --r:1; --h:1" data-code="Escape"></div>
+                        <div class="key" style="--c:4;  --w:2; --r:1; --h:1" data-code="F1"></div>
+                        <div class="key" style="--c:6;  --w:2; --r:1; --h:1" data-code="F2"></div>
+                        <div class="key" style="--c:8;  --w:2; --r:1; --h:1" data-code="F3"></div>
+                        <div class="key" style="--c:10; --w:2; --r:1; --h:1" data-code="F4"></div>
+                        <div class="key" style="--c:12; --w:2; --r:1; --h:1" data-code="F5"></div>
+                        <div class="key" style="--c:14; --w:2; --r:1; --h:1" data-code="F6"></div>
+                        <div class="key" style="--c:16; --w:2; --r:1; --h:1" data-code="F7"></div>
+                        <div class="key" style="--c:18; --w:2; --r:1; --h:1" data-code="F8"></div>
+                        <div class="key" style="--c:20; --w:2; --r:1; --h:1" data-code="F9"></div>
+                        <div class="key" style="--c:22; --w:2; --r:1; --h:1" data-code="F10"></div>
+                        <div class="key" style="--c:24; --w:2; --r:1; --h:1" data-code="F11"></div>
+                        <div class="key" style="--c:26; --w:2; --r:1; --h:1" data-code="F12"></div>
+                        <div class="key touchid" style="--c:28; --w:3; --r:1; --h:1" data-code="">touch ID</div>
+
+                        <!-- Row 2: number row -->
+                        <div class="key" style="--c:1;  --w:2; --r:2; --h:1" data-code="IntlBackslash"></div>
+                        <div class="key" style="--c:3;  --w:2; --r:2; --h:1" data-code="Digit1"></div>
+                        <div class="key" style="--c:5;  --w:2; --r:2; --h:1" data-code="Digit2"></div>
+                        <div class="key" style="--c:7;  --w:2; --r:2; --h:1" data-code="Digit3"></div>
+                        <div class="key" style="--c:9;  --w:2; --r:2; --h:1" data-code="Digit4"></div>
+                        <div class="key" style="--c:11; --w:2; --r:2; --h:1" data-code="Digit5"></div>
+                        <div class="key" style="--c:13; --w:2; --r:2; --h:1" data-code="Digit6"></div>
+                        <div class="key" style="--c:15; --w:2; --r:2; --h:1" data-code="Digit7"></div>
+                        <div class="key" style="--c:17; --w:2; --r:2; --h:1" data-code="Digit8"></div>
+                        <div class="key" style="--c:19; --w:2; --r:2; --h:1" data-code="Digit9"></div>
+                        <div class="key" style="--c:21; --w:2; --r:2; --h:1" data-code="Digit0"></div>
+                        <div class="key" style="--c:23; --w:2; --r:2; --h:1" data-code="Minus"></div>
+                        <div class="key" style="--c:25; --w:2; --r:2; --h:1" data-code="Equal"></div>
+                        <div class="key backspace" style="--c:27; --w:4; --r:2; --h:1" data-code="Backspace"></div>
+
+                        <!-- Row 3 -->
+                        <div class="key tab" style="--c:1; --w:3; --r:3; --h:1" data-code="Tab"></div>
+                        <div class="key" style="--c:4;  --w:2; --r:3; --h:1" data-code="KeyQ"></div>
+                        <div class="key" style="--c:6;  --w:2; --r:3; --h:1" data-code="KeyW"></div>
+                        <div class="key" style="--c:8;  --w:2; --r:3; --h:1" data-code="KeyE"></div>
+                        <div class="key" style="--c:10; --w:2; --r:3; --h:1" data-code="KeyR"></div>
+                        <div class="key" style="--c:12; --w:2; --r:3; --h:1" data-code="KeyT"></div>
+                        <div class="key" style="--c:14; --w:2; --r:3; --h:1" data-code="KeyY"></div>
+                        <div class="key" style="--c:16; --w:2; --r:3; --h:1" data-code="KeyU"></div>
+                        <div class="key" style="--c:18; --w:2; --r:3; --h:1" data-code="KeyI"></div>
+                        <div class="key" style="--c:20; --w:2; --r:3; --h:1" data-code="KeyO"></div>
+                        <div class="key" style="--c:22; --w:2; --r:3; --h:1" data-code="KeyP"></div>
+                        <div class="key" style="--c:24; --w:2; --r:3; --h:1" data-code="BracketLeft"></div>
+                        <div class="key" style="--c:26; --w:2; --r:3; --h:1" data-code="BracketRight"></div>
+                        <div class="key enter" style="--c:28; --w:3; --r:3; --h:1" data-code="Enter"></div>
+
+                        <!-- Row 4 -->
+                        <div class="key caps" style="--c:1; --w:3; --r:4; --h:1" data-code="CapsLock"></div>
+                        <div class="key" style="--c:4;  --w:2; --r:4; --h:1" data-code="KeyA"></div>
+                        <div class="key" style="--c:6;  --w:2; --r:4; --h:1" data-code="KeyS"></div>
+                        <div class="key" style="--c:8;  --w:2; --r:4; --h:1" data-code="KeyD"></div>
+                        <div class="key" style="--c:10; --w:2; --r:4; --h:1" data-code="KeyF"></div>
+                        <div class="key" style="--c:12; --w:2; --r:4; --h:1" data-code="KeyG"></div>
+                        <div class="key" style="--c:14; --w:2; --r:4; --h:1" data-code="KeyH"></div>
+                        <div class="key" style="--c:16; --w:2; --r:4; --h:1" data-code="KeyJ"></div>
+                        <div class="key" style="--c:18; --w:2; --r:4; --h:1" data-code="KeyK"></div>
+                        <div class="key" style="--c:20; --w:2; --r:4; --h:1" data-code="KeyL"></div>
+                        <div class="key" style="--c:22; --w:2; --r:4; --h:1" data-code="Semicolon"></div>
+                        <div class="key" style="--c:24; --w:2; --r:4; --h:1" data-code="Quote"></div>
+                        <div class="key" style="--c:26; --w:2; --r:4; --h:1" data-code="Backslash"></div>
+
+                        <!-- Row 5 -->
+                        <div class="key shiftL" style="--c:1; --w:3; --r:5; --h:1" data-code="ShiftLeft"></div>
+                        <div class="key ltgt" style="--c:4; --w:2; --r:5; --h:1" data-code="Backquote"></div>
+                        <div class="key" style="--c:6;  --w:2; --r:5; --h:1" data-code="KeyZ"></div>
+                        <div class="key" style="--c:8;  --w:2; --r:5; --h:1" data-code="KeyX"></div>
+                        <div class="key" style="--c:10; --w:2; --r:5; --h:1" data-code="KeyC"></div>
+                        <div class="key" style="--c:12; --w:2; --r:5; --h:1" data-code="KeyV"></div>
+                        <div class="key" style="--c:14; --w:2; --r:5; --h:1" data-code="KeyB"></div>
+                        <div class="key" style="--c:16; --w:2; --r:5; --h:1" data-code="KeyN"></div>
+                        <div class="key" style="--c:18; --w:2; --r:5; --h:1" data-code="KeyM"></div>
+                        <div class="key" style="--c:20; --w:2; --r:5; --h:1" data-code="Comma"></div>
+                        <div class="key" style="--c:22; --w:2; --r:5; --h:1" data-code="Period"></div>
+                        <div class="key" style="--c:24; --w:2; --r:5; --h:1" data-code="Slash"></div>
+                        <div class="key shiftR" style="--c:26; --w:5; --r:5; --h:1" data-code="ShiftRight"></div>
+
+                        <!-- Bottom row -->
+                        <div class="key fn" style="--c:1;  --w:2; --r:6; --h:2" data-code="Fn">🌐</div>
+                        <div class="key control" style="--c:3;  --w:2; --r:6; --h:2" data-code="ControlLeft"></div>
+                        <div class="key option" style="--c:5;  --w:2; --r:6; --h:2" data-code="AltLeft"></div>
+                        <div class="key command" style="--c:7;  --w:3; --r:6; --h:2" data-code="MetaLeft"></div>
+                        <div class="key space" style="--c:10; --w:10; --r:6; --h:2" data-code="Space"></div>
+                        <div class="key command" style="--c:20; --w:3; --r:6; --h:2" data-code="MetaRight"></div>
+                        <div class="key option" style="--c:23; --w:2; --r:6; --h:2" data-code="AltRight"></div>
+
+                        <!-- Arrows -->
+                        <div class="key arrow" style="--c:25; --w:2; --r:7; --h:1" data-code="ArrowLeft"></div>
+                        <div class="key arrow" style="--c:27; --w:2; --r:7; --h:1" data-code="ArrowDown"></div>
+                        <div class="key arrow" style="--c:27; --w:2; --r:6; --h:1" data-code="ArrowUp"></div>
+                        <div class="key arrow" style="--c:29; --w:2; --r:7; --h:1" data-code="ArrowRight"></div>
+
+                    </div>
                 </div>
-                <span class="arrow">→</span>
-                <div id="to-key" class="key-box">
-                    <span class="placeholder">Click to set<br>“to” key</span>
+
+                <!-- Key Info Panel -->
+                <div id="keyInfo" class="key-info">
+                    <!-- Key Picker Popup -->
+                    <div id="keyPicker" class="key-picker" aria-hidden="true">
+                        <input id="keyPickerSearch" class="key-picker-search" placeholder="search…" autocomplete="off" />
+                        <div id="keyPickerList" class="key-picker-list"></div>
+                    </div>
+
+                    <h1>Key Info</h1>
+
+                    <div>
+                        <label>base key</label>
+                        <div class="with-delete">
+                            <span id="baseKeyValue">—</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="label-with-tooltip">
+                            <label>press</label>
+                            <button type="button" class="info-icon" data-tooltip-for="press">i</button>
+                            <div class="tooltip-bubble" data-tooltip="press">
+                                Sent when you tap the base key once.
+                            </div>
+                        </div>
+                        <div class="pill-row">
+                            <button id="pressField" class="pill-input real-input" type="button">-- choose a key --</button>
+                            <button class="delete-btn" id="deletePress">🚫</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="label-with-tooltip">
+                            <label>hold</label>
+                            <button type="button" class="info-icon" data-tooltip-for="hold">i</button>
+                            <div class="tooltip-bubble" data-tooltip="hold">
+                                Sent while you keep the base key held down.
+                            </div>
+                        </div>
+                        <div class="pill-row">
+                            <button id="holdField" class="pill-input real-input" type="button">-- choose a key --</button>
+                            <button class="delete-btn" id="deleteHold">🚫</button>
+                        </div>
+                    </div>
+
+                    <button id="saveChanges" class="save-btn disabled">Save changes</button>
+
                 </div>
             </div>
 
-            <p id="instruction">Click a square to change keys or choose remap type.</p>
+            <!-- Bottom panel: legend + settings + remap I/O -->
+            <div class="legend-box full-width-legend">
+                <div class="legend-columns">
 
-            <div id="button-section">
-                <button id="press-btn" disabled>Remap on Press</button>
-                <button id="hold-btn" disabled>Remap on Hold</button>
-            </div>
+                    <!-- Column 1: Legend -->
+                    <div class="legend-column legend-column-legend">
+                        <h2 class="legend-title">Key color code</h2>
 
-            <div id="download-section">
-                <button id="download-btn" class="download">Download my remaps</button>
-            </div>
-        </section>
+                        <div class="legend-row">
+                            <span class="legend-color mod-none"></span>
+                            <span class="legend-text">Key not modified</span>
+                        </div>
 
-        <!-- RIGHT: remapped keys list -->
-        <section id="remap-list">
-            <h2>Remapped Keys</h2>
-            <ul id="mappings"></ul>
-        </section>
-    </div>
+                        <div class="legend-row">
+                            <span class="legend-color mod-press"></span>
+                            <span class="legend-text">Modified on press</span>
+                        </div>
 
-    <!-- In-site modal (replaces alert/confirm) -->
-    <div id="relay-modal" class="modal hidden">
-        <div class="modal-backdrop"></div>
-        <div class="modal-window" role="dialog" aria-modal="true" aria-labelledby="relay-modal-text">
-            <p id="relay-modal-text">Message here…</p>
-            <div class="modal-actions">
-                <button id="relay-modal-cancel" class="btn secondary">Cancel</button>
-                <button id="relay-modal-ok" class="btn primary">OK</button>
+                        <div class="legend-row">
+                            <span class="legend-color mod-hold"></span>
+                            <span class="legend-text">Modified on hold</span>
+                        </div>
+
+                        <div class="legend-row">
+                            <span class="legend-color mod-both"></span>
+                            <span class="legend-text">Modified on press and hold</span>
+                        </div>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="legend-divider"></div>
+
+                    <!-- Column 2: Settings -->
+                    <div class="legend-column legend-column-settings">
+                        <h2 class="legend-title">Layout settings</h2>
+
+                        <div class="setting-row">
+                            <span class="setting-label">Language</span>
+                            <div class="setting-dropdown" data-setting="language">
+                                <button type="button" class="dropdown-pill">
+                                    <span class="dropdown-pill-label">SE</span>
+                                    <span class="dropdown-pill-caret">▾</span>
+                                </button>
+                                <div class="dropdown-menu">
+                                    <button type="button" class="dropdown-item" data-value="SE">SE</button>
+                                    <button type="button" class="dropdown-item" data-value="US">US</button>
+                                    <button type="button" class="dropdown-item" data-value="KR">KR</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="setting-row">
+                            <span class="setting-label">Layout</span>
+                            <div class="setting-dropdown" data-setting="layout">
+                                <button type="button" class="dropdown-pill">
+                                    <span class="dropdown-pill-label">ISO</span>
+                                    <span class="dropdown-pill-caret">▾</span>
+                                </button>
+                                <div class="dropdown-menu">
+                                    <button type="button" class="dropdown-item" data-value="ISO">ISO</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="setting-row">
+                            <span class="setting-label">OS</span>
+                            <div class="setting-dropdown" data-setting="os">
+                                <button type="button" class="dropdown-pill">
+                                    <span class="dropdown-pill-label">macOS</span>
+                                    <span class="dropdown-pill-caret">▾</span>
+                                </button>
+                                <div class="dropdown-menu">
+                                    <button type="button" class="dropdown-item" data-value="macOS">macOS</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="legend-divider"></div>
+
+                    <!-- Column 3: Remap upload/download -->
+                    <div class="legend-column legend-column-remap">
+                        <h2 class="legend-title">Remap file</h2>
+                        <p class="legend-subtext">
+                            Upload or download your key remap as JSON.
+                        </p>
+                        <div class="remap-buttons">
+                            <button id="uploadRemap" class="pill-btn">Upload remap</button>
+                            <button id="downloadRemap" class="pill-btn">Download remap</button>
+                        </div>
+                        <input type="file" id="uploadRemapInput" accept="application/json" style="display:none" />
+                    </div>
+
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script type="module" src="scripts/script.js"></script>
 </body>
 
 </html>

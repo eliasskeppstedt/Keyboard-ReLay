@@ -21,3 +21,6 @@ toOnPressHold - custom string - ex skicka denna sträng vid detta event, kan ex 
 to turn off the mac accent popup on hold: defaults write -g ApplePressAndHoldEnabled -bool false
 
 when headEvent is modifier, ALWAYS change the status event flag
+
+Mac virtual key codes:
+Events.h
