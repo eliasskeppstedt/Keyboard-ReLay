@@ -169,7 +169,6 @@ const pressField = document.getElementById("pressField");
 const holdField = document.getElementById("holdField");
 const deletePressBtn = document.getElementById("deletePress");
 const deleteHoldBtn = document.getElementById("deleteHold");
-const saveBtn = document.getElementById("saveChanges");
 
 const keyPicker = document.getElementById("keyPicker");
 const keyPickerList = document.getElementById("keyPickerList");
