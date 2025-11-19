@@ -1,195 +1,319 @@
 /* ========================================================================
-   Keyboard Relay – ISO SE Layout
-   ------------------------------------------------------------------------
-   This file powers the interactive keyboard view + key remapping UI.
-
-   Responsibilities:
-   - Manage active layout (SE / US / KR) and OS-specific symbols
-   - Render labels onto the visual keyboard
-   - Let the user select a "base key" and map:
-       - press: what key is sent on tap
-       - hold:  what key is sent while held
-   - Store mappings in `keymapData` (imported from mappingData.js)
-   - Upload / download mappings as JSON
-   - Handle dropdown settings and info tooltips
+   Keyboard Relay – integrated with new getActiveLayout()
    ======================================================================== */
 
-import * as codes from "./codes.js";
+import { getActiveLayout } from "./codes.js";
 import { keymapData } from "./mappingData.js";
 
-/**
- * scLayout:
- * - maps KeyboardEvent.code → visual label (string)
- * - labels are later written into `data-l` on each key element
- * - also patched with OS-specific modifier symbols (⌘, ⌃, ⌥...)
- */
-/**
- * The currently selected language layout.
- * Allowed values: "SE", "US" (implicit fallback), "KR"
- */
+/* ========================================================================
+   JSON Export
+   ======================================================================== */
+
+function createExportData() {
+    const layer = getActiveLayer();
+
+    return {
+        layerEntries: 1,
+        uniqueKeyCodeEntries: layer.keyCode.length,
+        layers: [
+            {
+                layerName: layer.layerName || "Main",
+                layerNr: layer.layerNr ?? 0,
+                keyCodeEntries: layer.keyCode.length,
+                keyCode: layer.keyCode.map(entry => ({
+                    // OS codes (numbers)
+                    from: entry.from ?? -1,
+                    toOnPress: entry.toOnPress ?? -1,
+                    toOnHold: entry.toOnHold ?? -1,
+                    // WebAPI codes (strings)
+                    fromS: entry.fromS || "",
+                    toOnPressS: entry.toOnPressS || "",
+                    toOnHoldS: entry.toOnHoldS || "",
+                })),
+            },
+        ],
+    };
+}
+
+JsonEditor.onExport = () => createExportData();
+
+/* ========================================================================
+   JSON Import
+   ======================================================================== */
+
+JsonEditor.onImport = (json) => {
+    importLayoutFromJson(json);
+};
+
+// Helper: OS → WebAPI
+function findWebCodeFromOS(codeOS) {
+    if (codeOS === null || codeOS === undefined || codeOS === -1) return null;
+    return (
+        Object.keys(activeLayout).find(codeWeb => {
+            const entry = activeLayout[codeWeb];
+            return entry && entry.codeOS === codeOS;
+        }) || null
+    );
+}
+
+window.importLayoutFromJson = function (json) {
+    if (!json.layers || !json.layers[0] || !Array.isArray(json.layers[0].keyCode)) {
+        alert("Invalid remap file.");
+        return;
+    }
+
+    const layer = getActiveLayer();
+    layer.keyCode = []; // clear existing remaps
+
+    const uploadedArray = json.layers[0].keyCode;
+
+    uploadedArray.forEach(rawEntry => {
+        // ---------- FROM ----------
+        const fromCodeOS = typeof rawEntry.from === "number" ? rawEntry.from : -1;
+        let fromCodeWeb = rawEntry.fromS || null;
+
+        if (!fromCodeWeb && fromCodeOS !== -1) {
+            fromCodeWeb = findWebCodeFromOS(fromCodeOS);
+        }
+        if (!fromCodeWeb) return;
+        if (!activeLayout[fromCodeWeb]) return; // base key must exist
+
+        // ---------- TO PRESS ----------
+        const toPressCodeOS = typeof rawEntry.toOnPress === "number" ? rawEntry.toOnPress : -1;
+        let toPressCodeWeb = rawEntry.toOnPressS || null;
+
+        if (!toPressCodeWeb && toPressCodeOS !== -1) {
+            toPressCodeWeb = findWebCodeFromOS(toPressCodeOS);
+        }
+        if (toPressCodeWeb && !activeLayout[toPressCodeWeb]) {
+            toPressCodeWeb = null;
+        }
+
+        // ---------- TO HOLD ----------
+        const toHoldCodeOS = typeof rawEntry.toOnHold === "number" ? rawEntry.toOnHold : -1;
+        let toHoldCodeWeb = rawEntry.toOnHoldS || null;
+
+        if (!toHoldCodeWeb && toHoldCodeOS !== -1) {
+            toHoldCodeWeb = findWebCodeFromOS(toHoldCodeOS);
+        }
+        if (toHoldCodeWeb && !activeLayout[toHoldCodeWeb]) {
+            toHoldCodeWeb = null;
+        }
+
+        // if literally nothing is mapped, skip
+        if (!toPressCodeWeb && !toHoldCodeWeb) return;
+
+        const fromEntry = activeLayout[fromCodeWeb];
+        const toPressEntry = toPressCodeWeb ? activeLayout[toPressCodeWeb] : null;
+        const toHoldEntry = toHoldCodeWeb ? activeLayout[toHoldCodeWeb] : null;
+
+        const entry = {
+            // WebAPI codes (canonical for logic)
+            fromS: fromCodeWeb,
+            toOnPressS: toPressCodeWeb || "",
+            toOnHoldS: toHoldCodeWeb || "",
+            // OS codes (for firmware / JSON)
+            from: fromEntry?.codeOS ?? -1,
+            toOnPress: toPressEntry?.codeOS ?? -1,
+            toOnHold: toHoldEntry?.codeOS ?? -1,
+        };
+
+        layer.keyCode.push(entry);
+    });
+
+    layer.keyCodeEntries = layer.keyCode.length;
+
+    refreshKeyboardColors();
+
+    if (activeBaseCode) {
+        loadKeyMapping(activeBaseCode);
+        setBaseKeyLabel(getDisplayLabelForKey(activeBaseCode));
+    }
+};
+
+/* ========================================================================
+   1. Global layout state
+   ======================================================================== */
+
 let currentLanguage = "SE";
 let currentLayout = "ISO";
 let currentOS = "MACOS";
 
-let scLayout = applyModifierSymbols(codes.getActiveLayout(currentLanguage, currentLayout, currentOS));
-
-/**
- * keyCodes:
- * - Reserved for any mapping from KeyboardEvent.code → mac keyCode numbers
- * - Currently imported but not used in this UI layer, kept for future use.
- */
-const keyCodes = { ...codes.macKeyCode };
+let activeLayout = {};          // codeWeb → { LEGEND, DESCRIPTION, SHOWDESCRIPTION, codeOS, ... }
+let isBaseKeyActive = false;
 
 /* ========================================================================
-   DOM references
+   2. Rebuild layout
    ======================================================================== */
 
-// Visual keyboard wrapper
-const kbWrap = document.getElementById("kbWrap");
-// All visual key elements
-const keys = [...document.querySelectorAll(".key")];
+function rebuildLayout() {
+    activeLayout = getActiveLayout(currentLanguage, currentLayout, currentOS) || {};
 
-// Key info panel fields
+    applyDynamicLabels();
+    buildAllKeys();
+    refreshKeyboardColors();
+
+    if (activeBaseCode) {
+        loadKeyMapping(activeBaseCode);
+        setBaseKeyLabel(getDisplayLabelForKey(activeBaseCode));
+    }
+}
+
+/* ========================================================================
+   3. DOM refs
+   ======================================================================== */
+
+const keys = Array.from(document.querySelectorAll(".key"));
+
 const pressField = document.getElementById("pressField");
 const holdField = document.getElementById("holdField");
+const deletePressBtn = document.getElementById("deletePress");
+const deleteHoldBtn = document.getElementById("deleteHold");
+const saveBtn = document.getElementById("saveChanges");
 
-// Key picker
 const keyPicker = document.getElementById("keyPicker");
 const keyPickerList = document.getElementById("keyPickerList");
 const pickerSearch = document.getElementById("keyPickerSearch");
 
-// Settings dropdowns (language / layout / OS)
-const dropdowns = [...document.querySelectorAll(".setting-dropdown")];
-
-// Upload / download elements for remap JSON
-const uploadBtn = document.getElementById("uploadRemap");
-const downloadBtn = document.getElementById("downloadRemap");
-const uploadInput = document.getElementById("uploadRemapInput");
-
+const dropdowns = Array.from(document.querySelectorAll(".setting-dropdown"));
 
 /* ========================================================================
-   Global state
+   4. Global state for selection / editing
    ======================================================================== */
 
-/**
- * pickerTargetField:
- * - Which field (pressField / holdField) the key picker is currently editing.
- * - null when the picker is closed.
- */
-let pickerTargetField = null;
+let pickerTargetField = null;   // pressField or holdField
+let activeBaseCode = null;      // WebAPI code of selected base key
 
-/**
- * activeKeyLabel:
- * - The label (value of data-l) of the currently selected base key on the
- *   visual keyboard.
- * - null when no base key is active.
- */
-let activeKeyLabel = null;
+let currentMapping = {          // saved mapping for active base key (WebAPI codes)
+    press: null,
+    hold: null,
+};
 
-/**
- * currentMapping:
- * - Represents the mapping that is currently saved in keymapData
- *   for the active base key.
- */
-let currentMapping = { base: null, press: null, hold: null };
+let workingMapping = {          // mapping being edited in UI (WebAPI codes)
+    press: null,
+    hold: null,
+};
 
-/**
- * workingMapping:
- * - Represents the mapping the user is currently editing in the UI
- *   (possibly unsaved changes compared to currentMapping).
- */
-let workingMapping = { base: null, press: null, hold: null };
-
-/**
- * labelToKeyEl:
- * - Map from visual label (data-l) → corresponding DOM element (.key).
- * - This is refreshed whenever labels are recalculated.
- */
-const labelToKeyEl = {};
-
-/**
- * allKeys:
- * - Flat list of all logical keys for the key picker
- *   (code + label + category).
- */
-let allKeys = [];
+const codeToKeyEl = {};         // codeWeb → .key element (for colors)
+let allKeys = [];               // for picker: [{code,label,display,category}]
 
 /* ========================================================================
-   Utility functions
+   5. Helpers – labels, base key label, status
    ======================================================================== */
 
-/**
- * Updates the “base key” label in the Key Info panel.
- * Uses an em dash when nothing is selected.
- */
+function getDisplayLabelForKey(codeWeb) {
+    const entry = activeLayout[codeWeb];
+    if (!entry) return "";
+    return entry.LEGEND || "";
+}
+
 function setBaseKeyLabel(label) {
     document.getElementById("baseKeyValue").textContent = label || "—";
 }
 
-/**
- * Updates a "pill" field (press / hold).
- *
- * @param {HTMLElement} fieldEl - The button that represents the field.
- * @param {string|null} code    - KeyboardEvent.code to store.
- * @param {string|null} label   - Display label to show in the pill.
- * @param {Object} options
- * @param {boolean} options.updateWorking - Whether to update workingMapping.
- */
-function setFieldValue(fieldEl, code, label, { updateWorking = true } = {}) {
-    fieldEl.dataset.code = code || "";
-    fieldEl.textContent = label || "-- choose a key --";
+function updateBaseKeyInfoVisibility() {
+    const icon = document.getElementById("baseKeyInfo");
+    const bubble = document.querySelector(".base-key-tooltip"); // may be null
+
+    if (!icon || !bubble) return;
+
+    if (!activeBaseCode) {
+        icon.style.display = "none";
+        bubble.classList.remove("visible");
+        return;
+    }
+
+    const entry = activeLayout[activeBaseCode];
+
+    const shouldShow =
+        entry &&
+        entry.SHOWDESCRIPTION &&
+        entry.DESCRIPTION &&
+        entry.DESCRIPTION.trim() !== "";
+
+    if (!shouldShow) {
+        icon.style.display = "none";
+        bubble.classList.remove("visible");
+    } else {
+        icon.style.display = "inline-flex";
+        bubble.textContent = entry.DESCRIPTION;
+    }
+}
+
+function updateKeyStatus(status) {
+    const el = document.getElementById("keyStatus");
+    if (!el) return;
+    el.textContent = status;
+}
+
+function setFieldFromCode(fieldEl, codeWebOrNull, { updateWorking = true } = {}) {
+    const label = codeWebOrNull ? getDisplayLabelForKey(codeWebOrNull) : "-- choose a key --";
+    fieldEl.dataset.code = codeWebOrNull || "";
+    fieldEl.textContent = label;
 
     if (!updateWorking) return;
 
     if (fieldEl === pressField) {
-        workingMapping.press = code;
+        workingMapping.press = codeWebOrNull || null;
     } else if (fieldEl === holdField) {
-        workingMapping.hold = code;
+        workingMapping.hold = codeWebOrNull || null;
     }
 
-    syncSaveButton();
-}
-
-/**
- * Enables/disables the “Save changes” button based on whether
- * workingMapping differs from currentMapping.
- */
-function syncSaveButton() {
-    const btn = document.getElementById("saveChanges");
-
-    const changed =
-        workingMapping.base !== currentMapping.base ||
-        workingMapping.press !== currentMapping.press ||
-        workingMapping.hold !== currentMapping.hold;
-
-    if (changed) {
-        btn.classList.add("enabled");
-        btn.classList.remove("disabled");
-    } else {
-        btn.classList.add("disabled");
-        btn.classList.remove("enabled");
-    }
+    saveMappingsAfterChange();
 }
 
 /* ========================================================================
-   Key picker: categorisation & list building
+   6. Apply layout labels to visual keyboard
    ======================================================================== */
 
-/**
- * Human-readable key categories used in the picker.
- */
+function applyDynamicLabels() {
+    Object.keys(codeToKeyEl).forEach(k => delete codeToKeyEl[k]);
+
+    keys.forEach(el => {
+        const codeWeb = el.dataset.code;
+        if (!codeWeb) return;
+
+        const entry = activeLayout[codeWeb];
+
+        if (!entry) {
+            el.textContent = "";
+            el.dataset.l = "";
+            el.classList.add("disabled-key");
+            return;
+        }
+
+        const baseLabel = getDisplayLabelForKey(codeWeb);
+
+        while (el.firstChild) el.removeChild(el.firstChild);
+
+        el.innerHTML = `
+            <div class="key-content single">
+                <div class="single-line">${baseLabel}</div>
+                <div class="top-line"></div>
+                <div class="bottom-line"></div>
+            </div>
+        `;
+
+        el.dataset.l = baseLabel;
+        el.classList.remove("disabled-key");
+
+        codeToKeyEl[codeWeb] = el;
+    });
+}
+
+/* ========================================================================
+   7. Key picker – categories, list building, open/close
+   ======================================================================== */
+
 const CATEGORY = {
-    numbers: "Numbers",
-    letters: "Letters",
-    modifiers: "Modifiers",
-    arrows: "Arrows",
-    function: "Function",
-    other: "Other",
+    letters: "LETTERS",
+    numbers: "NUMBERS",
+    modifiers: "MODIFIERS",
+    arrows: "ARROWS",
+    function: "FUNCTION",
+    other: "OTHER",
 };
 
-/**
- * Display order for categories in the picker.
- */
 const CATEGORY_ORDER = [
     CATEGORY.letters,
     CATEGORY.numbers,
@@ -199,256 +323,172 @@ const CATEGORY_ORDER = [
     CATEGORY.other,
 ];
 
-/**
- * Classifies a KeyboardEvent.code into a picker category.
- */
-function classify(code) {
-    if (code.startsWith("Digit")) return CATEGORY.numbers;
-    if (code.startsWith("Key")) return CATEGORY.letters;
-    if (/^F\d+$/.test(code)) return CATEGORY.function;
+const OVERRIDES_SE = {
+    LETTERS: [
+        "BracketLeft", // å
+        "Quote",       // ä
+        "Semicolon",   // ö
+    ],
+    NUMBERS: [],
+    SYMBOLS: [],
+};
+
+function overridesCategoryLang(codeWeb) {
+    let overridesLang;
+
+    switch (currentLanguage) {
+        case "SE":
+            overridesLang = OVERRIDES_SE;
+            break;
+        case "KR":
+            overridesLang = { LETTERS: [], NUMBERS: [], SYMBOLS: [] };
+            break;
+        default:
+            overridesLang = { LETTERS: [], NUMBERS: [], SYMBOLS: [] };
+            break;
+    }
+
+    if (overridesLang.LETTERS?.includes(codeWeb)) return CATEGORY.letters;
+    if (overridesLang.NUMBERS?.includes(codeWeb)) return CATEGORY.numbers;
+    if (overridesLang.SYMBOLS?.includes(codeWeb)) return CATEGORY.other;
+
+    return null;
+}
+
+function classify(codeWeb) {
+    const overrideCat = overridesCategoryLang(codeWeb);
+    if (overrideCat !== null) return overrideCat;
+
+    if (/^Key[A-Z]$/.test(codeWeb)) return CATEGORY.letters;
+    if (/^Digit[0-9]$/.test(codeWeb)) return CATEGORY.numbers;
+    if (/^F[0-9]{1,2}$/.test(codeWeb)) return CATEGORY.function;
 
     if ([
-        "ShiftLeft", "ShiftRight", "ControlLeft", "ControlRight",
-        "AltLeft", "AltRight", "MetaLeft", "MetaRight",
-        "Space", "CapsLock", "Tab"
-    ].includes(code)) {
+        "ShiftLeft", "ShiftRight",
+        "ControlLeft", "ControlRight",
+        "AltLeft", "AltRight",
+        "MetaLeft", "MetaRight",
+        "CapsLock", "Tab", "Space",
+    ].includes(codeWeb)) {
         return CATEGORY.modifiers;
     }
 
-    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(code)) {
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(codeWeb)) {
         return CATEGORY.arrows;
     }
 
     return CATEGORY.other;
 }
 
-/**
- * Rebuilds `allKeys` from the current scLayout.
- * This is called whenever the language / layout changes.
- */
 function buildAllKeys() {
-    allKeys = Object.keys(scLayout).map(code => ({
-        code,
-        label: scLayout[code],
-        display: scLayout[code] || code,
-        category: classify(code),
-    }));
+    allKeys = Object.keys(activeLayout).map(codeWeb => {
+        const display = getDisplayLabelForKey(codeWeb);
+        return {
+            code: codeWeb,
+            label: display,
+            display,
+            category: classify(codeWeb),
+        };
+    });
 
-    // Stable sort: category, then alphabetical within category.
     allKeys.sort((a, b) => {
         if (a.category === b.category) {
-            return a.display.localeCompare(b.display);
+            return (String(a.display) || "").localeCompare(String(b.display) || "");
         }
-        return a.category.localeCompare(b.category);
+        return CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category);
     });
 }
 
-/**
- * Opens the key picker for a given field (press / hold),
- * resets the search and populates the list.
- */
-function openKeyPicker(fieldEl) {
-    pickerTargetField = fieldEl;
-
-    // Open picker
-    keyPicker.classList.add("open");
-
-    // Clear search + FOCUS immediately
-    pickerSearch.value = "";
-    pickerSearch.focus();
-
-    // Build list
-    buildPickerList("");
-}
-
-/**
- * Closes the key picker and clears the active field target.
- */
-function closeKeyPicker() {
-    keyPicker.classList.remove("open");
-    pickerTargetField = null;
-}
-
-/**
- * Populates the key picker list based on a search query.
- *
- * @param {string} rawQuery - User input from the search field.
- */
 function buildPickerList(rawQuery) {
     keyPickerList.innerHTML = "";
-    let query = rawQuery.toLowerCase();
+    const query = (rawQuery || "").trim().toLowerCase();
 
-    const filtered = allKeys
-        .filter(k => {
-            if (!k.label?.trim()) return false;
-            return (
-                k.display.toLowerCase().includes(query) ||
-                k.code.toLowerCase().includes(query)
-            );
-        })
-        .sort((a, b) =>
-            CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category)
+    const filtered = allKeys.filter(k => {
+        if (!k.label) return false;
+        const entry = activeLayout[k.code];
+        const descTerms = (entry?.DESCRIPTION || "").toLowerCase();
+
+        return (
+            k.display.toLowerCase().includes(query) ||
+            k.code.toLowerCase().includes(query) ||
+            descTerms.includes(query)
         );
+    });
 
     let currentCat = null;
+    let catContainer = null;
     let grid = null;
 
     filtered.forEach(item => {
-        // Create new category block if needed
         if (item.category !== currentCat) {
             currentCat = item.category;
 
-            const container = document.createElement("div");
-            container.style.display = "flex";
-            container.style.flexDirection = "column";
-            keyPickerList.appendChild(container);
+            catContainer = document.createElement("div");
+            catContainer.style.display = "flex";
+            catContainer.style.flexDirection = "column";
 
-            const cat = document.createElement("div");
-            cat.className = "key-picker-category";
-            cat.textContent = currentCat.toUpperCase();
-            container.appendChild(cat);
+            const catHeader = document.createElement("div");
+            catHeader.className = "key-picker-category";
+            catHeader.textContent = currentCat;
+            catContainer.appendChild(catHeader);
 
             grid = document.createElement("div");
             grid.className = "key-picker-grid";
-            container.appendChild(grid);
+            catContainer.appendChild(grid);
+
+            keyPickerList.appendChild(catContainer);
         }
 
         const tile = document.createElement("div");
         tile.className = "key-picker-tile";
-        tile.textContent = item.display;
-        tile.onclick = () => {
+
+        const entry = activeLayout[item.code];
+        const rawDesc = entry?.DESCRIPTION || "";
+        const firstSentence = rawDesc.split(";")[0].trim();
+
+        let descHTML = "";
+        if (entry?.SHOWDESCRIPTION) {
+            descHTML = `<div class="kp-desc">${firstSentence}</div>`;
+        }
+
+        tile.innerHTML = `
+            <div class="kp-legend">${item.label}</div>
+            ${descHTML}
+        `;
+
+        tile.addEventListener("click", () => {
             if (!pickerTargetField) return;
-            setFieldValue(pickerTargetField, item.code, item.display);
+            setFieldFromCode(pickerTargetField, item.code);
             closeKeyPicker();
-        };
+        });
 
         grid.appendChild(tile);
     });
 }
 
-/* ========================================================================
-   Physical keyboard interaction
-   ======================================================================== */
-
-/**
- * Handles physical keyboard events while the page is focused.
- *
- * Rules:
- * - If the key picker is open *and* the active element is a text field,
- *   we let the keypress go through (for typing in search).
- * - If the picker is open but focus is elsewhere → ignore.
- * - If a base key is active and no picker is open, pressing a key
- *   assigns that code as the “press” mapping for the base key.
- */
-document.addEventListener("keydown", (e) => {
-    const code = e.code;
-    const label = scLayout[code] ?? code;
-
-    // 1. Picker open + input focused → allow typing
-    if (pickerTargetField && document.activeElement === pickerTargetField) {
-        return;
-    }
-
-    // 2. Picker open but field not focused → ignore
-    if (pickerTargetField) {
-        return;
-    }
-
-    // 3. No picker, base key active → record press mapping
-    if (activeKeyLabel) {
-        workingMapping.press = code;
-        setFieldValue(pressField, code, label);
-        syncSaveButton();
-
-        e.preventDefault();
-        e.stopPropagation();
-        return;
-    }
-
-    // 4. Otherwise ignore keyboard input
-});
-
-/* ========================================================================
-   Dynamic labeling & initial DOMContentLoaded init
-   ======================================================================== */
-
-/**
- * Applies OS-specific modifier symbols to a given layout object.
- * For macOS, replaces Control / Alt / Meta with ⌃ / ⌥ / ⌘ labels.
- *
- * @param {Object} layout - base layout mapping (code → label)
- * @returns {Object} patched layout
- */
-function applyModifierSymbols(layout) {
-    const dd = document.querySelector(
-        '.setting-dropdown[data-setting="os"] .dropdown-pill-label'
-    );
-    const currentOS = dd ? dd.textContent : "macOS";
-
-    let patched = { ...layout };
-
-    if (currentOS === "macOS") {
-        patched = {
-            ...patched,
-            ControlLeft: "L ⌃",
-            ControlRight: "R ⌃",
-            AltLeft: "L ⌥",
-            AltRight: "R ⌥",
-            MetaLeft: "L ⌘",
-            MetaRight: "R ⌘",
-        };
-    }
-
-    return patched;   // <-- the missing return
+function openKeyPicker(targetField) {
+    pickerTargetField = targetField;
+    keyPicker.classList.add("open");
+    pickerSearch.value = "";
+    buildPickerList("");
+    pickerSearch.focus();
+    pickerSearch.select();
 }
 
-/**
- * Updates all .key elements with the correct visual labels
- * based on scLayout.
- *
- * - Sets el.dataset.l for each key (for CSS and mapping).
- * - Rebuilds labelToKeyEl so label → element lookups stay valid.
- */
-function applyDynamicLabels() {
-    // Reset mapping and rebuild from scratch
-    Object.keys(labelToKeyEl).forEach(k => delete labelToKeyEl[k]);
-
-    document.querySelectorAll(".key").forEach(el => {
-        const code = el.dataset.code;
-        const label = scLayout[code] ?? "";
-
-        el.dataset.l = label;
-
-        // Key lookup table now uses the KeyboardEvent.code, not the glyph
-        if (code) {
-            labelToKeyEl[code] = el;
-        }
-    });
+function closeKeyPicker() {
+    keyPicker.classList.remove("open");
+    pickerTargetField = null;
 }
 
-/**
- * Full init routine that runs once the DOM is available:
- * - Apply labels
- * - Build key picker list
- * - Refresh keyboard key colors
- */
-document.addEventListener("DOMContentLoaded", () => {
-    applyDynamicLabels();
-    buildAllKeys();
-    refreshKeyboardColors();
-});
-
 /* ========================================================================
-   Key picker events
+   8. Key picker events
    ======================================================================== */
 
-// Filter picker list as the user types
 pickerSearch.addEventListener("input", e => {
-    buildPickerList(e.target.value.trim().toLowerCase());
+    buildPickerList(e.target.value);
 });
 
-// Close picker when clicking outside of it and outside of the fields
-document.addEventListener("click", (e) => {
+document.addEventListener("click", e => {
     if (!keyPicker.contains(e.target) &&
         !pressField.contains(e.target) &&
         !holdField.contains(e.target)) {
@@ -456,246 +496,449 @@ document.addEventListener("click", (e) => {
     }
 });
 
-// Stop propagation when clicking inside picker
-keyPicker.addEventListener("click", (e) => e.stopPropagation());
+keyPicker.addEventListener("click", e => e.stopPropagation());
 
-// Open picker for "press" / "hold" fields
 pressField.addEventListener("click", e => {
     e.stopPropagation();
+    if (!activeBaseCode) return;
     openKeyPicker(pressField);
 });
 
 holdField.addEventListener("click", e => {
     e.stopPropagation();
+    if (!activeBaseCode) return;
     openKeyPicker(holdField);
 });
 
 /* ========================================================================
-   Remove buttons (clear mapping)
+   9. Delete buttons for press / hold
    ======================================================================== */
 
-/**
- * Global click handler for any "delete-btn" (🚫) next to a pill input.
- * Clears that field’s mapping and updates save button state.
- */
-document.addEventListener("click", (e) => {
-    if (!e.target.classList.contains("delete-btn")) return;
-
+deletePressBtn.addEventListener("click", e => {
     e.stopPropagation();
+    setFieldFromCode(pressField, null);
+});
 
-    const field = e.target.parentElement.querySelector(".pill-input");
-    if (!field) return;
-
-    setFieldValue(field, "", "");
-    syncSaveButton();
+deleteHoldBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    setFieldFromCode(holdField, null);
 });
 
 /* ========================================================================
-   Base key selection on the visual keyboard
+   10. Base key selection (clicking on visual keyboard)
    ======================================================================== */
 
-/**
- * When clicking on any visual .key, select it as the base key.
- * - Highlights the key
- * - Loads its existing mapping from keymapData
- * - Updates the base key label in the side panel
- */
 keys.forEach(keyEl => {
-    keyEl.addEventListener("click", () => {
-        const code = keyEl.dataset.code;
-        if (!code) return;
+    keyEl.addEventListener("click", e => {
+        e.stopPropagation();
 
-        // Check whether this key has a visible label in the current layout
-        const label = scLayout[code];
-        if (!label) return;
+        const codeWeb = keyEl.dataset.code;
+        if (!codeWeb) return;
+        if (!activeLayout[codeWeb]) return;
 
-        // Base key identity = Web API code
-        activeKeyLabel = code;
+        activeBaseCode = codeWeb;
 
-        // Visual highlight
         keys.forEach(k => k.classList.remove("active"));
         keyEl.classList.add("active");
+        isBaseKeyActive = true;
 
-        // Load mapping for this base key (by Web code)
-        loadKeyMapping(code);
-
-        // Update UI (display the glyph, but store code internally)
-        setBaseKeyLabel(label);
-
+        setBaseKeyLabel(getDisplayLabelForKey(codeWeb));
+        loadKeyMapping(codeWeb);
+        updateBaseKeyInfoVisibility();
         closeKeyPicker();
+        updateKeyStatus("");
     });
 });
 
-/**
- * Clicking anywhere outside a .key or the key-info panel
- * will clear the current selection and reset the fields.
- */
-document.addEventListener("click", (e) => {
-    const isKey = e.target.closest(".key");
-    const isKeyInfo = e.target.closest(".key-info");
+// Global click: clear selection when clicking outside keyboard + panel + picker
+document.addEventListener("click", e => {
+    const clickedKey = e.target.closest(".key");
+    const clickedPanel = e.target.closest(".key-info");
+    const clickedPicker = e.target.closest("#keyPicker");
 
-    if (!isKey && !isKeyInfo) {
+    if (!clickedKey && !clickedPanel && !clickedPicker) {
+        activeBaseCode = null;
+        isBaseKeyActive = false;
+
         keys.forEach(k => k.classList.remove("active"));
-        activeKeyLabel = null;
-        setBaseKeyLabel(null);
 
-        // Clear press/hold pills (but keep workingMapping in sync)
-        setFieldValue(pressField, null, "");
-        setFieldValue(holdField, null, "");
-        syncSaveButton();
+        setBaseKeyLabel(null);
+        setFieldFromCode(pressField, null, { updateWorking: false });
+        setFieldFromCode(holdField, null, { updateWorking: false });
+
+        currentMapping = { press: null, hold: null };
+        workingMapping = { press: null, hold: null };
+
+        updateBaseKeyInfoVisibility();
+        updateKeyStatus("no key selected");
     }
 });
 
 /* ========================================================================
-   Load / save mapping for a given base key
+   11. Load/save mapping for a base key (keymapData)
    ======================================================================== */
 
-/**
- * Loads mapping information from keymapData for the given
- * base label and updates currentMapping, workingMapping, and
- * the press/hold UI fields.
- *
- * @param {string} label - base key label (matches entry.from)
- */
-function loadKeyMapping(code) {
-    const layer = keymapData.layers[0];
-    const entry = layer.keyCode.find(k => k.from === code);
+function getActiveLayer() {
+    if (!keymapData.layers || keymapData.layers.length === 0) {
+        keymapData.layers = [{
+            layerName: "Main",
+            layerNr: 0,
+            keyCodeEntries: 0,
+            keyCode: [],
+        }];
+        keymapData.layerEntries = 1;
+    }
+    return keymapData.layers[0];
+}
 
-    currentMapping.base = code;
-    currentMapping.press = entry?.toOnPress ?? null;
-    currentMapping.hold = entry?.toOnHold ?? null;
+function loadKeyMapping(baseCodeWeb) {
+    const layer = getActiveLayer();
+    const entry = layer.keyCode.find(k => k.fromS === baseCodeWeb);
 
-    workingMapping.base = currentMapping.base;
+    currentMapping.press = entry?.toOnPressS || null;
+    currentMapping.hold = entry?.toOnHoldS || null;
+
     workingMapping.press = currentMapping.press;
     workingMapping.hold = currentMapping.hold;
 
-    // Update UI fields from currentMapping (without re-writing workingMapping)
-    setFieldValue(
-        pressField,
-        currentMapping.press,
-        currentMapping.press
-            ? (scLayout[currentMapping.press] || currentMapping.press)
-            : "",
-        { updateWorking: false }
-    );
-
-    setFieldValue(
-        holdField,
-        currentMapping.hold,
-        currentMapping.hold
-            ? (scLayout[currentMapping.hold] || currentMapping.hold)
-            : "",
-        { updateWorking: false }
-    );
-
-    syncSaveButton();
+    setFieldFromCode(pressField, currentMapping.press, { updateWorking: false });
+    setFieldFromCode(holdField, currentMapping.hold, { updateWorking: false });
 }
 
 /**
- * Writes the current workingMapping for the active base key
- * back into keymapData and refreshes colors.
+ * saveMappingsAfterChange()
+ * --------------------------
+ * This function is called whenever:
+ *  - You change the "press" or "hold" key in the UI
+ *  - You delete a mapping
+ *  - You select a new base key and confirm changes
+ *
+ * Responsibility:
+ *  - Store the mapping for the currently selected base key (`activeBaseCode`)
+ *  - Update the JSON model (`keymapData`)
+ *  - Update the keyboard display (legends + colors)
+ *  - Ensure invalid mappings are removed
+ *  - Keep OS codes (codeOS) and WebAPI codes (codeWeb) synchronized
  */
-document.getElementById("saveChanges").addEventListener("click", () => {
-    if (!activeKeyLabel) return;
 
-    const layer = keymapData.layers[0];
-    let entry = layer.keyCode.find(k => k.from === activeKeyLabel);
+function saveMappingsAfterChange() {
+    // -----------------------------
+    // 1. No base key selected → do nothing
+    // -----------------------------
+    if (!activeBaseCode) return;
 
-    // Create new entry if this base key has never been mapped
+    // Active layer where all remaps are stored
+    const layer = getActiveLayer();
+
+    // Base key we are editing (WebAPI code)
+    const fromCodeWeb = activeBaseCode;
+
+    // Current chosen mappings (WebAPI codes)
+    const pressCodeWeb = workingMapping.press;
+    const holdCodeWeb = workingMapping.hold;
+
+    // -----------------------------
+    // 2. Prevent self-mapping:
+    //    If press/hold maps to itself → remove entry completely
+    // -----------------------------
+    const selfPress = pressCodeWeb === fromCodeWeb;
+    const selfHold = holdCodeWeb === fromCodeWeb;
+
+    if (selfPress || selfHold) {
+        /**
+         * If a key tries to map to itself, it is 100% invalid.
+         * We delete the entire remap entry for this key.
+         */
+
+        // Remove entry from JSON list
+        layer.keyCode = layer.keyCode.filter(k => k.fromS !== fromCodeWeb);
+        layer.keyCodeEntries = layer.keyCode.length;
+
+        // Reset UI state
+        workingMapping.press = null;
+        workingMapping.hold = null;
+
+        // Reset the dropdown fields
+        pressField.dataset.code = "";
+        holdField.dataset.code = "";
+        pressField.textContent = "-- choose a key --";
+        holdField.textContent = "-- choose a key --";
+
+        // Reset displayed legends on the keyboard itself
+        const keyEl = codeToKeyEl[fromCodeWeb];
+        if (keyEl) {
+            const baseLabel = getDisplayLabelForKey(fromCodeWeb);
+            const kc = keyEl.querySelector(".key-content");
+
+            kc.classList.remove("double");
+            kc.classList.add("single");
+
+            kc.querySelector(".single-line").textContent = baseLabel;
+            kc.querySelector(".top-line").textContent = "";
+            kc.querySelector(".bottom-line").textContent = "";
+        }
+
+        // Update colors
+        refreshKeyboardColors();
+        return;
+    }
+
+    // -----------------------------
+    // 3. Try to locate an existing JSON entry for this key
+    // -----------------------------
+    let entry = layer.keyCode.find(k => k.fromS === fromCodeWeb);
+
+    // -----------------------------
+    // 4. If no entry exists → create a new blank mapping for this key
+    // -----------------------------
     if (!entry) {
+        const fromEntry = activeLayout[fromCodeWeb];  // contains OS code, legend, etc.
+        console.log(fromEntry.codeOS);
+        console.log(fromCodeWeb);
         entry = {
-            // Web API code, e.g. "KeyH"
-            from: activeKeyLabel,
-            toOnPress: null,
-            toOnHold: null,
+            // OS code for the base key
+            from: fromEntry?.codeOS ?? -1,
 
-            // String fields = exact Web API code
-            fromS: activeKeyLabel,
+            // OS codes for press/hold (initially unset)
+            toOnPress: -1,
+            toOnHold: -1,
+
+            // WebAPI codes for press/hold
+            fromS: fromCodeWeb,
             toOnPressS: "",
             toOnHoldS: "",
         };
+
+        // Insert into the JSON mapping
         layer.keyCode.push(entry);
-        layer.keyCodeEntries++;
     }
 
-    // Save raw Web codes
-    entry.toOnPress = workingMapping.press;
-    entry.toOnHold = workingMapping.hold;
+    // -----------------------------
+    // 5. Update WebAPI mapping values
+    // -----------------------------
+    entry.toOnPressS = pressCodeWeb || "";
+    entry.toOnHoldS = holdCodeWeb || "";
 
-    // Update string versions (always Web code)
-    entry.fromS = entry.from;
-    entry.toOnPressS = entry.toOnPress || "";
-    entry.toOnHoldS = entry.toOnHold || "";
+    // -----------------------------
+    // 6. Update OS codes to match WebAPI codes
+    // -----------------------------
+    const fromEntry = activeLayout[fromCodeWeb];
+    const pressEntry = pressCodeWeb ? activeLayout[pressCodeWeb] : null;
+    const holdEntry = holdCodeWeb ? activeLayout[holdCodeWeb] : null;
 
-    // Keep currentMapping in sync
+    entry.from = fromEntry?.codeOS ?? -1;
+    entry.toOnPress = pressEntry?.codeOS ?? -1;
+    entry.toOnHold = holdEntry?.codeOS ?? -1;
+
+    // -----------------------------
+    // X. Automatically delete empty entries
+    // -----------------------------
+    const nothingMapped =
+        (!entry.toOnPressS || entry.toOnPressS === "") &&
+        (!entry.toOnHoldS || entry.toOnHoldS === "");
+
+    if (nothingMapped) {
+        // Remove from layer entirely
+        layer.keyCode = layer.keyCode.filter(k => k.fromS !== fromCodeWeb);
+        layer.keyCodeEntries = layer.keyCode.length;
+
+        // Reset flags
+        currentMapping.press = null;
+        currentMapping.hold = null;
+
+        workingMapping.press = null;
+        workingMapping.hold = null;
+
+        // Reset UI fields
+        pressField.dataset.code = "";
+        holdField.dataset.code = "";
+        pressField.textContent = "-- choose a key --";
+        holdField.textContent = "-- choose a key --";
+
+        // Reset the key visual
+        const keyEl = codeToKeyEl[fromCodeWeb];
+        if (keyEl) {
+            const baseLabel = getDisplayLabelForKey(fromCodeWeb);
+            const kc = keyEl.querySelector(".key-content");
+
+            kc.classList.remove("double");
+            kc.classList.add("single");
+
+            kc.querySelector(".single-line").textContent = baseLabel;
+            kc.querySelector(".top-line").textContent = "";
+            kc.querySelector(".bottom-line").textContent = "";
+        }
+
+        refreshKeyboardColors();
+        return; // <--- IMPORTANT: stop executing the rest of function
+    }
+
+    // -----------------------------
+    // 7. Update the key legends shown on the keyboard
+    // -----------------------------
+    const keyEl = codeToKeyEl[fromCodeWeb];
+    if (keyEl) {
+        const baseLabel = getDisplayLabelForKey(fromCodeWeb);
+        const pressLabel = pressCodeWeb ? getDisplayLabelForKey(pressCodeWeb) : "";
+        const holdLabel = holdCodeWeb ? getDisplayLabelForKey(holdCodeWeb) : "";
+
+        const kc = keyEl.querySelector(".key-content");
+        const single = kc.querySelector(".single-line");
+        const top = kc.querySelector(".top-line");
+        const bottom = kc.querySelector(".bottom-line");
+
+        // Case A: both press + hold → show double layout
+        if (pressLabel && holdLabel) {
+            kc.classList.remove("single");
+            kc.classList.add("double");
+
+            top.textContent = pressLabel;
+            bottom.textContent = holdLabel;
+            single.textContent = "";
+        }
+
+        // Case B: press only → show single (press)
+        else if (pressLabel) {
+            kc.classList.remove("double");
+            kc.classList.add("single");
+
+            single.textContent = pressLabel;
+            top.textContent = "";
+            bottom.textContent = "";
+        }
+
+        // Case C: hold only → show base + hold stacked
+        else if (holdLabel) {
+            kc.classList.remove("single");
+            kc.classList.add("double");
+
+            top.textContent = baseLabel;
+            bottom.textContent = holdLabel;
+            single.textContent = "";
+        }
+
+        // Case D: nothing mapped → return to normal
+        else {
+            kc.classList.remove("double");
+            kc.classList.add("single");
+
+            single.textContent = baseLabel;
+            top.textContent = "";
+            bottom.textContent = "";
+        }
+    }
+
+    // -----------------------------
+    // 8. Update global counters for JSON export
+    // -----------------------------
+    layer.keyCodeEntries = layer.keyCode.length;
+    keymapData.layerEntries = keymapData.layers.length;
+
+    // -----------------------------
+    // 9. Update currently saved mapping
+    // -----------------------------
     currentMapping.press = workingMapping.press;
     currentMapping.hold = workingMapping.hold;
 
-    syncSaveButton();
+    // -----------------------------
+    // 10. Refresh keyboard color highlighting
+    // -----------------------------
     refreshKeyboardColors();
+}
+
+/* ========================================================================
+   12. Physical keyboard → set "press" mapping
+   ======================================================================== */
+
+document.addEventListener("keydown", e => {
+    if (!activeBaseCode || !isBaseKeyActive) return;
+
+    if (e.key === "Escape") {
+        keys.forEach(k => k.classList.remove("active"));
+        isBaseKeyActive = false;
+        activeBaseCode = null;
+        setBaseKeyLabel(null);
+        setFieldFromCode(pressField, null, { updateWorking: false });
+        setFieldFromCode(holdField, null, { updateWorking: false });
+        currentMapping = { press: null, hold: null };
+        workingMapping = { press: null, hold: null };
+        updateBaseKeyInfoVisibility();
+        updateKeyStatus("no key selected");
+        return;
+    }
+
+    if (keyPicker.classList.contains("open") &&
+        document.activeElement === pickerSearch) {
+        return;
+    }
+
+    const codeWeb = e.code;
+    if (!activeLayout[codeWeb]) return;
+
+    workingMapping.press = codeWeb;
+    setFieldFromCode(pressField, codeWeb, { updateWorking: false });
+    saveMappingsAfterChange();
+
+    e.preventDefault();
+    e.stopPropagation();
 });
 
 /* ========================================================================
-   Keyboard color refresh based on mappings
+   13. Keyboard coloring based on mapping
    ======================================================================== */
 
-/**
- * Colors keys on the visual keyboard depending on how they are mapped
- * in the active layer:
- *
- * - no mapping      → default background
- * - press only      → green
- * - hold only       → brown/orange
- * - press + hold    → purple
- */
 function refreshKeyboardColors() {
-    // Reset all keys to default background
-    keys.forEach(k => k.style.background = "");
+    // reset all colors
+    keys.forEach(k => {
+        k.style.backgroundColor = "";
+    });
 
-    const layer = keymapData.layers[0];
+    const layer = getActiveLayer();
 
     layer.keyCode.forEach(entry => {
-        const el = labelToKeyEl[entry.from];
-        if (!el) return;
+        // Determine base key's WebAPI code
+        let baseCodeWeb = entry.fromS;
+        if (!baseCodeWeb && typeof entry.from === "number" && entry.from !== -1) {
+            baseCodeWeb = findWebCodeFromOS(entry.from);
+        }
+        if (!baseCodeWeb) return;
 
-        const press = !!entry.toOnPress;
-        const hold = !!entry.toOnHold;
+        const keyEl = codeToKeyEl[baseCodeWeb];
+        if (!keyEl) return;
 
-        if (press && hold) {
-            el.style.background = "#69408f";
-        } else if (press) {
-            el.style.background = "#2d7d2d";
-        } else if (hold) {
-            el.style.background = "#8a6e33";
+        // Use symbolic mappings for color logic
+        const hasPress = !!(entry.toOnPressS && entry.toOnPressS !== "");
+        const hasHold = !!(entry.toOnHoldS && entry.toOnHoldS !== "");
+
+        if (hasPress && hasHold) {
+            keyEl.style.backgroundColor = "#69408f"; // both
+        } else if (hasPress) {
+            keyEl.style.backgroundColor = "#2d7d2d"; // press only
+        } else if (hasHold) {
+            keyEl.style.backgroundColor = "#8a6e33"; // hold only
         } else {
-            el.style.background = "#2a2a2a";
+            keyEl.style.backgroundColor = "";
         }
     });
 }
 
 /* ========================================================================
-   Settings dropdowns (Language / Layout / OS)
+   14. Settings dropdowns (language/layout/os)
    ======================================================================== */
 
-/**
- * Closes all dropdown menus (used whenever clicking outside, etc.).
- */
 function closeAllDropdowns() {
     dropdowns.forEach(d => d.classList.remove("open"));
 }
 
-// Global click → close all dropdowns
 document.addEventListener("click", () => {
     closeAllDropdowns();
 });
 
-// Per-dropdown wiring
 dropdowns.forEach(dd => {
     const pill = dd.querySelector(".dropdown-pill");
     const menu = dd.querySelector(".dropdown-menu");
     const labelEl = dd.querySelector(".dropdown-pill-label");
 
-    // Toggle dropdown open/closed when clicking pill
     pill.addEventListener("click", e => {
         e.stopPropagation();
         const wasOpen = dd.classList.contains("open");
@@ -703,48 +946,37 @@ dropdowns.forEach(dd => {
         if (!wasOpen) dd.classList.add("open");
     });
 
-    // Handle item selection
     menu.querySelectorAll(".dropdown-item").forEach(item => {
         item.addEventListener("click", () => {
             labelEl.textContent = item.textContent;
             dd.classList.remove("open");
 
             if (dd.dataset.setting === "language") {
-                // Switch layout language
                 currentLanguage = item.dataset.value;
-                scLayout = applyModifierSymbols(codes.getActiveLayout(currentLanguage, currentLayout, currentOS));
-                applyDynamicLabels();
-                buildAllKeys();
-                refreshKeyboardColors();
+            } else if (dd.dataset.setting === "layout") {
+                currentLayout = item.dataset.value;
+            } else if (dd.dataset.setting === "os") {
+                currentOS = item.dataset.value;
             }
 
-            // Layout + OS changes are already respected by using
-            // applyModifierSymbols + applyDynamicLabels.
+            rebuildLayout();
         });
     });
 });
 
 /* ========================================================================
-   Tooltip logic for "press" / "hold" info
+   15. Tooltips for info icons
    ======================================================================== */
 
-/**
- * Simple toggle logic:
- * - Clicking an info icon shows its tooltip and hides all others.
- * - Clicking anywhere else hides all tooltips.
- */
 document.querySelectorAll(".info-icon").forEach(icon => {
     const tooltip = icon.parentElement.querySelector(".tooltip-bubble");
+    if (!tooltip) return;
 
-    icon.addEventListener("click", (e) => {
+    icon.addEventListener("click", e => {
         e.stopPropagation();
-
-        // Hide all other tooltips first
         document.querySelectorAll(".tooltip-bubble").forEach(t => {
             if (t !== tooltip) t.classList.remove("visible");
         });
-
-        // Toggle this one
         tooltip.classList.toggle("visible");
     });
 });
@@ -756,122 +988,10 @@ document.addEventListener("click", () => {
 });
 
 /* ========================================================================
-   Download remap JSON
-   ======================================================================== */
-function createExportData() {
-    const layer = keymapData.layers[0];
-
-    // count unique base keys that have ANY mapping
-    const uniqueKeys = new Set(
-        layer.keyCode.map(e => e.from)
-    ).size;
-
-    const exportLayer = {
-        layerName: layer.layerName,
-        layerNr: layer.layerNr,
-        keyCodeEntries: layer.keyCodeEntries,
-        keyCode: layer.keyCode.map(entry => {
-            const fromMac = codes.VK_MAC_INDEPENDENT[entry.from]?.MAC
-                ?? codes.VK_MAC_JIS[entry.from]?.MAC
-                ?? -1;
-
-            const pressMac = entry.toOnPress
-                ? (codes.VK_MAC_INDEPENDENT[entry.toOnPress]?.MAC
-                    ?? codes.VK_MAC_JIS[entry.toOnPress]?.MAC)
-                : -1;
-
-            const holdMac = entry.toOnHold
-                ? (codes.VK_MAC_INDEPENDENT[entry.toOnHold]?.MAC
-                    ?? codes.VK_MAC_JIS[entry.toOnHold]?.MAC)
-                : -1;
-
-            return {
-                from: fromMac,
-                toOnPress: pressMac ?? -1,
-                toOnHold: holdMac ?? -1,
-
-                // MUST be the exact Web API code
-                fromS: entry.from,
-                toOnPressS: entry.toOnPress ?? "",
-                toOnHoldS: entry.toOnHold ?? ""
-            };
-        })
-    };
-
-    return {
-        layerEntries: 1,
-        uniqueKeyCodeEntries: uniqueKeys,
-        layers: [exportLayer]
-    };
-}
-
-/**
- * Serialises the current keymapData to JSON and triggers a download.
- */
-downloadBtn.addEventListener("click", () => {
-    const data = createExportData();
-
-    const blob = new Blob(
-        [JSON.stringify(data, null, 4)],
-        { type: "application/json" }
-    );
-
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "my_remap.json";
-    a.click();
-    URL.revokeObjectURL(a.href);
-});
-
-/* ========================================================================
-   Upload remap JSON
+   16. Initialisation
    ======================================================================== */
 
-/**
- * Opens the hidden <input type="file"> when clicking the Upload button.
- */
-uploadBtn.addEventListener("click", () => {
-    uploadInput.click();
-});
-
-/**
- * Reads a selected JSON file, parses it and replaces the current layer
- * in keymapData, then refreshes colors and the UI for the active key.
- */
-uploadInput.addEventListener("change", () => {
-    const file = uploadInput.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-
-    reader.onload = () => {
-        try {
-            const json = JSON.parse(reader.result);
-
-            // Expected minimal structure:
-            // {
-            //   layers: [
-            //     { keyCode: [ { from, toOnPress, toOnHold, ... }, ... ] }
-            //   ]
-            // }
-            if (!json.layers || !json.layers[0]) {
-                alert("Invalid remap file.");
-                return;
-            }
-
-            keymapData.layers[0].keyCode = json.layers[0].keyCode;
-            keymapData.layers[0].keyCodeEntries = json.layers[0].keyCode.length;
-
-            refreshKeyboardColors();
-
-            // If a key is active, reload its mapping into the panel
-            if (activeKeyLabel) {
-                loadKeyMapping(activeKeyLabel);
-            }
-        } catch (e) {
-            alert("Failed to load remap: " + e);
-        }
-    };
-
-    reader.readAsText(file);
+document.addEventListener("DOMContentLoaded", () => {
+    rebuildLayout();
+    updateKeyStatus("no key selected");
 });

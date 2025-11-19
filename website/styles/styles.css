@@ -126,10 +126,6 @@ body {
     pointer-events: none;
 }
 
-.key::after {
-    content: attr(data-l);
-}
-
 /* --------------------------------------------------
    Key Info Panel
 -------------------------------------------------- */
@@ -145,6 +141,52 @@ body {
     gap: 16px;
     position: relative;
     overflow: visible;
+}
+
+.key-info-header {
+    display: flex;
+    align-items: baseline; /* nice visual alignment */
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.key-info-header h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.key-info-header .key-status {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.6;
+}
+
+#baseKeyValue {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    background: rgb(83, 83, 234);
+    border: 1px solid var(--pill-border);
+    border-radius: 8px;
+    font-size: 16px;
+    line-height: 1;
+    color: white;
+    min-height: 32px;
+    min-width: 40px;
+    box-sizing: border-box;
+}
+
+#baseKeyInfo {
+    display: none;
+}
+
+.key-status {
+    font-size: 12px;
+    color: #888;
+    font-style: italic;
+    white-space: nowrap;
 }
 
 /* Pills + Inputs */
@@ -204,27 +246,6 @@ body {
 }
 .delete-btn:hover { opacity: 1; }
 
-.save-btn {
-    width: 100%;
-    padding: 12px 0;
-    border-radius: 10px;
-    border: 1px solid var(--pill-border);
-    background: var(--pill-bg);
-    color: #aaa;
-    font-size: 16px;
-    transition: 0.15s;
-}
-
-.save-btn.enabled {
-    background: rgb(253, 46, 46);
-    color: black;
-    cursor: pointer;
-}
-
-.save-btn.disabled {
-    opacity: 0.4;
-}
-
 /* --------------------------------------------------
    Key Picker Popup
 -------------------------------------------------- */
@@ -280,17 +301,17 @@ body {
 
 .key-picker-tile {
     display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;   
+    align-items: center;      
+    justify-content: center;  
     padding: 6px 14px;
     border-radius: 8px;
     background: var(--pill-bg);
     border: 1px solid var(--pill-border);
     cursor: pointer;
     font-size: 15px;
-    line-height: 1;
+    line-height: 1.1;         
     user-select: none;
-    white-space: nowrap;
     min-width: 48px;
     min-height: 48px;
     font-family: var(--font);
@@ -299,6 +320,25 @@ body {
 .key-picker-tile:hover {
     background: var(--accent);
     color: black;
+}
+
+.kp-legend {
+    font-size: 1rem;
+    line-height: 1.2;
+}
+
+.kp-desc {
+    font-size: 0.65rem;
+    opacity: 0.45;
+    margin-top: 2px;
+}
+
+.key-picker-item {
+    display: flex;
+    flex-direction: column;   /* ← THIS is the important change */
+    justify-content: center;
+    align-items: flex-start;  /* or center */
+    gap: 2px;
 }
 
 /* --------------------------------------------------
@@ -375,18 +415,6 @@ body {
 .mod-press { background: #2d7d2d !important; }
 .mod-hold  { background: #8a6e33 !important; }
 .mod-both  { background: #69408f !important; }
-
-#baseKeyValue {
-    display: inline-block;
-    padding: 6px 10px;
-    border: 1px solid var(--pill-border);
-    background: rgb(83, 83, 234);
-    border-radius: 8px;
-    font-size: 16px;
-    min-width: 40px;
-    text-align: center;
-    margin-top: 10px;
-}
 
 /* --------------------------------------------------
    Vertical Dividers
@@ -480,6 +508,7 @@ body {
     align-items: center;
     gap: 6px;
     position: relative;
+    margin-bottom: 6px;
 }
 
 .info-icon {
@@ -555,3 +584,48 @@ button,
 .pill-btn {
     cursor: pointer;
 }
+
+/* ======================================================
+   NEW KEY LEGEND SYSTEM (double-line / single-line)
+   ====================================================== */
+
+.key {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;     /* Guarantee enough height for 2 lines */
+}
+
+.key-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    pointer-events: none; /* click passes to the key itself */
+}
+
+/* Single-line mode */
+.key-content.single {
+    justify-content: center;
+}
+
+.key-content.single .single-line {
+    font-size: 1.05rem;
+    line-height: 1.1;
+}
+
+/* Double-line mode */
+.key-content.double {
+    justify-content: center;
+    line-height: 1.1;
+}
+
+.key-content.double .top-line,
+.key-content.double .bottom-line {
+    font-size: 0.90rem;
+}
+
+.key-content.double .top-line {
+    margin-bottom: 2px;
+}   
+

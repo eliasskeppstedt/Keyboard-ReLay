@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8" />
     <title>Keyboard Relay</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles/styles.css" />
+    <link rel="stylesheet" href="styles/codeEditor.css" />
 </head>
 
 <body>
@@ -104,10 +105,10 @@
                         <div class="key option" style="--c:23; --w:2; --r:6; --h:2" data-code="AltRight"></div>
 
                         <!-- Arrows -->
-                        <div class="key arrow" style="--c:25; --w:2; --r:7; --h:1" data-code="ArrowLeft"></div>
-                        <div class="key arrow" style="--c:27; --w:2; --r:7; --h:1" data-code="ArrowDown"></div>
-                        <div class="key arrow" style="--c:27; --w:2; --r:6; --h:1" data-code="ArrowUp"></div>
-                        <div class="key arrow" style="--c:29; --w:2; --r:7; --h:1" data-code="ArrowRight"></div>
+                        <div class="key arrow" style="--c:25; --w:2; --r:7; --h:2" data-code="ArrowLeft"></div>
+                        <div class="key arrow" style="--c:27; --w:2; --r:8; --h:2" data-code="ArrowDown"></div>
+                        <div class="key arrow" style="--c:27; --w:2; --r:6; --h:2" data-code="ArrowUp"></div>
+                        <div class="key arrow" style="--c:29; --w:2; --r:7; --h:2" data-code="ArrowRight"></div>
 
                     </div>
                 </div>
@@ -116,17 +117,24 @@
                 <div id="keyInfo" class="key-info">
                     <!-- Key Picker Popup -->
                     <div id="keyPicker" class="key-picker" aria-hidden="true">
-                        <input id="keyPickerSearch" class="key-picker-search" placeholder="search…" autocomplete="off" />
+                        <input id="keyPickerSearch" class="key-picker-search" placeholder="search…"
+                            autocomplete="off" />
                         <div id="keyPickerList" class="key-picker-list"></div>
                     </div>
 
-                    <h1>Key Info</h1>
+                    <div class="key-info-header">
+                        <h1>Key Info</h1>
+                        <div id="keyStatus" class="key-status">No key selected</div>
+                    </div>
 
                     <div>
-                        <label>base key</label>
-                        <div class="with-delete">
-                            <span id="baseKeyValue">—</span>
+                        <div class="label-with-tooltip">
+                            <label>base key</label>
+                            <button type="button" class="info-icon" id="baseKeyInfo">i</button>
+                            <div class="tooltip-bubble">Tooltip text here</div>
                         </div>
+
+                        <span id="baseKeyValue" class="base-key-box">—</span>
                     </div>
 
                     <div>
@@ -138,8 +146,8 @@
                             </div>
                         </div>
                         <div class="pill-row">
-                            <button id="pressField" class="pill-input real-input" type="button">-- choose a key --</button>
-                            <button class="delete-btn" id="deletePress">🚫</button>
+                            <button id="pressField" class="pill-input" type="button">-- choose a key --</button>
+                            <button class="delete-btn" id="deletePress">×</button>
                         </div>
                     </div>
 
@@ -152,13 +160,10 @@
                             </div>
                         </div>
                         <div class="pill-row">
-                            <button id="holdField" class="pill-input real-input" type="button">-- choose a key --</button>
-                            <button class="delete-btn" id="deleteHold">🚫</button>
+                            <button id="holdField" class="pill-input" type="button">-- choose a key --</button>
+                            <button class="delete-btn" id="deleteHold">×</button>
                         </div>
                     </div>
-
-                    <button id="saveChanges" class="save-btn disabled">Save changes</button>
-
                 </div>
             </div>
 
@@ -246,21 +251,49 @@
                     <!-- Column 3: Remap upload/download -->
                     <div class="legend-column legend-column-remap">
                         <h2 class="legend-title">Remap file</h2>
-                        <p class="legend-subtext">
-                            Upload or download your key remap as JSON.
-                        </p>
+                        <p class="legend-subtext">Upload or download your key remap as JSON.</p>
+
+                        <!-- VIEW JSON BUTTON -->
+                        <p id="view-remap-link" class="view-remap-link">Current remap (view)</p>
+
                         <div class="remap-buttons">
-                            <button id="uploadRemap" class="pill-btn">Upload remap</button>
-                            <button id="downloadRemap" class="pill-btn">Download remap</button>
+
+                            <!-- UPLOAD BUTTON -->
+                            <button id="btn-upload-json" class="pill-btn">Upload remap</button>
+
+                            <!-- DOWNLOAD BUTTON -->
+                            <button id="btn-download-json" class="pill-btn">Download remap</button>
                         </div>
-                        <input type="file" id="uploadRemapInput" accept="application/json" style="display:none" />
+
+                        <!-- HIDDEN FILE INPUT -->
+                        <input type="file" id="json-upload-input" accept="application/json" style="display:none" />
                     </div>
 
                 </div>
             </div>
         </div>
     </div>
+    <!-- Popup for viewing JSON remap -->
+    <div id="remapPopup" class="remap-popup hidden">
+        <div class="remap-popup-inner">
 
+            <div class="popup-close">×</div>
+
+            <div class="code-editor">
+                <div class="code-editor-header">
+                    <div class="code-tabs">
+                        <div class="code-tab active">my_remap.json</div>
+                    </div>
+                </div>
+
+                <div class="code-editor-body">
+                    <div id="codeEditorLines" class="code-lines"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <script src="scripts/jsonEditor.js"></script>
     <script type="module" src="scripts/script.js"></script>
 </body>
 
