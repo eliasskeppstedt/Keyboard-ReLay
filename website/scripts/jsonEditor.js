@@ -1,5 +1,5 @@
 // ======================================================
-// JSON EDITOR MODULE (CLEAN & SELF-CONTAINED)
+// JSON EDITOR MODULE (with Base / Remaps tabs)
 // ======================================================
 
 const JsonEditor = (() => {
@@ -15,6 +15,17 @@ const JsonEditor = (() => {
     const btnUpload = document.getElementById("json-upload-input");
     const btnUploadTrigger = document.getElementById("btn-upload-json");
     const btnDownload = document.getElementById("btn-download-json");
+
+    // new tab buttons
+    const tabBase = document.getElementById("json-tab-base");
+    const tabRemap = document.getElementById("json-tab-remap");
+    const tabMerged = document.getElementById("json-tab-merged");
+
+    // current data for tabs
+    let currentBaseJson = null;
+    let currentRemapJson = null;
+    let currentMergedJson = null;
+    let activeTab = "base"; // "base" | "remap" | "single"
 
     // -------------------------
     // Syntax highlighting
@@ -53,9 +64,14 @@ const JsonEditor = (() => {
     }
 
     // -------------------------
-    // Render JSON
+    // Render JSON (single object)
     // -------------------------
     function render(data) {
+        if (!data) {
+            codeLinesEl.innerHTML = "";
+            return;
+        }
+
         const jsonStr = JSON.stringify(data, null, 4);
         const lines = jsonStr.split("\n");
 
@@ -90,26 +106,82 @@ const JsonEditor = (() => {
     }
 
     // -------------------------
+    // Tab handling
+    // -------------------------
+    function updateTabUI() {
+        if (!tabBase || !tabRemap) return;
+        
+        tabBase.classList.toggle("code-tab-active", activeTab === "base");
+        tabRemap.classList.toggle("code-tab-active", activeTab === "remap");
+        tabMerged.classList.toggle("code-tab-active", activeTab === "merged");
+
+        // hide tab bar when we only have a single JSON
+        const bar = tabBase.parentElement;
+        if (!currentRemapJson) {
+            bar.classList.add("code-tabs--hidden");
+        } else {
+            bar.classList.remove("code-tabs--hidden");
+        }
+    }
+
+    function showTab(tab) {
+        activeTab = tab;
+        updateTabUI();
+
+        if (tab === "base") {
+            render(currentBaseJson);
+        } else if (tab === "remap") {
+            render(currentRemapJson);
+        } else {
+            render(currentBaseJson);
+        }
+    }
+
+    if (tabMerged) {
+        tabMerged.addEventListener("click", () => {
+            if (!currentMergedJson) return;
+            activeTab = "merged";
+            updateTabUI();
+            render(currentMergedJson);
+        });
+    }
+
+    // -------------------------
     // Panel open/close
     // -------------------------
-    function open(data) {
-        render(data);
+    function open(dataOrBundle) {
+        // dataOrBundle can be:
+        //   1) plain layout JSON  (old mode)
+        //   2) { base, remap, merged, filename } (new mode)
+        if (dataOrBundle && dataOrBundle.base && dataOrBundle.remap) {
+            currentBaseJson = dataOrBundle.base;
+            currentRemapJson = dataOrBundle.remap;
+            currentMergedJson = dataOrBundle.merged || null;
+            activeTab = "base";
+        } else {
+            currentBaseJson = dataOrBundle || null;
+            currentRemapJson = null;
+            currentMergedJson = null;
+            activeTab = "single";
+        }
+
+        showTab(activeTab);
         panel.classList.remove("hidden");
     }
 
     function close() {
         panel.classList.add("hidden");
     }
-  
+
     // -------------------------
     // Download JSON
     // -------------------------
-    function download(data) {
+    function download(data, filename = "my_remaps.json") {
         const blob = new Blob([JSON.stringify(data, null, 4)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "layout.json";
+        a.download = filename;
         a.click();
         URL.revokeObjectURL(url);
     }
@@ -123,25 +195,27 @@ const JsonEditor = (() => {
             try {
                 const json = JSON.parse(reader.result);
                 if (JsonEditor.onImport) JsonEditor.onImport(json);
-                open(json);
+                // IMPORTANT: do NOT auto-open the editor on upload
+                // open(json);  <-- we removed this per your request
             } catch (err) {
                 alert("Invalid JSON file");
             }
         };
         reader.readAsText(file);
     }
-  
+
     // -------------------------
     // Event wiring
+    // -------------------------
 
+    // trigger hidden <input type="file">
     if (btnUploadTrigger) {
         btnUploadTrigger.addEventListener("click", () => {
             btnUpload.click();
         });
     }
 
-    // Original event wiring
-    // -------------------------
+    // View JSON
     if (btnOpen) {
         btnOpen.addEventListener("click", () => {
             if (JsonEditor.onExport) {
@@ -150,23 +224,48 @@ const JsonEditor = (() => {
         });
     }
 
+    // close popup
     if (btnClose) {
         btnClose.addEventListener("click", close);
     }
 
+    // download JSON (merged layout)
     if (btnDownload) {
         btnDownload.addEventListener("click", () => {
-            if (JsonEditor.onExport) download(JsonEditor.onExport());
+            if (!JsonEditor.onExport) return;
+            const bundle = JsonEditor.onExport();
+
+            if (bundle && bundle.merged) {
+                download(bundle.merged, bundle.filename || "my_remaps.json");
+            } else {
+                download(bundle, "my_remaps.json");
+            }
         });
     }
 
+    // upload file
     if (btnUpload) {
         btnUpload.addEventListener("change", e => {
             const file = e.target.files[0];
             if (file) uploadFile(file);
         });
     }
-  
+
+    // tab buttons
+    if (tabBase) {
+        tabBase.addEventListener("click", () => {
+            if (!currentBaseJson) return;
+            showTab("base");
+        });
+    }
+
+    if (tabRemap) {
+        tabRemap.addEventListener("click", () => {
+            if (!currentRemapJson) return;
+            showTab("remap");
+        });
+    }
+
     // -------------------------
     // Public API
     // -------------------------

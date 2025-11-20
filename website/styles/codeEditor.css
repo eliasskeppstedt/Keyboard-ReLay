@@ -107,25 +107,25 @@
 .popup-close {
     position: absolute;
 
-    /* flush with frame padding */
-    top: calc(var(--ce-header-height) / 4);
-    left: calc(var(--ce-header-height) / 4);
+    top: 10px;
+    left: 10px;
 
-    width : calc(var(--ce-header-height) / 2);
-    height: calc(var(--ce-header-height) / 2);
-
-    border-radius: 50%;
-    border: none;
-
-    background: var(--ce-close-bg);
-    color: var(--ce-close-fg);
+    width: 20px;
+    height: 20px;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
+    border-radius: 50%;
+    background: var(--ce-close-bg);
+    color: var(--ce-close-fg);
+
     cursor: pointer;
-    font-size: 16px;
+    border: none;
+
+    font-size: 14px; /* smaller = more centered */
+    line-height: 1;
 
     z-index: 10;
 }
@@ -133,8 +133,6 @@
 .popup-close:hover {
     background: var(--ce-close-bg-hover);
 }
-
-
 
 /* =====================================================================
    Code editor container
@@ -213,7 +211,53 @@
     color: var(--ce-tab-fg-active);
 }
 
+/* ========================================================
+   Tabs for JSON editor (Base / My remaps)
+   ======================================================== */
 
+.code-tabs {
+    position: absolute;
+    top: 0;
+    left: calc(var(--ce-header-height)); /* aligns with the close button */
+    height: var(--ce-header-height);
+
+    display: flex;
+    align-items: flex-end;
+
+    gap: 6px;
+    z-index: 200;
+}
+
+/* inactive tabs */
+.code-tab {
+    padding: 7px 14px 6px; /* 1px taller, matches original */
+    border-radius: 10px 10px 0 0;
+
+    background: transparent;
+    color: var(--ce-tab-fg);
+
+    font-size: 0.82rem;
+    font-weight: 500;
+
+    cursor: pointer;
+    user-select: none;
+    border: none;
+}
+
+/* ACTIVE PINK TAB – IDENTICAL to original */
+.code-tab-active {
+    background: var(--ce-tab-bg-active);   /* #ff74cf */
+    color: var(--ce-tab-fg-active);         /* #2a0a1f */
+
+    padding: 7px 14px 6px; /* exact spacing from old viewer */
+    border-radius: 10px 10px 0 0;
+
+    font-weight: 600;
+
+    box-shadow: 0 0 0 1px var(--ce-tab-bg-active);
+    position: relative;
+    z-index: 250; /* places it above the header strip */
+}
 
 /* =====================================================================
    Scrollable code area
@@ -325,5 +369,14 @@
 }
 
 .view-remap-link:hover {
+    color: #cfe3ff;
+}
+
+.link-text {
+    color: #9cc3ff;
+    cursor: pointer;
+    text-decoration: underline;
+}
+.link-text:hover {
     color: #cfe3ff;
 }

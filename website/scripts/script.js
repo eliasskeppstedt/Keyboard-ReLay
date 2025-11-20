@@ -1,128 +1,257 @@
-/* ========================================================================
-   Keyboard Relay – integrated with new getActiveLayout()
-   ======================================================================== */
-
 import { getActiveLayout } from "./codes.js";
 import { keymapData } from "./mappingData.js";
 
 /* ========================================================================
-   JSON Export
+   JSON helpers: base snapshot + remaps + merged export/import
    ======================================================================== */
 
-function createExportData() {
-    const layer = getActiveLayer();
+/**
+ * Build a "base layout" keyCode array from the currently activeLayout.
+ * - One entry per physical key
+ * - Default behaviour: tap = base key, hold = none
+ * - This is the layout your daemon should see if there are NO custom remaps.
+ */
+function buildBaseKeyCodeSnapshot() {
+    const keyCode = [];
 
+    for (const codeWeb in activeLayout) {
+        if (!Object.prototype.hasOwnProperty.call(activeLayout, codeWeb)) continue;
+        const layoutEntry = activeLayout[codeWeb];
+        if (!layoutEntry) continue;
+
+        const codeOS = layoutEntry.codeOS;
+        if (codeOS === undefined || codeOS === null || codeOS === -1) continue;
+
+        keyCode.push({
+            // OS codes
+            from: codeOS,
+            toOnPress: codeOS, // default: press = base
+            toOnHold: -1,      // default: no hold mapping
+
+            // WebAPI codes
+            fromS: codeWeb,
+            toOnPressS: codeWeb,
+            toOnHoldS: "",
+        });
+    }
+
+    return keyCode;
+}
+
+/**
+ * Build a clean copy of just your custom remaps from keymapData.
+ * These are stored in WebAPI form + OS form already in keymapData.layers[0].keyCode.
+ */
+function buildRemapKeyCodeSnapshot() {
+    const layer = getActiveLayer();
+    return layer.keyCode.map(entry => ({
+        from: entry.from ?? -1,
+        toOnPress: entry.toOnPress ?? -1,
+        toOnHold: entry.toOnHold ?? -1,
+        fromS: entry.fromS || "",
+        toOnPressS: entry.toOnPressS || "",
+        toOnHoldS: entry.toOnHoldS || "",
+    }));
+}
+
+/**
+ * Overlay your remaps on top of the base layout.
+ * Any remap overrides only the fields it actually uses (press / hold).
+ */
+function mergeRemapsOverBase(baseKeyCode, remapKeyCode) {
+    const byFromS = new Map();
+
+    // Start from base
+    baseKeyCode.forEach(entry => {
+        byFromS.set(entry.fromS, { ...entry });
+    });
+
+    // Apply remaps
+    remapKeyCode.forEach(remap => {
+        const key = remap.fromS;
+        if (!key) return;
+
+        const base = byFromS.get(key);
+        if (!base) {
+            // Key not part of base for some reason → just add as-is
+            byFromS.set(key, { ...remap });
+            return;
+        }
+
+        const merged = { ...base };
+
+        const hasPressRemap =
+            remap.toOnPress !== undefined &&
+            remap.toOnPress !== null &&
+            remap.toOnPress !== -1 &&
+            remap.toOnPressS;
+
+        const hasHoldRemap =
+            remap.toOnHold !== undefined &&
+            remap.toOnHold !== null &&
+            remap.toOnHold !== -1 &&
+            remap.toOnHoldS;
+
+        if (hasPressRemap) {
+            merged.toOnPress = remap.toOnPress;
+            merged.toOnPressS = remap.toOnPressS;
+        }
+
+        if (hasHoldRemap) {
+            merged.toOnHold = remap.toOnHold;
+            merged.toOnHoldS = remap.toOnHoldS;
+        }
+
+        byFromS.set(key, merged);
+    });
+
+    return Array.from(byFromS.values());
+}
+
+/**
+ * Wrap a keyCode array in the standard layout object shape.
+ */
+function wrapAsLayout(keyCodeArray) {
     return {
         layerEntries: 1,
-        uniqueKeyCodeEntries: layer.keyCode.length,
+        uniqueKeyCodeEntries: keyCodeArray.length,
         layers: [
             {
-                layerName: layer.layerName || "Main",
-                layerNr: layer.layerNr ?? 0,
-                keyCodeEntries: layer.keyCode.length,
-                keyCode: layer.keyCode.map(entry => ({
-                    // OS codes (numbers)
-                    from: entry.from ?? -1,
-                    toOnPress: entry.toOnPress ?? -1,
-                    toOnHold: entry.toOnHold ?? -1,
-                    // WebAPI codes (strings)
-                    fromS: entry.fromS || "",
-                    toOnPressS: entry.toOnPressS || "",
-                    toOnHoldS: entry.toOnHoldS || "",
-                })),
+                layerName: "Main",
+                layerNr: 0,
+                keyCodeEntries: keyCodeArray.length,
+                keyCode: keyCodeArray,
             },
         ],
     };
 }
 
-JsonEditor.onExport = () => createExportData();
+/**
+ * What the JSON editor asks for when you click "View JSON" or "Download JSON".
+ * We return:
+ *   base   → full base layout (no custom remaps)
+ *   remap  → only your remaps
+ *   merged → base + remap overlay (this is what you download)
+ *   filename → suggested download name
+ */
+function buildExportBundles() {
+    const baseKeyCode = buildBaseKeyCodeSnapshot();
+    const remapKeyCode = buildRemapKeyCodeSnapshot();
+    const mergedKeyCode = mergeRemapsOverBase(baseKeyCode, remapKeyCode);
 
-/* ========================================================================
-   JSON Import
-   ======================================================================== */
+    return {
+        base: wrapAsLayout(baseKeyCode),
+        remap: wrapAsLayout(remapKeyCode),
+        merged: wrapAsLayout(mergedKeyCode),
+        filename: "my_remaps.json",
+    };
+}
+
+// JSON editor hooks
+JsonEditor.onExport = () => buildExportBundles();
 
 JsonEditor.onImport = (json) => {
     importLayoutFromJson(json);
 };
 
-// Helper: OS → WebAPI
-function findWebCodeFromOS(codeOS) {
-    if (codeOS === null || codeOS === undefined || codeOS === -1) return null;
-    return (
-        Object.keys(activeLayout).find(codeWeb => {
-            const entry = activeLayout[codeWeb];
-            return entry && entry.codeOS === codeOS;
-        }) || null
-    );
-}
-
+/**
+ * Take a FULL layout JSON (base + remaps) and convert it back into:
+ *   keymapData.layers[0].keyCode  = ONLY THE REMAPS (diff from base).
+ * Base is always computed fresh from activeLayout, so language/layout/OS
+ * switches still work.
+ */
 window.importLayoutFromJson = function (json) {
     if (!json.layers || !json.layers[0] || !Array.isArray(json.layers[0].keyCode)) {
         alert("Invalid remap file.");
         return;
     }
 
+    const importedArray = json.layers[0].keyCode;
+
     const layer = getActiveLayer();
     layer.keyCode = []; // clear existing remaps
 
-    const uploadedArray = json.layers[0].keyCode;
+    // Build OS→Web lookup from current active layout
+    const osToWeb = {};
+    for (const codeWeb in activeLayout) {
+        if (!Object.prototype.hasOwnProperty.call(activeLayout, codeWeb)) continue;
+        const entry = activeLayout[codeWeb];
+        if (!entry) continue;
+        const osCode = entry.codeOS;
+        if (osCode === undefined || osCode === null || osCode === -1) continue;
+        osToWeb[osCode] = codeWeb;
+    }
 
-    uploadedArray.forEach(rawEntry => {
-        // ---------- FROM ----------
-        const fromCodeOS = typeof rawEntry.from === "number" ? rawEntry.from : -1;
+    // Snapshot of base layout to compare against
+    const baseSnapshot = {};
+    buildBaseKeyCodeSnapshot().forEach(e => {
+        baseSnapshot[e.fromS] = e;
+    });
+
+    importedArray.forEach(rawEntry => {
+        // -------- determine base key (WebAPI code) --------
         let fromCodeWeb = rawEntry.fromS || null;
-
-        if (!fromCodeWeb && fromCodeOS !== -1) {
-            fromCodeWeb = findWebCodeFromOS(fromCodeOS);
+        if (!fromCodeWeb) {
+            const fromOS = typeof rawEntry.from === "number" ? rawEntry.from : -1;
+            if (fromOS !== -1 && osToWeb[fromOS]) {
+                fromCodeWeb = osToWeb[fromOS];
+            }
         }
         if (!fromCodeWeb) return;
-        if (!activeLayout[fromCodeWeb]) return; // base key must exist
+        if (!activeLayout[fromCodeWeb]) return;
 
-        // ---------- TO PRESS ----------
-        const toPressCodeOS = typeof rawEntry.toOnPress === "number" ? rawEntry.toOnPress : -1;
-        let toPressCodeWeb = rawEntry.toOnPressS || null;
+        const base = baseSnapshot[fromCodeWeb];
+        if (!base) return;
 
-        if (!toPressCodeWeb && toPressCodeOS !== -1) {
-            toPressCodeWeb = findWebCodeFromOS(toPressCodeOS);
-        }
-        if (toPressCodeWeb && !activeLayout[toPressCodeWeb]) {
-            toPressCodeWeb = null;
-        }
+        // -------- resolve press / hold OS + Web codes from imported --------
+        let pressOS = (typeof rawEntry.toOnPress === "number") ? rawEntry.toOnPress : -1;
+        let holdOS = (typeof rawEntry.toOnHold === "number") ? rawEntry.toOnHold : -1;
 
-        // ---------- TO HOLD ----------
-        const toHoldCodeOS = typeof rawEntry.toOnHold === "number" ? rawEntry.toOnHold : -1;
-        let toHoldCodeWeb = rawEntry.toOnHoldS || null;
-
-        if (!toHoldCodeWeb && toHoldCodeOS !== -1) {
-            toHoldCodeWeb = findWebCodeFromOS(toHoldCodeOS);
-        }
-        if (toHoldCodeWeb && !activeLayout[toHoldCodeWeb]) {
-            toHoldCodeWeb = null;
+        let pressWeb = rawEntry.toOnPressS || "";
+        if (!pressWeb && pressOS !== -1 && osToWeb[pressOS]) {
+            pressWeb = osToWeb[pressOS];
         }
 
-        // if literally nothing is mapped, skip
-        if (!toPressCodeWeb && !toHoldCodeWeb) return;
+        let holdWeb = rawEntry.toOnHoldS || "";
+        if (!holdWeb && holdOS !== -1 && osToWeb[holdOS]) {
+            holdWeb = osToWeb[holdOS];
+        }
+
+        // -------- check if this entry actually differs from base --------
+        const modifiesPress =
+            (pressOS !== -1 && pressOS !== base.toOnPress) ||
+            (pressWeb && pressWeb !== base.toOnPressS);
+
+        const modifiesHold =
+            (holdOS !== -1 && holdOS !== base.toOnHold) ||
+            (holdWeb && holdWeb !== base.toOnHoldS);
+
+        if (!modifiesPress && !modifiesHold) {
+            // behaves exactly like base → no custom remap
+            return;
+        }
 
         const fromEntry = activeLayout[fromCodeWeb];
-        const toPressEntry = toPressCodeWeb ? activeLayout[toPressCodeWeb] : null;
-        const toHoldEntry = toHoldCodeWeb ? activeLayout[toHoldCodeWeb] : null;
 
-        const entry = {
-            // WebAPI codes (canonical for logic)
-            fromS: fromCodeWeb,
-            toOnPressS: toPressCodeWeb || "",
-            toOnHoldS: toHoldCodeWeb || "",
-            // OS codes (for firmware / JSON)
+        const remap = {
+            // OS base key
             from: fromEntry?.codeOS ?? -1,
-            toOnPress: toPressEntry?.codeOS ?? -1,
-            toOnHold: toHoldEntry?.codeOS ?? -1,
+            fromS: fromCodeWeb,
+
+            // only keep OS/Web for the sides that actually change
+            toOnPress: modifiesPress ? (pressOS !== -1 ? pressOS : -1) : -1,
+            toOnHold: modifiesHold ? (holdOS !== -1 ? holdOS : -1) : -1,
+
+            toOnPressS: modifiesPress ? (pressWeb || "") : "",
+            toOnHoldS: modifiesHold ? (holdWeb || "") : "",
         };
 
-        layer.keyCode.push(entry);
+        layer.keyCode.push(remap);
     });
 
     layer.keyCodeEntries = layer.keyCode.length;
 
+    // recolor + refresh UI
     refreshKeyboardColors();
 
     if (activeBaseCode) {
@@ -590,6 +719,25 @@ function getActiveLayer() {
     return keymapData.layers[0];
 }
 
+function initialiseFullJsonLayout() {
+    const layer = getActiveLayer();
+    layer.keyCode = [];
+
+    for (const codeWeb in activeLayout) {
+        const entry = activeLayout[codeWeb];
+        layer.keyCode.push({
+            from: entry.codeOS ?? -1,   // OS code
+            fromS: codeWeb,             // WebAPI code
+            toOnPress: -1,
+            toOnHold: -1,
+            toOnPressS: "",
+            toOnHoldS: ""
+        });
+    }
+
+    layer.keyCodeEntries = layer.keyCode.length;
+}
+
 function loadKeyMapping(baseCodeWeb) {
     const layer = getActiveLayer();
     const entry = layer.keyCode.find(k => k.fromS === baseCodeWeb);
@@ -643,32 +791,33 @@ function saveMappingsAfterChange() {
     const selfPress = pressCodeWeb === fromCodeWeb;
     const selfHold = holdCodeWeb === fromCodeWeb;
 
-    if (selfPress || selfHold) {
-        /**
-         * If a key tries to map to itself, it is 100% invalid.
-         * We delete the entire remap entry for this key.
-         */
+    // Reset mapping when user clears both or maps to itself
+    if (selfPress || selfHold || (!pressCodeWeb && !holdCodeWeb)) {
 
-        // Remove entry from JSON list
-        layer.keyCode = layer.keyCode.filter(k => k.fromS !== fromCodeWeb);
-        layer.keyCodeEntries = layer.keyCode.length;
+        // Always keep the key entry — just reset values
+        if (!entry) {
+            const fromEntry = activeLayout[fromCodeWeb];
+            entry = {
+                from: fromEntry?.codeOS ?? -1,
+                toOnPress: -1,
+                toOnHold: -1,
+                fromS: fromCodeWeb,
+                toOnPressS: "",
+                toOnHoldS: ""
+            };
+            layer.keyCode.push(entry);
+        }
 
-        // Reset UI state
-        workingMapping.press = null;
-        workingMapping.hold = null;
+        entry.toOnPress = -1;
+        entry.toOnHold = -1;
+        entry.toOnPressS = "";
+        entry.toOnHoldS = "";
 
-        // Reset the dropdown fields
-        pressField.dataset.code = "";
-        holdField.dataset.code = "";
-        pressField.textContent = "-- choose a key --";
-        holdField.textContent = "-- choose a key --";
-
-        // Reset displayed legends on the keyboard itself
+        // Reset visuals
         const keyEl = codeToKeyEl[fromCodeWeb];
         if (keyEl) {
             const baseLabel = getDisplayLabelForKey(fromCodeWeb);
             const kc = keyEl.querySelector(".key-content");
-
             kc.classList.remove("double");
             kc.classList.add("single");
 
@@ -677,7 +826,6 @@ function saveMappingsAfterChange() {
             kc.querySelector(".bottom-line").textContent = "";
         }
 
-        // Update colors
         refreshKeyboardColors();
         return;
     }
@@ -685,31 +833,15 @@ function saveMappingsAfterChange() {
     // -----------------------------
     // 3. Try to locate an existing JSON entry for this key
     // -----------------------------
-    let entry = layer.keyCode.find(k => k.fromS === fromCodeWeb);
+    //let entry = layer.keyCode.find(k => k.fromS === fromCodeWeb);
 
     // -----------------------------
     // 4. If no entry exists → create a new blank mapping for this key
     // -----------------------------
+    let entry = layer.keyCode.find(k => k.fromS === fromCodeWeb);
     if (!entry) {
-        const fromEntry = activeLayout[fromCodeWeb];  // contains OS code, legend, etc.
-        console.log(fromEntry.codeOS);
-        console.log(fromCodeWeb);
-        entry = {
-            // OS code for the base key
-            from: fromEntry?.codeOS ?? -1,
-
-            // OS codes for press/hold (initially unset)
-            toOnPress: -1,
-            toOnHold: -1,
-
-            // WebAPI codes for press/hold
-            fromS: fromCodeWeb,
-            toOnPressS: "",
-            toOnHoldS: "",
-        };
-
-        // Insert into the JSON mapping
-        layer.keyCode.push(entry);
+        console.warn("Missing entry in full-layout model. This should NOT happen.");
+        return; // full layout mode assumes entry is always there
     }
 
     // -----------------------------
@@ -738,7 +870,6 @@ function saveMappingsAfterChange() {
 
     if (nothingMapped) {
         // Remove from layer entirely
-        layer.keyCode = layer.keyCode.filter(k => k.fromS !== fromCodeWeb);
         layer.keyCodeEntries = layer.keyCode.length;
 
         // Reset flags
@@ -992,5 +1123,7 @@ document.addEventListener("click", () => {
 
 document.addEventListener("DOMContentLoaded", () => {
     rebuildLayout();
-    updateKeyStatus("no key selected");
+    initialiseFullJsonLayout();  // <-- NEW
+    refreshKeyboardColors();     // <-- ensure color update
+    updateKeyStatus("No key selected");
 });

@@ -254,7 +254,7 @@
                         <p class="legend-subtext">Upload or download your key remap as JSON.</p>
 
                         <!-- VIEW JSON BUTTON -->
-                        <p id="view-remap-link" class="view-remap-link">Current remap (view)</p>
+                        <span id="view-remap-link" class="link-text">(view)</span>
 
                         <div class="remap-buttons">
 
@@ -277,18 +277,22 @@
     <div id="remapPopup" class="remap-popup hidden">
         <div class="remap-popup-inner">
 
-            <div class="popup-close">×</div>
+            <button class="popup-close">×</button>
 
             <div class="code-editor">
+
                 <div class="code-editor-header">
-                    <div class="code-tabs">
-                        <div class="code-tab active">my_remap.json</div>
+                    <div class="code-tabs" id="jsonTabs">
+                        <button id="json-tab-base" class="code-tab code-tab-active">Base layout</button>
+                        <button id="json-tab-remap" class="code-tab">My remaps</button>
+                        <button id="json-tab-merged" class="code-tab">Merged output</button>
                     </div>
                 </div>
 
                 <div class="code-editor-body">
                     <div id="codeEditorLines" class="code-lines"></div>
                 </div>
+
             </div>
 
         </div>
