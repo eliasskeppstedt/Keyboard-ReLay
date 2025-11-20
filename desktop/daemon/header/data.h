@@ -100,8 +100,8 @@ int activeLayer; // to index into correct layer
 */
 typedef struct KeyStatus {
     int code;
-    int keysDown;
     bool keyDown;
+    bool onHold;
 } KeyStatus;
 
 /*

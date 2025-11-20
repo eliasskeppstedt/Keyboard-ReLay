@@ -304,7 +304,14 @@ void addRemapTableEntry(int layer, int from, int toOnPress, int toOnHold)
 
 KeyInfo* getKeyInfo(int code)
 {
-    return (KeyInfo*) CFDictionaryGetValue(getRemapTable(), KEY(code));
+    KeyInfo* keyInfo = CFDictionaryGetValue(getRemapTable(), KEY(code));
+    if (!keyInfo)
+    {
+        printf("not modified (normal press)\n");
+        return NULL;
+    }
+    
+    return keyInfo;
 }
 
 static CFMutableDictionaryRef getRemapTable()
@@ -333,8 +340,8 @@ void addStatusTableEntry(int from)
     KeyStatus* keyStatus = malloc(sizeof(KeyStatus));
     *keyStatus = (KeyStatus) {
         .code = NO_VALUE,
-        .keysDown = 0,
-        .keyDown = false
+        .keyDown = false,
+        .onHold = false,
     };
 
     CFDictionaryAddValue(getStatusTable(), KEY(from), keyStatus); 

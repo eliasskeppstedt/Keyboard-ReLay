@@ -19,9 +19,9 @@ int start();
  * @attention IF code corresponds to a modifier code, flagMask's value will be set to that specific modifier´s flag, 
  * @attention ELSE flagMask´s value is set to 0
  * @param int code
- * @param uint64_t* flagMask
+
  */
-void setCorrespondingModifierFlag(int code, uint64_t* flagMask);
+uint64_t getCorrespondingModifierFlag(int code);
 
 
 #endif // _RELAYEVENTHANDLER_

@@ -8,6 +8,8 @@ static int ESCAPE = 53;
 
 /* if the event flag is not 0 then the mod flag is on, must be preceded by setCorrespondingModifierFlag */
 static bool isModDown(uint64_t flagMask);
+static void removeModFlags(uint64_t* flagMask);
+static bool isModCode(int code);
 
 int start()
 {
@@ -23,7 +25,7 @@ void eventCallBack(RLEvent* incomingEvent)
     
     if (incomingEventCode == ESCAPE) 
     {
-        bool shiftDown = incomingEvent->flagMask & MOD_KEYS.SHIFT_MASK;
+        bool shiftDown = activeEventFlags & MOD_KEYS.SHIFT_MASK;
 
         if(shiftDown)
         {
@@ -38,64 +40,89 @@ void eventCallBack(RLEvent* incomingEvent)
         }
     }
     
-    RLEvent* headEventPreview = NULL;
     RLEvent* outgoingEvent = NULL;
+
     int code = NO_VALUE;
+    RLEvent* headEventPreview = NULL;
     KeyInfo* keyInfo = NULL;
 
-    if (incomingEventCode == NO_VALUE) // from timer (e.g. incoming event is not a "valid" rl event)
+    KeyStatus* keyStatus = getKeyStatus(incomingEventCode);
+
+    // handle incoming event //
+
+    if (incomingEventCode == NO_VALUE) 
     {
+        // unvalid event, is from timer -> key hold event (only exist if a hold mapping exist hence keyInfo and Status is not null)
         free(incomingEvent);
 
         headEventPreview = getEvent(HEAD);
         code = headEventPreview->code;
         keyInfo = getKeyInfo(code);
+        keyStatus = getKeyStatus(code);
         
         headEventPreview->code = keyInfo->codeOnHold;
         headEventPreview->state = SEND;
-        goto checkSetEvent;
+        
+        keyStatus->onHold = true;
+
+        goto checkEvent;
+    }
+    else // if event is valid
+    {
+        enqueue(incomingEvent);
+        headEventPreview = getEvent(HEAD);
+        
+
+        if (!getKeyInfo(incomingEventCode)) 
+        {
+            // if incoming event hasn´t modification, skip to post
+            goto postEvent;
+        } 
+        else // if event has modification
+        {
+            // if keystatus keyDown is false, it means that this event MUST be a press event
+            // since i only allow 1 type of a key per layer.
+            bool isPressEvent = !keyStatus->keyDown;
+            incomingEvent->keyDown = isPressEvent;
+            keyStatus->keyDown = isPressEvent;
+
+            if (isPressEvent && getKeyInfo(incomingEventCode)->codeOnHold != NO_VALUE)
+            {
+                // press event and POTENTIAL on hold event
+                incomingEvent->state = PENDING;
+                startOnHoldTimer(&incomingEvent->timer);
+            }
+            else 
+            {
+                incomingEvent->state = SEND;
+            }
+        }
     }
 
-    enqueue(incomingEvent);
-    headEventPreview = getEvent(HEAD);
-
-    if (!getKeyInfo(incomingEventCode)) // if incoming event does not have any alternation, just skip to post
-    {
-        incomingEvent->state = SEND;
-        goto postEvent;
-    } 
-    else 
-    {
-        if (incomingEvent->keyDown && getKeyInfo(incomingEventCode)->codeOnHold != NO_VALUE)
-        {
-            incomingEvent->state = PENDING;
-            startOnHoldTimer(&incomingEvent->timer);
-        }
-        else 
-        {
-            incomingEvent->state = SEND;
-        }
-    }
+    // handle outgoing events //
 
     while (headEventPreview)
     {
         code = headEventPreview->code;
-        KeyInfo* keyInfo = getKeyInfo(code);
+        keyInfo = getKeyInfo(code);
+        keyStatus = getKeyStatus(code);
 
         if (!keyInfo) goto postEvent; // no remap table entry available
 
-        keyInfo = getKeyInfo(code);
         const int codeOnPress = keyInfo->codeOnPress;
         
         if (headEventPreview->state == PENDING) 
-        {        
-            if (code == incomingEventCode && !incomingEvent->keyDown) // i.e. if it is a key down/key up pair (does not work if you would press on multiple native mod key of the same key at least)
+        {
+            if (code == incomingEventCode && !keyStatus->keyDown) 
             {
+                // key press/release pair (pending event always down, and if the status is down, then incoming event is a release event)
                 if (codeOnPress != NO_VALUE)
                 {
                     headEventPreview->code = codeOnPress;
+                    incomingEvent->code = codeOnPress;
                 }
                 headEventPreview->state = SEND;
+                keyStatus->onHold = false;
 
                 if (headEventPreview->timer) 
                 {
@@ -106,58 +133,54 @@ void eventCallBack(RLEvent* incomingEvent)
                     printf("                          timer did not exist o.o???\n");
                 }
             }
-            else 
+            else // if not a key press/release pair
             {
                 goto postEvent;
             }
         }
-        else
+        else // if not pending
         {
             if (codeOnPress != NO_VALUE)
             {
-                headEventPreview->state = codeOnPress;
-            }
-            headEventPreview->state = SEND;
-            getKeyStatus(code)->keyDown = true;
-            getKeyStatus(code)->keysDown++;
-        }
-
-        /* code is from this point the correct one for head event and will NOT change */
-        checkSetEvent:
-
-        if (!headEventPreview->keyDown && keyInfo->codeOnHold != NO_VALUE)
-        {
-            if (!keyInfo) goto postEvent;
-            if (getKeyStatus(code)->keyDown)
-            {
-                headEventPreview->code = keyInfo->codeOnHold;
-                getKeyStatus(code)->keyDown = false;
-                getKeyStatus(code)->keysDown--;
+                headEventPreview->code = codeOnPress;
             }
         }
+        
+        checkEvent:
 
-        uint64_t flagMask = 0;
-        setCorrespondingModifierFlag(headEventPreview->code, &flagMask);
-        printf("code: %d, modflag: %llu\n", headEventPreview->code, flagMask);
-        if (flagMask && headEventPreview->state == SEND)
+        if (keyStatus->onHold)
         {
-            headEventPreview->isModifier = true;
-            
-            if (headEventPreview->keyDown) // add mod flag
-            {
-                activeEventFlags |= flagMask;
-            }
-            else // remove mod flag
-            {
-                activeEventFlags &= ~flagMask;
-            }
-        } 
+            // has already become a hold event making this a on hold release event
+            //headEventPreview->code = keyInfo->codeOnHold;
+            headEventPreview->code = keyInfo->codeOnHold;
+        }
+
+        uint64_t flagMask = getCorrespondingModifierFlag(headEventPreview->code);
+        
+        // key code corresponds to a modifier key
+        //Event(headEventPreview);
+        if (headEventPreview->keyDown) // event must be press
+        {
+            if (flagMask) activeEventFlags |= flagMask;
+            keyStatus->keyDown = true;
+        }
+        else // event must be release
+        {
+            if (flagMask) activeEventFlags &= ~flagMask;
+            keyStatus->keyDown = false;
+        }
+        printf("active ev flag: %llu\n", activeEventFlags);
         
         postEvent:
-        printRLEvent(headEventPreview);
 
         if (headEventPreview->state == PENDING) break;
+
+        removeModFlags(&headEventPreview->flagMask);
+
         outgoingEvent = dequeue();
+        //printf("POST EVENT:\n");
+        printRLEvent(outgoingEvent);
+
         outgoingEvent->flagMask |= activeEventFlags;
         postEvent(outgoingEvent, SIMULATED_EVENT);
         free(outgoingEvent);
@@ -165,46 +188,70 @@ void eventCallBack(RLEvent* incomingEvent)
     }
 }
 
-void setCorrespondingModifierFlag(int code, uint64_t* flagMask)
+uint64_t getCorrespondingModifierFlag(int code)
 {
-    *flagMask = 0;
+    uint64_t flagMask = 0;
 
     if (code == MOD_KEYS.L_SHIFT_CODE)
     {
-        *flagMask = MOD_KEYS.SHIFT_MASK | MOD_KEYS.L_SHIFT_MASK;
+        flagMask = MOD_KEYS.SHIFT_MASK | MOD_KEYS.L_SHIFT_MASK;
     }
     else if (code == MOD_KEYS.R_SHIFT_CODE) 
     {
-        *flagMask = MOD_KEYS.SHIFT_MASK | MOD_KEYS.R_SHIFT_MASK;
+        flagMask = MOD_KEYS.SHIFT_MASK | MOD_KEYS.R_SHIFT_MASK;
     }
     else if (code == MOD_KEYS.L_CONTROL_CODE) 
     {
-        *flagMask = MOD_KEYS.CONTROL_MASK | MOD_KEYS.L_CONTROL_MASK;
+        flagMask = MOD_KEYS.CONTROL_MASK | MOD_KEYS.L_CONTROL_MASK;
     }
     else if (code == MOD_KEYS.R_CONTROL_CODE) 
     {
-        *flagMask = MOD_KEYS.CONTROL_MASK | MOD_KEYS.R_CONTROL_MASK;
+        flagMask = MOD_KEYS.CONTROL_MASK | MOD_KEYS.R_CONTROL_MASK;
     }
     else if (code == MOD_KEYS.L_META_CODE) 
     {
-        *flagMask = MOD_KEYS.META_MASK | MOD_KEYS.L_META_MASK;
+        flagMask = MOD_KEYS.META_MASK | MOD_KEYS.L_META_MASK;
     }
     else if (code == MOD_KEYS.R_META_CODE) 
     {
-        *flagMask = MOD_KEYS.META_MASK | MOD_KEYS.R_META_MASK;
+        flagMask = MOD_KEYS.META_MASK | MOD_KEYS.R_META_MASK;
     }
     else if (code == MOD_KEYS.L_ALTERNATE_CODE) 
     {
-        *flagMask = MOD_KEYS.ALTERNATE_MASK | MOD_KEYS.L_ALTERNATE_MASK;
+        flagMask = MOD_KEYS.ALTERNATE_MASK | MOD_KEYS.L_ALTERNATE_MASK;
     }
     else if (code == MOD_KEYS.R_ALTERNATE_CODE) 
     {
-        *flagMask = MOD_KEYS.ALTERNATE_MASK | MOD_KEYS.R_ALTERNATE_MASK;
+        flagMask = MOD_KEYS.ALTERNATE_MASK | MOD_KEYS.R_ALTERNATE_MASK;
     }
     else if (code == MOD_KEYS.CAPS_LOCK_CODE) 
     {
-        *flagMask = MOD_KEYS.CAPS_LOCK_MASK;
+        flagMask = MOD_KEYS.CAPS_LOCK_MASK;
     }
+    return flagMask;
+}
+
+static void removeModFlags(uint64_t* flagMask)
+{
+    *flagMask &= ~(
+        MOD_KEYS.SHIFT_MASK     | MOD_KEYS.L_SHIFT_MASK     | MOD_KEYS.R_SHIFT_MASK     |
+        MOD_KEYS.CONTROL_MASK   | MOD_KEYS.L_CONTROL_MASK   | MOD_KEYS.R_CONTROL_MASK   |
+        MOD_KEYS.META_MASK      | MOD_KEYS.L_META_MASK      | MOD_KEYS.R_META_MASK      |
+        MOD_KEYS.ALTERNATE_MASK | MOD_KEYS.L_ALTERNATE_MASK | MOD_KEYS.R_ALTERNATE_MASK |
+        MOD_KEYS.CAPS_LOCK_MASK
+    );
+    *flagMask |= 256; // seems like this is some kind of standard flag on all events
+}
+
+static bool isModCode(int code)
+{
+    return (
+        code == MOD_KEYS.SHIFT_MASK     || code == MOD_KEYS.L_SHIFT_MASK     || code == MOD_KEYS.R_SHIFT_MASK     || 
+        code == MOD_KEYS.CONTROL_MASK   || code == MOD_KEYS.L_CONTROL_MASK   || code == MOD_KEYS.R_CONTROL_MASK   || 
+        code == MOD_KEYS.META_MASK      || code == MOD_KEYS.L_META_MASK      || code == MOD_KEYS.R_META_MASK      || 
+        code == MOD_KEYS.ALTERNATE_MASK || code == MOD_KEYS.L_ALTERNATE_MASK || code == MOD_KEYS.R_ALTERNATE_MASK || 
+        code == MOD_KEYS.CAPS_LOCK_MASK
+    );
 }
 
 void initModFlags()
