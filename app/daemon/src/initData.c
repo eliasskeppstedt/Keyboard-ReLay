@@ -1,4 +1,5 @@
 #include "./../header/initData.h"
+#include "./../header/interface/initData.h"
 
 static cJSON* MY_REMAPS_OBJ = NULL;
 static cJSON* readJSON(char* path);
@@ -54,9 +55,9 @@ void initMyRemaps()
             toOnHoldJSONObj= cJSON_GetObjectItem(codeJSONObj, "toOnHold");
             if (!toOnHoldJSONObj) exit(READ_TO_ON_HOLD);
 
-            int from = cJSON_GetNumberValue(fromJSONObj);
-            int onPress = cJSON_GetNumberValue(toOnPressJSONObj);
-            int onHold = cJSON_GetNumberValue(toOnHoldJSONObj);
+            uint64_t from = cJSON_GetNumberValue(fromJSONObj);
+            uint64_t onPress = cJSON_GetNumberValue(toOnPressJSONObj);
+            uint64_t onHold = cJSON_GetNumberValue(toOnHoldJSONObj);
             
             addRemapTableEntry(layerNr, from, onPress, onHold);
         }
@@ -92,7 +93,7 @@ void initStatusTable()
             fromJSONObj= cJSON_GetObjectItem(codeJSONObj, "from");
             if (!fromJSONObj) exit(READ_FROM);
 
-            int from = cJSON_GetNumberValue(fromJSONObj);
+            uint64_t from = cJSON_GetNumberValue(fromJSONObj);
             addStatusTableEntry(from);
         }
     }

@@ -2,8 +2,8 @@ mac_cc = clang -g
 mac_cflags = -Wall -Wextra
 mac_frameworks = -framework ApplicationServices -framework CoreFoundation
 src = src/main.c \
-	src/initData.c \
 	src/relayEventHandler.c \
+	src/initData.c \
 	src/eventQueue.c \
 	src/os/quartzEventService.c \
 	lib/cJSON.c

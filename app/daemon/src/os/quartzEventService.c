@@ -1,9 +1,11 @@
-#include "../../header/os/quartzEventService.h"
+#include "./../../header/os/quartzEventService.h"
+#include "./../../header/interface/initData.h"
+#include "./../../header/interface/relayEventHandler.h"
 
 // -------- statics
 /* 
  * @attention quartzEventService.c
- * @attention CFMutableDictionaryRef* remaps = (CFMutableDictionaryRef*) MY_RELAY.remaps;
+ * @attention CFMutableDictionaryRef* remaps = (CFMutableDictionaryRef*) MY_RELAY.rem  aps;
  * @attention CFMutableDictionaryRef* statusTable = (CFMutableDictionaryRef*) MY_RELAY.statusTable;
  * 
  * @brief why are so many comment @ descriptions not working?! and i want struct member not param D:
@@ -33,7 +35,7 @@ CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRe
 {
     watchdog_ping_or_die(); // infinite feedback loop prevention. Should not be needed, just in case tho...
     evSrcUserData = CGEventGetIntegerValueField(event, kCGEventSourceUserData);
-
+    //printf("ev src user data: %llu\n", evSrcUserData);
     bool returnNull = ( 
         CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat)
     );
@@ -48,45 +50,31 @@ CGEventRef myEventTapCallBack(CGEventTapProxy proxy, CGEventType type, CGEventRe
         return event;
     }
 
-    RLEvent* rlEvent = RLEventCreate(type, event);
+    //if (CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode) == 53) exit(1);
+
+    RLEvent* rlEvent = RLEventCreate(
+        CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode),
+        type == kCGEventKeyDown,
+        CGEventGetFlags(event),
+        CGEventGetTimestamp(event),
+        type == kCGEventFlagsChanged,
+        evSrcUserData
+    );
     
     eventCallBack(rlEvent);
 
     return NULL;    
 }
 
-RLEvent* RLEventCreate(CGEventType type, CGEventRef macEvent)
-{    
-    if (evSrcUserData == ON_HOLD_TIMER_EVENT) // just to alert the event tap that a key hold should transform a key into the hold variant
-    {
-        RLEvent* rlEvent = calloc(1, sizeof(RLEvent));
-        rlEvent->code = NO_VALUE;
-        return rlEvent;
-    }
-
-    RLEvent* rlEvent = malloc(sizeof(RLEvent));
-    *rlEvent = (RLEvent) {
-        .code = CGEventGetIntegerValueField(macEvent, kCGKeyboardEventKeycode),
-        .flagMask = CGEventGetFlags(macEvent),
-        .timeStampOnPress = CGEventGetTimestamp(macEvent),
-        .state = NORMAL,
-        .isModifier = type == kCGEventFlagsChanged,
-        .keyDown = type == kCGEventKeyDown,
-        .timer = NULL
-    };
-    
-    return rlEvent;
-}
-
-void postEvent(RLEvent* rlEvent, UserDefinedData userDefinedData)
+void postEvent(uint64_t code, bool keyDown, uint64_t flagMask, uint64_t timeStamp, DataCodes userDefinedData)
 {
 
     CGEventSourceRef src = CGEventSourceCreate(kCGEventSourceStateHIDSystemState);
 
-    CGEventRef macEvent = CGEventCreateKeyboardEvent(src, rlEvent->code, rlEvent->keyDown);
+    CGEventRef macEvent = CGEventCreateKeyboardEvent(src, code, keyDown);
     CGEventSetIntegerValueField(macEvent, kCGEventSourceUserData, userDefinedData); // send some user defined data
-    CGEventSetFlags(macEvent, rlEvent->flagMask);
-    CGEventSetTimestamp(macEvent, rlEvent->timeStampOnPress);
+    CGEventSetFlags(macEvent, flagMask);
+    CGEventSetTimestamp(macEvent, timeStamp);
     //printRLEvent(rlEvent);
     //printMacEvent(macEvent);
     CGEventPost(kCGHIDEventTap, macEvent);
@@ -225,25 +213,6 @@ void printMacEvent(CGEventRef event)
     printf("> }\n");
 }
 
-static inline void watchdog_ping_or_die(void) 
-{
-    static struct timeval last = {0};
-    static int burst = 0;
-
-    struct timeval now; gettimeofday(&now, NULL);
-    double dt = (now.tv_sec - last.tv_sec) + (now.tv_usec - last.tv_usec) / 1e6;
-
-    if (dt < 0.002) { // >500 events/sec implies runaway
-        if (++burst > 2000) { // ~4 seconds continuous
-            fprintf(stderr, "Infinite loop detected — exiting.\n");
-            _Exit(1);
-        }
-    } else {
-        burst = 0;
-    }
-    last = now;
-}
-
 void setModFlags(ModKeys* modKey)
 {
     *modKey = (ModKeys) {
@@ -265,7 +234,10 @@ void setModFlags(ModKeys* modKey)
 }
 
 //////////////////////////////// MY_RELAY
-// remaps
+
+//////////////////////////////////////
+////////////// remaps ////////////////
+//////////////////////////////////////
 
 void createRemapsArray(int layers)
 {
@@ -285,10 +257,9 @@ void createRemapTableForLayer(int layer, int capacity)
     );
 }
 
-void addRemapTableEntry(int layer, int from, int toOnPress, int toOnHold)
+void addRemapTableEntry(int layer, uint64_t from, uint64_t toOnPress, uint64_t toOnHold)
 {
     if (from == NO_VALUE) exit(NO_VALUE_FROM);
-
     KeyInfo* keyInfo = malloc(sizeof(KeyInfo));
     *keyInfo = (KeyInfo) {
         .code = from,
@@ -299,15 +270,14 @@ void addRemapTableEntry(int layer, int from, int toOnPress, int toOnHold)
     // key/value fields take raw pointers since i created the dic with their callback value as NULL.
     // cast int into an integer of the size as an integer pointer (intptr_t), then and cast an int into a constant void pointer. This is effectively an address to invalid memory
     // and as such, NEVER dereference
-    CFDictionaryAddValue(getRemapTable(), KEY(from), keyInfo); 
+    CFDictionaryAddValue(getRemapTable(), CF_DIC_KEY(from), keyInfo); 
 }
 
-KeyInfo* getKeyInfo(int code)
+KeyInfo* getKeyInfo(uint64_t code)
 {
-    KeyInfo* keyInfo = CFDictionaryGetValue(getRemapTable(), KEY(code));
+    KeyInfo* keyInfo = CFDictionaryGetValue(getRemapTable(), CF_DIC_KEY(code));
     if (!keyInfo)
     {
-        printf("not modified (normal press)\n");
         return NULL;
     }
     
@@ -320,7 +290,11 @@ static CFMutableDictionaryRef getRemapTable()
     return remapTable;
 }
 
-// status
+
+//////////////////////////////////////
+////////////// status ////////////////
+//////////////////////////////////////
+
 void createStatusTable(int uniqueKeyCodeEntries)
 {
     MY_RELAY.statusTable = malloc(sizeof(CFMutableDictionaryRef));
@@ -333,7 +307,7 @@ void createStatusTable(int uniqueKeyCodeEntries)
     );
 }
 
-void addStatusTableEntry(int from)
+void addStatusTableEntry(uint64_t from)
 {
     if (from == NO_VALUE) exit(NO_VALUE_FROM);
 
@@ -344,12 +318,12 @@ void addStatusTableEntry(int from)
         .onHold = false,
     };
 
-    CFDictionaryAddValue(getStatusTable(), KEY(from), keyStatus); 
+    CFDictionaryAddValue(getStatusTable(), CF_DIC_KEY(from), keyStatus); 
 }
 
-KeyStatus* getKeyStatus(int code)
+KeyStatus* getKeyStatus(uint64_t code)
 {
-    return (KeyStatus*) CFDictionaryGetValue(getStatusTable(), KEY(code));
+    return (KeyStatus*) CFDictionaryGetValue(getStatusTable(), CF_DIC_KEY(code));
 }
 
 static CFMutableDictionaryRef getStatusTable()
@@ -358,7 +332,10 @@ static CFMutableDictionaryRef getStatusTable()
     return statusTable;
 }
 
-// layer
+
+//////////////////////////////////////
+///////////// layer //////////////////
+//////////////////////////////////////
 
 void changeToLayer(int layer)
 {
@@ -408,4 +385,27 @@ void deleteMyReMap()
     CFDictionaryRemoveAllValues(statusTable);
     CFRelease(statusTable);
     MY_RELAY.statusTable = NULL;
+}
+
+//////////////////////////////////////
+//////////////////////////////////////
+//////////////////////////////////////
+
+static inline void watchdog_ping_or_die(void) 
+{
+    static struct timeval last = {0};
+    static int burst = 0;
+
+    struct timeval now; gettimeofday(&now, NULL);
+    double dt = (now.tv_sec - last.tv_sec) + (now.tv_usec - last.tv_usec) / 1e6;
+
+    if (dt < 0.002) { // >500 events/sec implies runaway
+        if (++burst > 2000) { // ~4 seconds continuous
+            fprintf(stderr, "Infinite loop detected — exiting.\n");
+            _Exit(1);
+        }
+    } else {
+        burst = 0;
+    }
+    last = now;
 }

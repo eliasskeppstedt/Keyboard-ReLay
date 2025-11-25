@@ -1,13 +1,12 @@
 #ifndef _RELAYEVENTHANDLER_
 #define _RELAYEVENTHANDLER_
 
-#include "os/interface.h"
-#include "eventQueue.h"
+#include "./eventQueue.h"
 
 /*
  * @attention relayEventHandler.h
  */
-void setEscapeCode(int code);
+void setEscapeCode(uint64_t code);
 
 /*
  * @attention relayEventHandler.h
@@ -21,7 +20,7 @@ int start();
  * @param int code
 
  */
-uint64_t getCorrespondingModifierFlag(int code);
+uint64_t getCorrespondingModifierFlag(uint64_t code);
 
 
 #endif // _RELAYEVENTHANDLER_

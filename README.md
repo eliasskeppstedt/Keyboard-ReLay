@@ -1,2 +1,3 @@
 # Keyboard ReLay
-Keyboard ReLay is a dameon that can be used to customize the writing experience.
+Keyboard ReLay is an application for making regular keyboard highly costumizable. 
+> WORK IN PROGRESS....

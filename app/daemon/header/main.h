@@ -3,9 +3,8 @@
 
 #include <stdlib.h>
 
-#include "initData.h"
-#include "data.h"
-#include "relayEventHandler.h"
+#include "./initData.h"
+#include "./relayEventHandler.h"
 
 int main();
 void cleanup();

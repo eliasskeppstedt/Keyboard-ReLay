@@ -2,10 +2,9 @@
 #define _INITDATA_
 
 #include <stdio.h>
-#include "data.h"
-#include "../lib/cJSON.h"
-#include "os/quartzEventService.h"
-#include "eventQueue.h"
+#include "./../lib/cJSON.h"
+#include "./constants.h"
+#include "./eventQueue.h"
 
 void initEventQueue();
 void initMyRemaps();

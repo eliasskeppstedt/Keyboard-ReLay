@@ -5,7 +5,21 @@
 #include <stdlib.h>
 #include <dispatch/dispatch.h>
 #include <sys/time.h>
-#include "data.h"
+#include "./constants.h"
+#include "./interface/relayEventHandler.h"
+
+/*
+RLEvent* buffer[MAX_QUEUE_SIZE];
+int head;
+int tail;   
+bool isFull;
+*/
+typedef struct EventQueue {
+    RLEvent* buffer[MAX_QUEUE_SIZE];
+    int head;
+    int tail;   
+    bool isFull;
+} EventQueue;
 
 typedef enum QueuePosition {
     HEAD, TAIL
@@ -22,22 +36,10 @@ RLEvent* getEvent(QueuePosition pos);
 int enqueue(RLEvent* event);
 
 /*
- * @brief this will put the event at the first (head) position
- * @param RLEvent* event
-*/
-void enqueueSqueezeToFront(RLEvent* event);
-
-/*
  * @brief Dequeue the first arrived event
  * @return RLEvent* to the dequeued event
 */
 RLEvent* dequeue();
-
-/*
- * @brief Dequeue the last arrived event
- * @return RLEvent* to the dequeued event
-*/
-RLEvent* dequeueFromTail();
 
 /*
  * @brief used by initData

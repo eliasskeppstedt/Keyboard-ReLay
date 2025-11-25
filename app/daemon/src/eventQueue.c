@@ -35,20 +35,6 @@ int enqueue(RLEvent* event)
 
     // TODO implement double press support
     return 0;
-
-}
-
-void enqueueSqueezeToFront(RLEvent* event)
-{
-    if (EVENT_QUEUE->isFull)
-    {
-        printf("    uuuuh this should not happen but event queue is full somehow.... could not sqeeze in front\nig exit program for debugging...\n");
-        exit(1);
-    }
-    EVENT_QUEUE->head = (EVENT_QUEUE->head - 1 + MAX_QUEUE_SIZE) % MAX_QUEUE_SIZE;
-    EVENT_QUEUE->buffer[EVENT_QUEUE->head] = event;
-
-    EVENT_QUEUE->isFull = EVENT_QUEUE->head == EVENT_QUEUE->tail;
 }
 
 RLEvent* dequeue()
@@ -66,21 +52,6 @@ RLEvent* dequeue()
     EVENT_QUEUE->head = (EVENT_QUEUE->head + 1) % MAX_QUEUE_SIZE;
     // TODO implement double press support
     return headEvent;
-}
-
-RLEvent* dequeueFromTail()
-{
-    bool isEmpty = !EVENT_QUEUE->isFull && EVENT_QUEUE->head == EVENT_QUEUE->tail;
-    if (isEmpty)
-    {
-        //printf("    Queue is empty!\n");
-        return NULL;
-    }
-    EVENT_QUEUE->tail = (EVENT_QUEUE->tail - 1 + MAX_QUEUE_SIZE) % MAX_QUEUE_SIZE;
-    RLEvent* tailEvent = EVENT_QUEUE->buffer[EVENT_QUEUE->tail];
-    EVENT_QUEUE->buffer[EVENT_QUEUE->tail] = NULL;
-    EVENT_QUEUE->isFull = false;
-    return tailEvent;
 }
 
 void createEventQueue() 
