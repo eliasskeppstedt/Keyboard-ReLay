@@ -1,15 +1,20 @@
-
 /* --------------------------------------------------
    Root variables
 -------------------------------------------------- */
 :root {
-    --scale: min(2.4vw, 28px);
+    /* Adjusted scale to be more compact and fit standard laptop screens better */
+    /* Uses clamp to ensure a minimum size (16px) and maximum size (22px) */
+    --scale: clamp(16px, 1.35vw, 22px);
+    
+    /* Dynamic dimensions based on scale */
+    --u: calc(var(--scale) * 0.32);
+    --gap: calc(var(--scale) * 0.4);
+    --key-h: calc(var(--scale) * 2.4);
+    
     --rowH: calc(var(--scale) * 1.6);
-    --gap: 10px;
     --round: calc(var(--scale) * 0.33);
-    --u: 8px;
 
-    --panel-pad: 24px;
+    --panel-pad: calc(var(--scale) * 1.0); /* Dynamic padding */
 
     --page-bg: #111;
     --panel-bg: #181818;
@@ -70,7 +75,7 @@ body {
     flex: 1;
     display: flex;
     justify-content: center;
-    padding: 40px 20px;
+    padding: 20px; /* Reduced padding */
     width: 100%;
 }
 
@@ -99,7 +104,6 @@ body {
     font-size: 16px;
     font-weight: 500;
     opacity: 0.6;
-    transition: all 0.2s ease;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -148,6 +152,7 @@ body {
     flex-direction: column;
     gap: 24px;
     height: fit-content;
+    /* Removed max-width: 100% to allow wrapper to fully enclose content even if it overflows screen */
 }
 
 /* New Top Layout: Keyboard (Left) + KeyInfo (Right) */
@@ -155,12 +160,15 @@ body {
     display: flex;
     gap: 24px;
     align-items: flex-start;
+    flex-wrap: nowrap; /* Prevent wrapping to keep side-by-side layout */
+    justify-content: center;
 }
 
 .layout-left {
     display: flex;
     flex-direction: column;
     gap: 16px;
+    flex: 0 0 auto; /* Prevent shrinking */
 }
 
 /* --------------------------------------------------
@@ -177,6 +185,7 @@ body {
     display: flex;
     flex-direction: column; /* Stack legend and keys */
     gap: 16px;
+    /* Removed max-width and overflow to let it expand fully */
 }
 
 .kb {
@@ -198,7 +207,7 @@ body {
 
 /* Keys and Spacers */
 .key, .key-spacer {
-    height: 64px;
+    height: var(--key-h);
     width: calc( (var(--u) * var(--w)) + (var(--gap) * (var(--w) - 1)) );
     margin-right: var(--gap);
     flex-shrink: 0;
@@ -213,7 +222,7 @@ body {
     border: 1px solid var(--key-edge);
     border-radius: var(--round);
     color: var(--key-text);
-    font-size: calc(var(--scale) * 0.48);
+    font-size: calc(var(--scale) * 0.55); /* Slightly larger font relative to scale */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -269,6 +278,7 @@ body {
     border-radius: 0;
     width: 100%;
     margin-bottom: 0;
+    flex-wrap: wrap;
 }
 
 .legend-item {
@@ -293,8 +303,9 @@ body {
    Key Info Panel (Fixed Right)
 -------------------------------------------------- */
 .key-info {
-    width: 320px;
-    min-width: 320px;
+    /* Width relative to scale to ensure it shrinks with the keyboard */
+    width: calc(var(--scale) * 14);
+    min-width: 260px; /* Minimum legible width */
     background: var(--panel-bg);
     border-radius: 20px;
     border: 1px solid var(--panel-border);
@@ -305,6 +316,7 @@ body {
     position: relative;
     overflow: visible;
     height: fit-content;
+    flex-shrink: 0; /* Don't let flexbox squash it arbitrarily */
 }
 
 .key-info-header {
@@ -402,6 +414,7 @@ body {
     border-radius: 20px;
     padding: 20px 24px;
     gap: 32px;
+    flex-wrap: wrap; /* Allow settings to stack if needed */
 }
 
 .bottom-group {
@@ -428,11 +441,13 @@ body {
     align-items: center;
     gap: 32px;
     width: 100%;
+    flex-wrap: wrap;
 }
 
 .settings-group {
     display: flex;
     gap: 24px;
+    flex-wrap: wrap;
 }
 
 .bottom-setting-block {
@@ -557,6 +572,7 @@ body {
     align-items: center;
     gap: 12px;
     height: 100%;
+    flex-wrap: wrap;
 }
 
 .action-btn {

@@ -52,15 +52,15 @@ export const AboutPage: React.FC = () => {
                 <div style={{ marginTop: '30px', borderTop: '1px solid #2A2A28', paddingTop: '20px' }}>
                     <h3 style={{ fontSize: '1.2rem', marginBottom: '10px', color: '#EDEAE3' }}>Project & Contact</h3>
                     <p>
-                        You can find the source code and follow the development on GitHub:
+                        This project is a hobby project and thus im not very active at it. Here are my github page to see the project status:
                         <br />
                         <a 
-                            href="https://github.com/" 
+                            href="https://github.com/eliasskeppstedt/Keyboard-ReLay" 
                             target="_blank" 
                             rel="noopener noreferrer"
                             style={{ color: '#9f9cff', textDecoration: 'none', fontWeight: 'bold', display: 'inline-block', marginTop: '8px' }}
                         >
-                            github.com/keyboard-relay
+                            https://github.com/eliasskeppstedt/Keyboard-ReLay
                         </a>
                     </p>
                 </div>
