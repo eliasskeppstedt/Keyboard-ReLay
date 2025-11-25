@@ -55,7 +55,7 @@ export const AboutPage: React.FC = () => {
                         You can find the source code and follow the development on GitHub:
                         <br />
                         <a 
-                            href="https://github.com/eliasskeppstedt/Keyboard-ReLay" 
+                            href="https://github.com/" 
                             target="_blank" 
                             rel="noopener noreferrer"
                             style={{ color: '#9f9cff', textDecoration: 'none', fontWeight: 'bold', display: 'inline-block', marginTop: '8px' }}
