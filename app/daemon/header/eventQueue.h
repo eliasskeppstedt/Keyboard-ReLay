@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <dispatch/dispatch.h>
+#include <stdbool.h>
 #include <sys/time.h>
 #include "./constants.h"
 #include "./interface/relayEventHandler.h"

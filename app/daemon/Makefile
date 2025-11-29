@@ -1,7 +1,8 @@
 mac_cc = clang -g
 mac_cflags = -Wall -Wextra
 mac_frameworks = -framework ApplicationServices -framework CoreFoundation
-src = src/main.c \
+mac_src = \
+	src/main.c \
 	src/relayEventHandler.c \
 	src/initData.c \
 	src/eventQueue.c \
@@ -9,8 +10,21 @@ src = src/main.c \
 	lib/cJSON.c
 out = ./out/keyboard_relay
 
-macapp: $(src)
-	$(mac_cc) $(mac_cflags) $(src) $(mac_frameworks) -o $(out)
+lin_cc = gcc
+lin_cflags = -Wall -Wextra
+lin_src = \
+	src/main.c \
+	src/relayEventHandler.c \
+	src/initData.c \
+	src/eventQueue.c \
+	src/os/x11EventSystem.c \
+	lib/cJSON.c
+
+macapp: $(mac_src)
+	$(mac_cc) $(mac_cflags) $(mac_src) $(mac_frameworks) -o $(out)
+
+linapp: $(lin_src)
+	$(lin_cc) $(lin_cflags) $(lin_src) -o $(out)
 
 run:
 	$(out)

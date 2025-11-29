@@ -2,6 +2,7 @@
 #define _INTERFACE_RELAYEVENTHANDLER_
 
 #include <sys/time.h>
+#include <stdint.h>
 
 /*
  * uint64_t code;

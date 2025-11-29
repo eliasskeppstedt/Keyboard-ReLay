@@ -2,6 +2,7 @@
 #define _RELAYEVENTHANDLER_
 
 #include "./eventQueue.h"
+#include <stdint.h>
 
 /*
  * @attention relayEventHandler.h

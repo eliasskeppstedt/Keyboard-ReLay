@@ -2,6 +2,9 @@
 
 ## How it works
 
+## X11
+
+The library <X11/extensions/XI.h> / <X11/extensions/XInput.h> will return NoSuchExtension if an extension request is made to a server that does not support the input extension. 
 
 ## Core Foundation
 A framework Apple provides that enables low level functionalities for programs on Mac OS.

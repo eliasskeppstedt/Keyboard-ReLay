@@ -1,0 +1,4 @@
+#ifdef _X11EVENTSYSTEM_
+#define _X11EVENTSYSTEM_
+
+#endif // _X11EVENTSYSTEM_
